@@ -1,5 +1,5 @@
 /***********************************/
-/*http://www.layabox.com 2016/2/27*/
+/*http://www.layabox.com 2016/05/19*/
 /***********************************/
 window.Laya=(function(window,document){
 	var Laya={
@@ -11,7 +11,6 @@ window.Laya=(function(window,document){
 		__presubstr:String.prototype.substr,
 		__substr:function(ofs,sz){return arguments.length==1?Laya.__presubstr.call(this,ofs):Laya.__presubstr.call(this,ofs,sz>0?sz:(this.length+sz));},
 		__init:function(_classs){_classs.forEach(function(o){o.__init$ && o.__init$();});},
-		__parseInt:function(value){return !value?0:parseInt(value);},
 		__isClass:function(o){return o && (o.__isclass || o==Object || o==String || o==Array);},
 		__newvec:function(sz,value){
 			var d=[];
@@ -87,7 +86,7 @@ window.Laya=(function(window,document){
 					if(fullName.indexOf('laya.')==0){
 						var paths=fullName.split('.');
 						miniName=miniName || paths[paths.length-1];
-						if(Laya[miniName]) console.log('warning:class name redefinition,'+fullName+'/'+Laya[miniName]);
+						if(Laya[miniName]) debugger;
 						Laya[miniName]=o;
 					}					
 				}
@@ -96,7 +95,8 @@ window.Laya=(function(window,document){
 						window.Main=o;
 					else{
 						if(Laya[fullName]){
-							console.log('warning:class name redefinition,'+fullName+'/'+Laya[fullName]);
+							console.log("Err!,Same class:"+fullName,Laya[fullName]);
+							debugger;
 						}
 						Laya[fullName]=o;
 					}
@@ -156,7 +156,7 @@ window.Laya=(function(window,document){
 				}
 		},		
 		un:function(obj,name,value){
-			arguments.length<3 &&(value=obj[name]);
+			value || (value=obj[name]);
 			Laya.__propun.value=value;
 			Object.defineProperty(obj, name, Laya.__propun);
 			return value;
@@ -177,28 +177,26 @@ window.Laya=(function(window,document){
 
 (function(window,document,Laya){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
-	Laya.interface('laya.d3.core.render.IRenderable');
-	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
-	Laya.interface('laya.resource.IDispose');
+	Laya.interface('laya.filters.IFilter');
 	Laya.interface('laya.display.ILayout');
-	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
-	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('laya.ui.ISelect');
+	Laya.interface('laya.webgl.shapes.IShape');
+	Laya.interface('laya.resource.IDispose');
+	Laya.interface('laya.filters.IFilterAction');
+	Laya.interface('laya.webgl.text.ICharSegment');
 	Laya.interface('laya.webgl.canvas.save.ISaveData');
+	Laya.interface('laya.webgl.submit.ISubmit');
 	Laya.interface('laya.runtime.IConchNode');
 	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
-	Laya.interface('laya.webgl.shapes.IShape');
-	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
 	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
+	Laya.interface('laya.d3.core.render.IRenderable');
+	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
 	Laya.interface('laya.ui.IItem');
-	Laya.interface('laya.webgl.text.ICharSegment');
-	Laya.interface('laya.filters.IFilterAction');
-	Laya.interface('laya.filters.IFilter');
-	Laya.interface('laya.ui.ISelect');
 	Laya.interface('laya.filters.IFilterActionGL','laya.filters.IFilterAction');
-	var await=Laya.await=function(caller,fn,nextLine){
-		Asyn._caller_=caller;
-		Asyn._callback_=fn;
-		Asyn._nextLine_=nextLine;
+	var load=Laya.load=function(url,type){
+		return Asyn.load(url,type);
 	}
 
 
@@ -212,8 +210,10 @@ window.Laya=(function(window,document){
 	}
 
 
-	var load=Laya.load=function(url,type){
-		return Asyn.load(url,type);
+	var await=Laya.await=function(caller,fn,nextLine){
+		Asyn._caller_=caller;
+		Asyn._callback_=fn;
+		Asyn._nextLine_=nextLine;
 	}
 
 
@@ -1059,6 +1059,7 @@ window.Laya=(function(window,document){
 		function ArenaData(){
 			this.roleMetaList=[];
 			this.playerList=[];
+			this.speed=1;
 			var roleMeta=new RoleMeta();
 			roleMeta.id=1;
 			roleMeta.name="诸葛亮";
@@ -2130,7 +2131,7 @@ window.Laya=(function(window,document){
 		__proto.showGameInfoContent=function(){
 			this._gameInfoItemView.setText(this._gameInfoList[0]);
 			Tween.to(this.gameInfoView,
-			{y :60,onComplete :__bind(this,this.gameInfoViewShowComplete)},200);
+			{y :60,onComplete :this.gameInfoViewShowComplete},200);
 		}
 
 		__proto.gameInfoViewShowComplete=function(){
@@ -2139,7 +2140,7 @@ window.Laya=(function(window,document){
 
 		__proto.hideGameInfoView=function(){
 			Tween.to(this.gameInfoView,
-			{y :(0-this.gameInfoView.height),onComplete :__bind(this,this.gameInfoViewHideComplete)},200);
+			{y :(0-this.gameInfoView.height),onComplete :this.gameInfoViewHideComplete},200);
 		}
 
 		__proto.gameInfoViewHideComplete=function(){
@@ -8131,26 +8132,26 @@ window.Laya=(function(window,document){
 			var tX=0;
 			var tScale=1;
 			var tInfo=xml.getElementsByTagName("info");
-			this.fontSize=Laya.__parseInt(tInfo[0].attributes["size"].nodeValue);
+			this.fontSize=parseInt(tInfo[0].attributes["size"].nodeValue);
 			var tPadding=tInfo[0].attributes["padding"].nodeValue;
 			var tPaddingArray=tPadding.split(",");
-			var tUpPadding=Laya.__parseInt(tPaddingArray[0]);
-			var tDownPadding=Laya.__parseInt(tPaddingArray[2]);
-			this._leftPadding=Laya.__parseInt(tPaddingArray[3]);
-			this._rightPadding=Laya.__parseInt(tPaddingArray[1]);
+			var tUpPadding=parseInt(tPaddingArray[0]);
+			var tDownPadding=parseInt(tPaddingArray[2]);
+			this._leftPadding=parseInt(tPaddingArray[3]);
+			this._rightPadding=parseInt(tPaddingArray[1]);
 			var chars=xml.getElementsByTagName("char");
 			var i=0;
 			for (i=0;i < chars.length;i++){
 				var tAttribute=chars[i].attributes;
-				var tId=Laya.__parseInt(tAttribute["id"].nodeValue);
-				var xOffset=Laya.__parseInt(tAttribute["xoffset"].nodeValue)/ tScale;
-				var yOffset=Laya.__parseInt(tAttribute["yoffset"].nodeValue)/ tScale;
-				var xAdvance=Laya.__parseInt(tAttribute["xadvance"].nodeValue)/ tScale;
+				var tId=parseInt(tAttribute["id"].nodeValue);
+				var xOffset=parseInt(tAttribute["xoffset"].nodeValue)/ tScale;
+				var yOffset=parseInt(tAttribute["yoffset"].nodeValue)/ tScale;
+				var xAdvance=parseInt(tAttribute["xadvance"].nodeValue)/ tScale;
 				var region=new Rectangle();
-				region.x=Laya.__parseInt(tAttribute["x"].nodeValue);
-				region.y=Laya.__parseInt(tAttribute["y"].nodeValue);
-				region.width=Laya.__parseInt(tAttribute["width"].nodeValue);
-				region.height=Laya.__parseInt(tAttribute["height"].nodeValue);
+				region.x=parseInt(tAttribute["x"].nodeValue);
+				region.y=parseInt(tAttribute["y"].nodeValue);
+				region.width=parseInt(tAttribute["width"].nodeValue);
+				region.height=parseInt(tAttribute["height"].nodeValue);
 				var tTexture=Texture.create(texture,region.x,region.y,region.width,region.height,xOffset,yOffset);
 				this._maxHeight=Math.max(this._maxHeight,tUpPadding+tDownPadding+tTexture.height);
 				this._maxWidth=Math.max(this._maxWidth,tTexture.width);
@@ -8471,7 +8472,7 @@ window.Laya=(function(window,document){
 						continue ;
 					}
 				if (str.indexOf('px')> 0){
-					this.size=Laya.__parseInt(str);
+					this.size=parseInt(str);
 					this.family=strs[i+1];
 					i++;
 					continue ;
@@ -8587,7 +8588,7 @@ window.Laya=(function(window,document){
 					weight=100;
 					break ;
 				default :
-					weight=Laya.__parseInt(value);
+					weight=parseInt(value);
 				}
 			this._weight=weight;
 			this._text=null;
@@ -13523,10 +13524,10 @@ window.Laya=(function(window,document){
 				this.strColor=str;
 				if (str===null)str="#000000";
 				str.charAt(0)=='#' && (str=str.substr(1));
-				var color=this.numColor=Laya.__parseInt(str,16);
+				var color=this.numColor=parseInt(str,16);
 				var flag=(str.length==8);
 				if (flag){
-					this._color=[Laya.__parseInt(str.substr(0,2),16)/ 255,((0x00FF0000 & color)>> 16)/ 255,((0x0000FF00 & color)>> 8)/ 255,(0x000000FF & color)/ 255];
+					this._color=[parseInt(str.substr(0,2),16)/ 255,((0x00FF0000 & color)>> 16)/ 255,((0x0000FF00 & color)>> 8)/ 255,(0x000000FF & color)/ 255];
 					return;
 				}
 				}else {
@@ -17339,7 +17340,7 @@ window.Laya=(function(window,document){
 					break ;
 				}
 			}
-			this._size=Laya.__parseInt(this._words[this._index]);
+			this._size=parseInt(this._words[this._index]);
 			this._text=null;
 			this._italic=-2;
 		}
@@ -19043,7 +19044,28 @@ window.Laya=(function(window,document){
 
 		__class(ArenaMediator,'com.gamepark.casino.game.arena.mediator.ArenaMediator',_super);
 		var __proto=ArenaMediator.prototype;
-		__proto.onInitialize=function(){}
+		__proto.onInitialize=function(){
+			this.arenaView.btnSpeed.on("click",this,this.btnSpeedClickHandler);
+		}
+
+		__proto.btnSpeedClickHandler=function($evt){
+			switch(this.gameContext.arenaContext.data.speed){
+				case 1:
+					this.gameContext.arenaContext.data.speed=2;
+					this.arenaView.btnSpeed.label="X1.5";
+					break ;
+				case 2:
+					this.gameContext.arenaContext.data.speed=3;
+					this.arenaView.btnSpeed.label="X2.0";
+					break ;
+				case 3:
+					this.gameContext.arenaContext.data.speed=1;
+					this.arenaView.btnSpeed.label="X1.0";
+					break ;
+				}
+			this.arenaView.roleView.changeSpeed();
+		}
+
 		__proto.open=function(){
 			this.initUI();
 			this.startGame();
@@ -19058,6 +19080,8 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.startGame=function(){
+			this.gameContext.arenaContext.data.speed=1;
+			this.arenaView.btnSpeed.label="X1.0";
 			var leftPlayer=this.gameContext.arenaContext.data.playerList[0];
 			this.arenaView.leftPlayerInfoView.lbName.text=leftPlayer.name;
 			this.arenaView.leftPlayerInfoView.lbFirstAttack.text="先手值："+leftPlayer.roleVO.firstAttack;
@@ -22951,7 +22975,7 @@ window.Laya=(function(window,document){
 					w=w.substr(0,offset);
 				}
 				if (this._calculation("width",w))return;
-				w=Laya.__parseInt(w);
+				w=parseInt(w);
 			}
 			this.size(w,-1);
 		});
@@ -22963,7 +22987,7 @@ window.Laya=(function(window,document){
 			this._type |=0x2000;
 			if ((typeof h=='string')){
 				if (this._calculation("height",h))return;
-				h=Laya.__parseInt(h);
+				h=parseInt(h);
 			}
 			this.size(-1,h);
 		});
@@ -23031,7 +23055,7 @@ window.Laya=(function(window,document){
 			};
 			var i=0;
 			if (values[0].indexOf('px')> 0){
-				this._border.size=Laya.__parseInt(values[0]);
+				this._border.size=parseInt(values[0]);
 				i++;
 			}else this._border.size=1;
 			this._border.type=values[i];
@@ -23044,7 +23068,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'leading',function(){
 			return this._spacing[1];
 			},function(d){
-			((typeof d=='string'))&& (d=Laya.__parseInt(d+""));
+			((typeof d=='string'))&& (d=parseInt(d+""));
 			this._spacing===CSSStyle._SPACING && (this._spacing=[0,0]);
 			this._spacing[1]=d;
 		});
@@ -23060,7 +23084,7 @@ window.Laya=(function(window,document){
 				else if (value==="right")
 				value="100% -100% 0";
 				if (this._calculation("left",value))return;
-				value=Laya.__parseInt(value);
+				value=parseInt(value);
 			}
 			ower.x=value;
 		});
@@ -23085,7 +23109,7 @@ window.Laya=(function(window,document){
 				else if (value==="bottom")
 				value="100% -100% 0";
 				if (this._calculation("top",value))return;
-				value=Laya.__parseInt(value);
+				value=parseInt(value);
 			}
 			ower.y=value;
 		});
@@ -23141,7 +23165,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'letterSpacing',function(){
 			return this._spacing[0];
 			},function(d){
-			((typeof d=='string'))&& (d=Laya.__parseInt(d+""));
+			((typeof d=='string'))&& (d=parseInt(d+""));
 			this._spacing===CSSStyle._SPACING && (this._spacing=[0,0]);
 			this._spacing[0]=d;
 		});
@@ -23317,16 +23341,16 @@ window.Laya=(function(window,document){
 						break ;
 					case 'line-height':
 						one[0]='lineHeight';
-						one[1]=Laya.__parseInt(value);
+						one[1]=parseInt(value);
 						break ;
 					case 'font-size':
 						one[0]='fontSize';
-						one[1]=Laya.__parseInt(value);
+						one[1]=parseInt(value);
 						break ;
 					case 'padding':
 						valueArray=value.split(' ');
 						valueArray.length > 1 || (valueArray[1]=valueArray[2]=valueArray[3]=valueArray[0]);
-						one[1]=[Laya.__parseInt(valueArray[0]),Laya.__parseInt(valueArray[1]),Laya.__parseInt(valueArray[2]),Laya.__parseInt(valueArray[3])];
+						one[1]=[parseInt(valueArray[0]),parseInt(valueArray[1]),parseInt(valueArray[2]),parseInt(valueArray[3])];
 						break ;
 					case 'rotate':
 						one[0]="_rotate";
@@ -23340,7 +23364,7 @@ window.Laya=(function(window,document){
 					case 'translate':
 						valueArray=value.split(' ');
 						one[0]="_translate";
-						one[1]=[Laya.__parseInt(valueArray[0]),Laya.__parseInt(valueArray[1])];
+						one[1]=[parseInt(valueArray[0]),parseInt(valueArray[1])];
 						break ;
 					default :
 						(one[0]=CSSStyle._CSSTOVALUE[name])|| (one[0]=name);
@@ -28332,7 +28356,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.parseOne=function(attributes,uniforms,words,i,word,b){
-			var one={type:Shader.shaderParamsMap[words[i+1]],name:words[i+2],size:isNaN(Laya.__parseInt(words[i+3]))? 1 :Laya.__parseInt(words[i+3])};
+			var one={type:Shader.shaderParamsMap[words[i+1]],name:words[i+2],size:isNaN(parseInt(words[i+3]))? 1 :parseInt(words[i+3])};
 			if (b){
 				if (word=="attribute"){
 					attributes.push(one);
@@ -29822,7 +29846,6 @@ window.Laya=(function(window,document){
 
 		__proto.onSkeletonDataParsed=function(){
 			this.roleAni=this.factory.buildArmature(2);
-			console.log(1,"roleAni",this.roleAni);
 			if(this.group==0){
 				this.roleAni.scaleX=0.3;
 			}
@@ -29842,7 +29865,23 @@ window.Laya=(function(window,document){
 			this.roleAni.on("enterframe",this,this.onAnimationEnterFrameHandler);
 			this.roleAni.on("stopped",this,this.onAnimationFinish);
 			this.timer.frameLoop(1,this,this.enterFrameHandler);
+			this.changeSpeed();
 			this.playIdle();
+		}
+
+		__proto.changeSpeed=function(){
+			console.log(2,"GameContext.i.arenaContext.data.speed : ",GameContext.i.arenaContext.data.speed);
+			switch(GameContext.i.arenaContext.data.speed){
+				case 1:
+					this.roleAni.playbackRate(1);
+					break ;
+				case 2:
+					this.roleAni.playbackRate(1.5);
+					break ;
+				case 3:
+					this.roleAni.playbackRate(2);
+					break ;
+				}
 		}
 
 		__proto.onAnimationEnterFrameHandler=function(){
@@ -29856,6 +29895,7 @@ window.Laya=(function(window,document){
 					animationMeta=this.roleInfo.meta.superUniqueSkillAnimationMeta;
 				}
 				currentAnimationFrame=animationMeta.infoList[this.roleInfo.actionInfo.animationIndex];
+				console.log(1,"this.roleAni.player.currentKeyframeIndex : ",this.roleAni.player.currentKeyframeIndex);
 				if(this.roleAni.player.currentKeyframeIndex >=currentAnimationFrame){
 					var i=0;
 					var targetRoleInfo;
@@ -29922,7 +29962,6 @@ window.Laya=(function(window,document){
 							effectInfo.type=7;
 							effectInfo.sourceRoleInfo=this.roleInfo;
 							GameContext.i.arenaContext.gameView.effectView.addEffect(effectInfo);
-							console.log("")
 							if(this.status==4){
 								effectInfo=new EffectItemInfo();
 								effectInfo.damage=totalDamage;
@@ -29935,13 +29974,12 @@ window.Laya=(function(window,document){
 					else{
 						this.roleInfo.actionInfo.animationIndex++;
 					}
-					console.log(2,"enter function onAnimationEnterFrameHandler, play target animation frame index is : ",this.roleAni.player.currentKeyframeIndex);
 				}
 			}
 		}
 
+		// trace(2,"enter function onAnimationEnterFrameHandler, play target animation frame index is : ",this.roleAni.player.currentKeyframeIndex);
 		__proto.onAnimationFinish=function(){
-			console.log(1,"enter function onAnimationFinish");
 			if(this.secondStatus==607){
 				this.doRunBackAttack();
 				this.parent.setChildIndex(this,(this.group *6+this.position));
@@ -29951,7 +29989,6 @@ window.Laya=(function(window,document){
 			}
 			else if(this.secondStatus==604){
 				if(this.status==7){
-					console.log(1,"play die and falling animation finished");
 					this.secondStatus=701;
 				}
 				else{
@@ -29959,7 +29996,6 @@ window.Laya=(function(window,document){
 				}
 			}
 			else if(this.secondStatus==702){
-				console.log(1,"play die animation finished");
 				this.secondStatus=703;
 			}
 		}
@@ -29996,8 +30032,7 @@ window.Laya=(function(window,document){
 				case 4:
 				case 5:
 				switch(this.secondStatus){
-					case 604:
-						console.log(1,"this.roleInfo.currentTargetRoleInfoList.length : ",this.roleInfo.currentTargetRoleInfoList.length);
+					case 604:;
 						var targetView=this.roleInfo.currentTargetRoleInfoList[0].roleItemView;
 						var distanceX=targetView.x-this.x;
 						var distanceY=targetView.y-this.y;
@@ -30102,7 +30137,6 @@ window.Laya=(function(window,document){
 					case 604:
 						break ;
 					case 701:
-						console.log("show die animation");
 						this.secondStatus=702;
 						this.playDie();
 						break ;
@@ -30149,9 +30183,9 @@ window.Laya=(function(window,document){
 		__proto.doAttack=function(){
 			this.status=5;
 			this.secondStatus=604;
-			console.log(1,"enter function do attack");
 		}
 
+		// trace(1,"enter function do attack");
 		__proto.playIdle=function(){
 			this.roleAni.play("idle",true);
 		}
@@ -30231,10 +30265,8 @@ window.Laya=(function(window,document){
 				damage=damage *randomDamageParam;
 				damage=Math.round(damage *this.roleInfo.roleVO.attackMulti);
 				targetRoleInfo.hp-=damage;
-				console.log(1,"attack target hp is : ",targetRoleInfo.hp," position is : ",targetRoleInfo.position);
 				if(targetRoleInfo.hp <=0){
 					targetRoleInfo.hp=0;
-					console.log(1,"attack target is die");
 				}
 				targetRoleInfo.mp+=Math.round(damage / targetRoleInfo.meta.hpMax *100);
 				if(targetRoleInfo.mp > 100){
@@ -30465,6 +30497,15 @@ window.Laya=(function(window,document){
 				return true;
 			}
 			return false;
+		}
+
+		__proto.changeSpeed=function(){
+			var roleItemView;
+			var i=0;
+			for(i=0;i < 12;i++){
+				roleItemView=this.roleItemViewList[i];
+				roleItemView.changeSpeed();
+			}
 		}
 
 		return RoleListView;
@@ -31010,7 +31051,7 @@ window.Laya=(function(window,document){
 				if (force || this._pause || this._currAniIndex !=index){
 					this._currAniIndex=index;
 					this._curOriginalData=new Float32Array(this._templet.getTotalkeyframesLength(index));
-					this._player.play(index,1,duration);
+					this._player.play(index,this._player.playbackRate,duration);
 					this._templet.showSkinByIndex(this._boneSlotDic,0);
 					if (this._pause){
 						this._pause=false;
@@ -33263,7 +33304,7 @@ window.Laya=(function(window,document){
 			else if (this._alignV==="bottom")this.offset.y=screenHeight-realHeight;
 			else this.offset.y=(screenHeight-realHeight)*0.5 / pixelRatio;
 			if (!this._offset){
-				this._offset=new Point(Laya.__parseInt(canvasStyle.left)|| 0,Laya.__parseInt(canvasStyle.top)|| 0);
+				this._offset=new Point(parseInt(canvasStyle.left)|| 0,parseInt(canvasStyle.top)|| 0);
 				canvasStyle.left=canvasStyle.top="0px";
 			}
 			this.offset.x+=this._offset.x;
@@ -34517,7 +34558,7 @@ window.Laya=(function(window,document){
 			if (bIsConchApp){
 				var nFontSize=char.fontSize;
 				if (xs !=1 || ys !=1){
-					nFontSize=Laya.__parseInt(nFontSize*((xs>ys)?xs:ys)+"");
+					nFontSize=parseInt(nFontSize*((xs>ys)?xs:ys)+"");
 				};
 				var sFont="normal 100 "+nFontSize+"px Arial";
 				if (char.borderColor){
@@ -35883,7 +35924,7 @@ window.Laya=(function(window,document){
 		/**@inheritDoc */
 		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
 			this._dataSource=value;
-			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.index=Laya.__parseInt(value);
+			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.index=parseInt(value);
 			else _super.prototype._$set_dataSource.call(this,value);
 		});
 
@@ -36684,7 +36725,7 @@ window.Laya=(function(window,document){
 		/**@inheritDoc */
 		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
 			this._dataSource=value;
-			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=Laya.__parseInt(value);
+			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=parseInt(value);
 			else if ((value instanceof Array))this.labels=(value).join(",");
 			else _super.prototype._$set_dataSource.call(this,value);
 		});
@@ -40277,7 +40318,7 @@ window.Laya=(function(window,document){
 		/**@inheritDoc */
 		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
 			this._dataSource=value;
-			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=Laya.__parseInt(value);
+			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=parseInt(value);
 			else if ((value instanceof Array))this.array=value
 			else _super.prototype._$set_dataSource.call(this,value);
 		});
@@ -41300,7 +41341,7 @@ window.Laya=(function(window,document){
 		/**@inheritDoc */
 		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
 			this._dataSource=value;
-			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=Laya.__parseInt(value);
+			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string'))this.selectedIndex=parseInt(value);
 			else if ((value instanceof Array))this.labels=(value).join(",");
 			else _super.prototype._$set_dataSource.call(this,value);
 		});
@@ -41843,7 +41884,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
 			this._dataSource=value;
 			if (((typeof value=='number')&& Math.floor(value)==value)|| (typeof value=='string')){
-				this.selectedIndex=Laya.__parseInt(value);
+				this.selectedIndex=parseInt(value);
 				}else {
 				for (var prop in this._dataSource){
 					if (this.hasOwnProperty(prop)){
@@ -44233,7 +44274,7 @@ window.Laya=(function(window,document){
 	})(TestPageUI)
 
 
-	Laya.__init([EventDispatcher,Timer,ErisGamePropertyObserver,Browser,ShaderCompile,WebGLContext,WebGLContext2D,Render,LoaderManager,WebGLFilter,Dialog,AtlasGrid,RenderTargetMAX,DrawText]);
+	Laya.__init([EventDispatcher,Timer,ErisGamePropertyObserver,Browser,ShaderCompile,WebGLContext,WebGLContext2D,Render,LoaderManager,WebGLFilter,AtlasGrid,RenderTargetMAX,DrawText,Dialog]);
 	new Sanguo();
 
 })(window,document,Laya);
