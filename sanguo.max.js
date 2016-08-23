@@ -958,6 +958,7 @@ window.Laya=(function(window,document){
 		ArenaRoleStatusEnum.ENTERING=2;
 		ArenaRoleStatusEnum.ENTER_COMPLETE=3;
 		ArenaRoleStatusEnum.IDLE=2;
+		ArenaRoleStatusEnum.IDLE_ACTION=201;
 		ArenaRoleStatusEnum.BUFF=3;
 		ArenaRoleStatusEnum.SUPER_UNIQUE_SKILL=4;
 		ArenaRoleStatusEnum.ATTACK=5;
@@ -1235,7 +1236,12 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.hp=this.meta.hpMax;
 			this.mp=0;
-			console.log(1,"init position is : ",this.position);
+			if(this.position==3){
+				this.mp=100;
+			}
+			if(this.position==4){
+				this.mp=100;
+			}
 		}
 
 		// }
@@ -1399,9 +1405,11 @@ window.Laya=(function(window,document){
 		__proto.canSuperUniqueSkill=function(){
 			var attackRoleInfo;
 			var i=0;
+			console.log("calc unique skill from index : ",this.actionIndex);
 			for(i=this.actionIndex;i < this.roleInfoList.length;i++){
 				attackRoleInfo=this.roleInfoList[i];
 				if(attackRoleInfo.canSuperUniqueSkill()){
+					console.log("skill ready on position : ",attackRoleInfo.position);
 					return true;
 				}
 			}
@@ -1412,15 +1420,14 @@ window.Laya=(function(window,document){
 			var attackRoleInfo;
 			var defenceRoleInfo;
 			var i=0;
-			console.log(1,"enter function calcSuperUniqueSkillRoleAndTarget, actionIndex is",this.actionIndex);
 			for(i=this.actionIndex;i < this.roleInfoList.length;i++){
 				attackRoleInfo=this.roleInfoList[i];
 				if(attackRoleInfo.canSuperUniqueSkill()){
 					attackRoleInfo.currentTargetRoleInfoList=ArenaUtil.getUniqueSkillTargetListByAttaker(attackRoleInfo,$defenseRoleVO);
 					attackRoleInfo.roleItemView.doSuperUniqueSkill();
+					console.log(1,"calcSkillRoleAndTarget, position ",this.position," index ",i," attack position ",$defenseRoleVO.position,"index ",attackRoleInfo.currentTargetRoleInfoList[0].position);
 					this.actionIndex=i+1;
 					this.actionRoleInfo=attackRoleInfo;
-					console.log(1,"enter function calcSuperUniqueSkillRoleAndTarget, actionIndex is",this.actionIndex);
 					break ;
 				}
 			}
@@ -1459,8 +1466,7 @@ window.Laya=(function(window,document){
 				if(attackRoleInfo.canAttack()){
 					attackRoleInfo.currentTargetRoleInfoList=$defenseRoleVO.getAttackTarget();
 					attackRoleInfo.roleItemView.doAttack();
-					console.log(1,"calcAttackRoleAndTarget, position ",this.position," index ",this.actionIndex," attack position ",$defenseRoleVO.position,"index ",attackRoleInfo.currentTargetRoleInfoList[0].position);
-					console.log(1,"target status : ",attackRoleInfo.currentTargetRoleInfoList[0].roleItemView.status," ",attackRoleInfo.currentTargetRoleInfoList[0].roleItemView.secondStatus);
+					console.log(1,"calcAttackRoleAndTarget, position ",this.position," index ",i," attack position ",$defenseRoleVO.position,"index ",attackRoleInfo.currentTargetRoleInfoList[0].position);
 					this.actionIndex=i+1;
 					this.actionRoleInfo=attackRoleInfo;
 					break ;
@@ -1562,6 +1568,7 @@ window.Laya=(function(window,document){
 							}
 							break ;
 						}
+					console.log(1,"skill targetList length : ",targetList.length);
 					return targetList;
 				}
 			}
@@ -19084,6 +19091,8 @@ window.Laya=(function(window,document){
 				this.arenaView.roleListView["roleItemView"+(i+1)].hpView.imgHp.scaleX=1;
 				this.arenaView.roleListView["roleItemView"+(i+1)].mpView.imgMp.scaleX=0;
 			}
+			GameContext.i.arenaContext.gameView.rightPlayerInfoView.imgPlayerHp.scaleX=1;
+			GameContext.i.arenaContext.gameView.leftPlayerInfoView.imgPlayerHp.scaleX=1;
 		}
 
 		__proto.startGame=function(){
@@ -19180,9 +19189,11 @@ window.Laya=(function(window,document){
 							else{
 								this.secondStatus=606;
 							}
+							console.log("mediator second status : ",this.secondStatus);
 						}
 						break ;
 					case 603:
+						console.log("mediator do run to attack");
 						this.arenaView.roleView.doRunToAttack();
 						this.secondStatus=604;
 						break ;
@@ -29905,7 +29916,6 @@ window.Laya=(function(window,document){
 					var targetRoleInfo;
 					var effectInfo;
 					var totalDamage=0;
-					console.log(1,"this.roleInfo.currentTargetRoleInfoList.length : ",this.roleInfo.currentTargetRoleInfoList.length);
 					for(i=0;i < this.roleInfo.currentTargetRoleInfoList.length;i++){
 						targetRoleInfo=this.roleInfo.currentTargetRoleInfoList[i];
 						if(targetRoleInfo.hp <=0){
@@ -30052,6 +30062,9 @@ window.Laya=(function(window,document){
 						};
 						var unitDistanceX=18 *Math.cos(wayRadians);
 						var unitDistanceY=18 *Math.sin(wayRadians);
+						if(this.status==4){
+							console.log("run to distanceX : ",distanceX);
+						}
 						if(this.group==0){
 							this.roleAni.x+=unitDistanceX;
 							this.roleAni.y+=unitDistanceY;
@@ -30090,6 +30103,9 @@ window.Laya=(function(window,document){
 						};
 						var unitDistanceX=18 *Math.cos(wayRadians);
 						var unitDistanceY=18 *Math.sin(wayRadians);
+						if(this.status==4){
+							console.log("run back distanceX : ",distanceX);
+						}
 						if(this.group==0){
 							this.roleAni.x+=unitDistanceX;
 							this.roleAni.y+=unitDistanceY;
@@ -30177,12 +30193,14 @@ window.Laya=(function(window,document){
 		// this.playRun();
 		__proto.doIdle=function(){
 			this.status=2;
+			this.secondStatus=201;
 			this.playIdle();
-			console.log("enter function doIdle");
 		}
 
+		// trace("enter function doIdle");
 		__proto.doSuperUniqueSkill=function(){
 			this.status=4;
+			this.secondStatus=504;
 		}
 
 		__proto.doAttack=function(){
@@ -30219,6 +30237,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.doRunToAttack=function(){
+			console.log("enter function do run to attack");
 			this.secondStatus=504;
 			this.playRun();
 		}
@@ -30373,6 +30392,7 @@ window.Laya=(function(window,document){
 			this.enterFrameHandler();
 		}
 
+		__proto.doUniqueSkill=function(){}
 		return RoleItemView;
 	})(Sprite)
 
@@ -30467,6 +30487,7 @@ window.Laya=(function(window,document){
 
 		__proto.isFinishSuperUniqueSkill=function(){
 			if(this.attackPlayer.roleVO.actionRoleInfo.roleItemView.isFinishSuperUniqueSkill()){
+				console.log("skill finish on position : ",this.attackPlayer.roleVO.actionRoleInfo.position);
 				return true;
 			}
 			return false;
@@ -30523,6 +30544,10 @@ window.Laya=(function(window,document){
 				roleItemView=this.roleItemViewList[i];
 				roleItemView.update();
 			}
+		}
+
+		__proto.doUniqueSkill=function(){
+			this.attackPlayer.roleVO.actionRoleInfo.roleItemView.doUniqueSkill();
 		}
 
 		return RoleListView;
