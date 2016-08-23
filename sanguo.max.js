@@ -961,14 +961,14 @@ window.Laya=(function(window,document){
 		ArenaRoleStatusEnum.BUFF=3;
 		ArenaRoleStatusEnum.SUPER_UNIQUE_SKILL=4;
 		ArenaRoleStatusEnum.ATTACK=5;
-		ArenaRoleStatusEnum.RUNNING_TO_ATTACK=604;
-		ArenaRoleStatusEnum.FINISH_RUN_TO_ATTACK=605;
-		ArenaRoleStatusEnum.READY_ATTACK_TARGET=606;
-		ArenaRoleStatusEnum.ATTACKING_TARGET=607;
-		ArenaRoleStatusEnum.FINISH_ATTACK_TARGET=608;
-		ArenaRoleStatusEnum.RUN_BACK_ATTACK=609;
-		ArenaRoleStatusEnum.FINISH_RUN_BACK_ATTACK=610;
-		ArenaRoleStatusEnum.FINISH_ATTACK=611;
+		ArenaRoleStatusEnum.RUNNING_TO_ATTACK=504;
+		ArenaRoleStatusEnum.FINISH_RUN_TO_ATTACK=505;
+		ArenaRoleStatusEnum.READY_ATTACK_TARGET=506;
+		ArenaRoleStatusEnum.ATTACKING_TARGET=507;
+		ArenaRoleStatusEnum.FINISH_ATTACK_TARGET=508;
+		ArenaRoleStatusEnum.RUN_BACK_ATTACK=509;
+		ArenaRoleStatusEnum.FINISH_RUN_BACK_ATTACK=510;
+		ArenaRoleStatusEnum.FINISH_ATTACK=511;
 		ArenaRoleStatusEnum.HURT=6;
 		ArenaRoleStatusEnum.READY_TO_HURT=601;
 		ArenaRoleStatusEnum.HURTING=602;
@@ -1333,6 +1333,7 @@ window.Laya=(function(window,document){
 			this.firstAttack=0;
 			this.status=0;
 			this.roleInfoList=[];
+			this.position=0;
 			this.actionIndex=0;
 			this.actionRoleInfo=null;
 			this.hasAttackAmount=0;
@@ -1369,6 +1370,12 @@ window.Laya=(function(window,document){
 			for(i=0;i < this.roleInfoList.length;i++){
 				roleInfo=this.roleInfoList[i];
 				this.firstAttack+=roleInfo.meta.firstAttack;
+			}
+			if($isMe){
+				this.position=0;
+			}
+			else{
+				this.position=1;
 			}
 		}
 
@@ -1447,15 +1454,15 @@ window.Laya=(function(window,document){
 			var attackRoleInfo;
 			var defenceRoleInfo;
 			var i=0;
-			console.log(1,"enter function calcAttackRoleAndTarget, actionIndex is",this.actionIndex);
 			for(i=this.actionIndex;i < this.roleInfoList.length;i++){
 				attackRoleInfo=this.roleInfoList[i];
 				if(attackRoleInfo.canAttack()){
 					attackRoleInfo.currentTargetRoleInfoList=$defenseRoleVO.getAttackTarget();
 					attackRoleInfo.roleItemView.doAttack();
+					console.log(1,"calcAttackRoleAndTarget, position ",this.position," index ",this.actionIndex," attack position ",$defenseRoleVO.position,"index ",attackRoleInfo.currentTargetRoleInfoList[0].position);
+					console.log(1,"target status : ",attackRoleInfo.currentTargetRoleInfoList[0].roleItemView.status," ",attackRoleInfo.currentTargetRoleInfoList[0].roleItemView.secondStatus);
 					this.actionIndex=i+1;
 					this.actionRoleInfo=attackRoleInfo;
-					console.log(1,"enter function calcAttackRoleAndTarget, actionIndex is",this.actionIndex);
 					break ;
 				}
 			}
@@ -19222,13 +19229,11 @@ window.Laya=(function(window,document){
 						}
 						break ;
 					case 603:
-						console.log("the role run to attack , position is : ",this.arenaView.roleView.attackPlayer.roleVO.actionRoleInfo.position);;
 						this.arenaView.roleView.doRunToAttack();
 						this.secondStatus=604;
 						break ;
 					case 604:
 						if(this.arenaView.roleView.isFinishAttacking()){
-							console.log("the role is finish attack");
 							this.secondStatus=602;
 						}
 						break ;
@@ -19268,6 +19273,7 @@ window.Laya=(function(window,document){
 				console.log("error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 				break ;
 			}
+			this.arenaView.roleView.update();
 		}
 
 		__proto.showResultView=function(){
@@ -29821,11 +29827,11 @@ window.Laya=(function(window,document){
 			RoleItemView.__super.call(this);
 			this.group=$group;
 			this.position=$position;
-			this.timer.frameLoop(1,this,this.enterFrameHandler);
 		}
 
 		__class(RoleItemView,'com.gamepark.casino.game.arena.view.RoleItemView',_super);
 		var __proto=RoleItemView.prototype;
+		// this.timer.frameLoop(1,this,enterFrameHandler);
 		__proto.showRoleView=function(){
 			if(this.roleAni !=null){
 				if(this.roleAni !=null){
@@ -29845,7 +29851,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.onSkeletonDataParsed=function(){
-			this.roleAni=this.factory.buildArmature(2);
+			this.roleAni=this.factory.buildArmature(0);
 			if(this.group==0){
 				this.roleAni.scaleX=0.3;
 			}
@@ -29864,7 +29870,6 @@ window.Laya=(function(window,document){
 				}
 			this.roleAni.on("enterframe",this,this.onAnimationEnterFrameHandler);
 			this.roleAni.on("stopped",this,this.onAnimationFinish);
-			this.timer.frameLoop(1,this,this.enterFrameHandler);
 			this.changeSpeed();
 			this.playIdle();
 		}
@@ -29885,7 +29890,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.onAnimationEnterFrameHandler=function(){
-			if(this.secondStatus==607){
+			if(this.secondStatus==507){
 				var animationMeta;
 				var currentAnimationFrame=0;
 				if(this.status==5){
@@ -29895,12 +29900,12 @@ window.Laya=(function(window,document){
 					animationMeta=this.roleInfo.meta.superUniqueSkillAnimationMeta;
 				}
 				currentAnimationFrame=animationMeta.infoList[this.roleInfo.actionInfo.animationIndex];
-				console.log(1,"this.roleAni.player.currentKeyframeIndex : ",this.roleAni.player.currentKeyframeIndex);
 				if(this.roleAni.player.currentKeyframeIndex >=currentAnimationFrame){
 					var i=0;
 					var targetRoleInfo;
 					var effectInfo;
 					var totalDamage=0;
+					console.log(1,"this.roleInfo.currentTargetRoleInfoList.length : ",this.roleInfo.currentTargetRoleInfoList.length);
 					for(i=0;i < this.roleInfo.currentTargetRoleInfoList.length;i++){
 						targetRoleInfo=this.roleInfo.currentTargetRoleInfoList[i];
 						if(targetRoleInfo.hp <=0){
@@ -29980,7 +29985,7 @@ window.Laya=(function(window,document){
 
 		// trace(2,"enter function onAnimationEnterFrameHandler, play target animation frame index is : ",this.roleAni.player.currentKeyframeIndex);
 		__proto.onAnimationFinish=function(){
-			if(this.secondStatus==607){
+			if(this.secondStatus==507){
 				this.doRunBackAttack();
 				this.parent.setChildIndex(this,(this.group *6+this.position));
 			}
@@ -30032,7 +30037,7 @@ window.Laya=(function(window,document){
 				case 4:
 				case 5:
 				switch(this.secondStatus){
-					case 604:;
+					case 504:;
 						var targetView=this.roleInfo.currentTargetRoleInfoList[0].roleItemView;
 						var distanceX=targetView.x-this.x;
 						var distanceY=targetView.y-this.y;
@@ -30053,7 +30058,7 @@ window.Laya=(function(window,document){
 							if(this.roleAni.x >=distanceX){
 								this.roleAni.x=distanceX;
 								this.roleAni.y=distanceY;
-								this.secondStatus=607;
+								this.secondStatus=507;
 								this.doAttacking();
 							}
 						}
@@ -30063,14 +30068,14 @@ window.Laya=(function(window,document){
 							if(this.roleAni.x <=distanceX){
 								this.roleAni.x=distanceX;
 								this.roleAni.y=distanceY;
-								this.secondStatus=607;
+								this.secondStatus=507;
 								this.doAttacking();
 							}
 						}
 						break ;
-					case 607:
+					case 507:
 						break ;
-					case 609:;
+					case 509:;
 						var targetView=this.roleInfo.currentTargetRoleInfoList[0].roleItemView;
 						var distanceX=this.x-targetView.x;
 						var distanceY=this.y-targetView.y;
@@ -30182,7 +30187,7 @@ window.Laya=(function(window,document){
 
 		__proto.doAttack=function(){
 			this.status=5;
-			this.secondStatus=604;
+			this.secondStatus=504;
 		}
 
 		// trace(1,"enter function do attack");
@@ -30214,12 +30219,11 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.doRunToAttack=function(){
-			this.secondStatus=604;
+			this.secondStatus=504;
 			this.playRun();
-			console.log(1,"role item view status : ",this.status);
-			console.log(1,"role item view secondStatus : ",this.secondStatus);
 		}
 
+		// trace(1,"role item view secondStatus : ",this.secondStatus);
 		__proto.doAttacking=function(){
 			if(this.status==5){
 				if(this.roleInfo.roleVO.hasAttackAmount > 0){
@@ -30306,19 +30310,19 @@ window.Laya=(function(window,document){
 				effectInfo.type=4;
 				effectInfo.sourceRoleInfo=this.roleInfo;
 			}
-			this.secondStatus=607;
+			this.secondStatus=507;
 			this.playAttack();
 			this.parent.setChildIndex(this,this.parent.numChildren-1);
 		}
 
 		__proto.doRunBackAttack=function(){
-			this.secondStatus=609;
+			this.secondStatus=509;
 			this.playRun();
 			this.roleAni.scaleX=0-this.roleAni.scaleX;
 		}
 
 		__proto.isFinishAttacking=function(){
-			return (this.secondStatus==609);
+			return (this.secondStatus==509);
 		}
 
 		__proto.isFinishLastAttacking=function(){
@@ -30365,6 +30369,10 @@ window.Laya=(function(window,document){
 			this.roleAni.play("win",false);
 		}
 
+		__proto.update=function(){
+			this.enterFrameHandler();
+		}
+
 		return RoleItemView;
 	})(Sprite)
 
@@ -30399,7 +30407,6 @@ window.Laya=(function(window,document){
 		__class(RoleListView,'com.gamepark.casino.game.arena.view.RoleListView',_super);
 		var __proto=RoleListView.prototype;
 		__proto.showRoleListByPlayer=function($playerInfo,$group){
-			this.timer.frameLoop(1,this,this.enterFrameHandler);
 			var roleItemView;
 			var roleInfo;
 			var i=0;
@@ -30505,6 +30512,16 @@ window.Laya=(function(window,document){
 			for(i=0;i < 12;i++){
 				roleItemView=this.roleItemViewList[i];
 				roleItemView.changeSpeed();
+			}
+		}
+
+		__proto.update=function(){
+			var roleItemView;
+			var roleItemViewPosition;
+			var i=0;
+			for(i=0;i < 12;i++){
+				roleItemView=this.roleItemViewList[i];
+				roleItemView.update();
 			}
 		}
 
@@ -30835,12 +30852,14 @@ window.Laya=(function(window,document){
 				tGraphics=this._templet.getGrahicsDataWithCache(this._aniClipIndex,this._clipIndex);
 				if (tGraphics){
 					this.graphics=tGraphics;
+					this.event("enterframe");
 					return;
 				}
 				}else if (this._aniMode==1){
 				tGraphics=this._getGrahicsDataWithCache(this._aniClipIndex,this._clipIndex);
 				if (tGraphics){
 					this.graphics=tGraphics;
+					this.event("enterframe");
 					return;
 				}
 			}
