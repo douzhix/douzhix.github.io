@@ -177,29 +177,24 @@ window.Laya=(function(window,document){
 
 (function(window,document,Laya){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
-	Laya.interface('laya.filters.IFilter');
-	Laya.interface('laya.display.ILayout');
-	Laya.interface('laya.ui.ISelect');
-	Laya.interface('laya.webgl.shapes.IShape');
+	Laya.interface('laya.ui.IItem');
 	Laya.interface('laya.resource.IDispose');
-	Laya.interface('laya.filters.IFilterAction');
-	Laya.interface('laya.webgl.text.ICharSegment');
 	Laya.interface('laya.webgl.canvas.save.ISaveData');
-	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.filters.IFilter');
 	Laya.interface('laya.runtime.IConchNode');
-	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
+	Laya.interface('laya.filters.IFilterAction');
+	Laya.interface('laya.webgl.shapes.IShape');
+	Laya.interface('laya.display.ILayout');
 	Laya.interface('laya.d3.graphics.IVertex');
-	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
 	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
 	Laya.interface('laya.d3.core.render.IRenderable');
+	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
+	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
 	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
-	Laya.interface('laya.ui.IItem');
+	Laya.interface('laya.ui.ISelect');
+	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.webgl.text.ICharSegment');
 	Laya.interface('laya.filters.IFilterActionGL','laya.filters.IFilterAction');
-	var load=Laya.load=function(url,type){
-		return Asyn.load(url,type);
-	}
-
-
 	var sleep=Laya.sleep=function(value){
 		Asyn.sleep(value);
 	}
@@ -214,6 +209,11 @@ window.Laya=(function(window,document){
 		Asyn._caller_=caller;
 		Asyn._callback_=fn;
 		Asyn._nextLine_=nextLine;
+	}
+
+
+	var load=Laya.load=function(url,type){
+		return Asyn.load(url,type);
 	}
 
 
@@ -1220,6 +1220,7 @@ window.Laya=(function(window,document){
 			this.hp=0;
 			this.mp=0;
 			this.position=0;
+			this.damageLableArr=[];
 			this.firstStatus=0;
 			this.secondStatus=0;
 			this.thirdStatus=0;
@@ -1236,12 +1237,6 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.hp=this.meta.hpMax;
 			this.mp=0;
-			if(this.position==3){
-				this.mp=100;
-			}
-			if(this.position==4){
-				this.mp=100;
-			}
 		}
 
 		// }
@@ -18525,7 +18520,8 @@ window.Laya=(function(window,document){
 		__proto.loadingRes=function(){
 			var assets=[];
 			assets.push({url:"res/atlas/sanguo.json",type:"atlas"});
-			assets.push({url:"res/atlas/bmfont.json",type:"atlas"});
+			assets.push({url:"res/atlas/bmfont.json",type
+				:"atlas"});
 			assets.push({url:"res/atlas/buff.json",type:"atlas"});
 			assets.push({url:"res/atlas/role.json",type:"atlas"});
 			assets.push({url:"res/atlas/combo.json",type:"atlas"});
@@ -19089,7 +19085,7 @@ window.Laya=(function(window,document){
 			var i=0;
 			for(i=0;i < 6;i++){
 				this.arenaView.roleListView["roleItemView"+(i+1)].hpView.imgHp.scaleX=1;
-				this.arenaView.roleListView["roleItemView"+(i+1)].mpView.imgMp.scaleX=0;
+				this.arenaView.roleListView["roleItemView"+(i+1)].refreshHP(0);
 			}
 			GameContext.i.arenaContext.gameView.rightPlayerInfoView.imgPlayerHp.scaleX=1;
 			GameContext.i.arenaContext.gameView.leftPlayerInfoView.imgPlayerHp.scaleX=1;
@@ -19285,6 +19281,7 @@ window.Laya=(function(window,document){
 				break ;
 			}
 			this.arenaView.roleView.update();
+			this.arenaView.effectView.update();
 		}
 
 		__proto.showResultView=function(){
@@ -29473,6 +29470,7 @@ window.Laya=(function(window,document){
 			this.skillDamegeLable=null;
 			this.skillNumber=0;
 			this.comboEffectImage=null;
+			this.damageViewArray=[];
 			ArenaEffectView.__super.call(this);
 			this.effectInfoList=[];
 			this.skillNumber=0;
@@ -29486,8 +29484,40 @@ window.Laya=(function(window,document){
 			this.effectInfoList.push($effectInfo);
 		}
 
+		__proto.update=function(){
+			this.updateView()
+		}
+
+		__proto.updateView=function(){
+			for (var i=0;i < GameContext.i.arenaContext.gameView.roleView.roleItemViewList.length;i++){
+				var roleItemView=GameContext.i.arenaContext.gameView.roleView.roleItemViewList[i];
+				if (roleItemView.lableArray.length==0){
+					continue ;
+				}
+				for (var j=roleItemView.lableArray.length-1;j >=0;j--){
+					var damagameView=roleItemView.lableArray[j];
+					if (damagameView.showState==true){
+						roleItemView.lableArray.splice(j,1);
+						this.removeChild(damagameView);
+						continue ;
+					};
+					var damagameViewPosNumber=damagameView.changeNumber;
+					damagameView.changeNumber=(roleItemView.lableArray.length-j);
+					if (damagameView.changeNumber > damagameViewPosNumber){
+						damagameView.y-=(damagameView.changeNumber-damagameViewPosNumber)*40
+						if (damagameView.leftOrRight==1){
+							damagameView.x-=(damagameView.changeNumber-damagameViewPosNumber)*20
+							}else{
+							damagameView.x+=(damagameView.changeNumber-damagameViewPosNumber)*20
+						}
+					}
+					damagameView.updateView();
+				}
+			}
+		}
+
 		__proto.delayShowAnmation=function($effectInfoList){
-			for (var i=0;i < $effectInfoList.length;i++){
+			for (var i=($effectInfoList.length-1);i >=0;i--){
 				var effectInfo=$effectInfoList[i];
 				switch(effectInfo.type){
 					case 1:
@@ -29523,7 +29553,8 @@ window.Laya=(function(window,document){
 						var comboView=new ComboViewUI();
 						var number=Math.ceil(effectInfo.sourceRoleInfo.roleVO.attackMulti *10);
 						comboView.lab_multy.text="X"+number/10;
-						comboView.pos(578,420);
+						comboView.pos(583,420);
+						comboView.lab_multy.align="center";
 						comboView.scale(1.5,1.5);
 						this.addChild(comboView);
 						var comboImage=new Image();
@@ -29621,107 +29652,31 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.addNormalLable=function($effectInfo){
-			var showText=new Text();
-			showText.text="-"+$effectInfo.damage.toString();
-			showText.font="font6"
-			showText.align="center";
-			if ($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==0){
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-130,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-				}else if($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==1){
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-100,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-			}
-			this.addChild(showText);
-			Tween.to(showText,{
-				x:showText.x+50,
-				y:showText.y-80,
-				alpha:0.5,
-				scaleX:0.8,
-				scaleY:0.8
-			},450,null,Handler.create(this,this.removeText,[showText]));
+			this.refreshRoleView($effectInfo.targetRoleInfo);
+			this.refreshRoleView($effectInfo.sourceRoleInfo);
+			var damageView=new DamageView();
+			damageView.showLableAndImage($effectInfo.damage,"font6",$effectInfo,1);
+			damageView.pos($effectInfo.targetRoleInfo.roleItemView.x,$effectInfo.targetRoleInfo.roleItemView.y-20)
+			this.addChild(damageView)
 		}
 
+		//this.damageViewArray.push(damageView);
 		__proto.addCritLable=function($effectInfo){
-			var showText=new Text();
-			showText.text="-"+$effectInfo.damage.toString();
-			showText.font="font7";
-			var showImage=new Image();
-			showImage.loadImage("bmfont/BJ_T_zhandouUI.png");
-			if ($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==0){
-				showImage.pos($effectInfo.targetRoleInfo.roleItemView.x-150,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-70,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-				}else if($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==1){
-				showImage.pos($effectInfo.targetRoleInfo.roleItemView.x-120,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-40,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-			}
-			this.addChild(showText);
-			this.addChild(showImage);
-			Tween.to(showText,{
-				x:showText.x+50,
-				y:showText.y-80,
-				alpha:0.5,
-				scaleX:0.8,
-				scaleY:0.9
-			},450,null,Handler.create(this,this.removeText,[showText]));
-			Tween.to(showImage,{
-				x:showImage.x+55,
-				y:showImage.y-80,
-				alpha:0.5,
-				scaleX:0.8,
-				scaleY:0.9
-			},450,null,Handler.create(this,this.removeText,[showImage]));
+			var damageView=new DamageView();
+			damageView.showLableAndImage($effectInfo.damage,"font7",$effectInfo,2,"bmfont/BJ_T_zhandouUI.png");
+			damageView.pos($effectInfo.targetRoleInfo.roleItemView.x ,$effectInfo.targetRoleInfo.roleItemView.y-20)
+			this.addChild(damageView)
+			this.refreshRoleView($effectInfo.targetRoleInfo);
+			this.refreshRoleView($effectInfo.sourceRoleInfo);
 		}
 
 		__proto.addParrylLable=function($effectInfo){
-			var showText=new Text();
-			showText.text="-"+$effectInfo.damage.toString();
-			showText.font="font6";
-			var showImage=new Image();
-			showImage.loadImage("buff/ZT_gedang_zhandouUI.png");
-			if ($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==0){
-				showImage.pos($effectInfo.targetRoleInfo.roleItemView.x-150,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-70,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-				}else if($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==1){
-				showImage.pos($effectInfo.targetRoleInfo.roleItemView.x-120,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				showText.pos($effectInfo.targetRoleInfo.roleItemView.x-40,
-				$effectInfo.targetRoleInfo.roleItemView.y-50);
-				this.refreshRoleView($effectInfo.targetRoleInfo);
-				this.refreshRoleView($effectInfo.sourceRoleInfo);
-			}
-			this.addChild(showText);
-			this.addChild(showImage);
-			Tween.to(showText,{
-				x:showText.x+50,
-				y:showText.y-80,
-				alpha:0.5,
-				scaleX:0.8,
-				scaleY:0.9
-			},450,null,Handler.create(this,this.removeText,[showText]));
-			Tween.to(showImage,{
-				x:showImage.x+55,
-				y:showImage.y-80,
-				alpha:0.5,
-				scaleX:0.8,
-				scaleY:0.9
-			},450,null,Handler.create(this,this.removeText,[showImage]));
+			this.refreshRoleView($effectInfo.targetRoleInfo);
+			this.refreshRoleView($effectInfo.sourceRoleInfo);
+			var damageView=new DamageView();
+			damageView.showLableAndImage($effectInfo.damage,"font6",$effectInfo,3,"buff/ZT_gedang_zhandouUI.png");
+			damageView.pos($effectInfo.targetRoleInfo.roleItemView.x ,$effectInfo.targetRoleInfo.roleItemView.y-20)
+			this.addChild(damageView)
 		}
 
 		__proto.addOperateMpLable=function($effectInfo){
@@ -29740,7 +29695,7 @@ window.Laya=(function(window,document){
 			$multy=null;
 		}
 
-		__proto.removeText=function($text){
+		__proto.removeText=function($text,$effectInfo){
 			$text.removeSelf();
 		}
 
@@ -29764,7 +29719,8 @@ window.Laya=(function(window,document){
 				},300,null);
 				}else{
 				Tween.to(GameContext.i.arenaContext.gameView.rightPlayerInfoView.imgPlayerHp,{
-					scaleX:(hp*1.0)/hpmax
+					scaleX:(hp*1.0)/hpmax,
+					scaleY:1.0
 				},300,null);
 			}
 		}
@@ -29825,6 +29781,139 @@ window.Laya=(function(window,document){
 	})(Sprite)
 
 
+	//class com.gamepark.casino.game.arena.view.DamageView extends laya.display.Sprite
+	var DamageView=(function(_super){
+		function DamageView(){
+			this.damageLable=null;
+			this.damageImage=null;
+			this.showNumber=0;
+			this.showState=false;
+			this.changeState=false;
+			this.changeNumber=0;
+			this.leftOrRight=0;
+			this.damageType=0;
+			DamageView.__super.call(this);
+			this.showNumber=1;
+			this.showState=false;
+			this.changeState=false;
+			this.changeNumber=1;
+			this.leftOrRight=1;
+			this.width=250;
+			this.height=150;
+			this.pivot(125,75);
+		}
+
+		__class(DamageView,'com.gamepark.casino.game.arena.view.DamageView',_super);
+		var __proto=DamageView.prototype;
+		__proto.showLableAndImage=function($argss,$font,$effectInfo,$args,$url){
+			this.damageType=$args;
+			if ($url !=null){
+				this.damageImage=new Image();
+				this.damageImage.skin=$url;
+				this.damageImage.autoSize=true;
+				this.damageImage.pivot(this.damageImage.width*0.5,this.damageImage.height*0.5);
+				if ($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==0){
+					switch($args){
+						case 1:
+							break ;
+						case 2:
+							this.damageImage.pos(0,
+							0);
+							break ;
+						case 3:
+							this.damageImage.pos(0,0);
+							break ;
+						}
+					}else if($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==1){
+					switch($args){
+						case 1:
+							break ;
+						case 2:
+							this.damageImage.pos(0,0);
+							break ;
+						case 3:
+							this.damageImage.pos(0,0);
+							break ;
+						}
+				}
+				this.addChild(this.damageImage);
+			}
+			this.damageLable=new Label();
+			this.damageLable.text="-"+$effectInfo.damage.toString();
+			this.damageLable.font=$font
+			this.damageLable.align="center";
+			this.damageLable.autoSize=true;
+			this.damageLable.pivot(this.damageLable.width*0.5,this.damageLable.height*0.5);
+			this.addChild(this.damageLable);
+			if ($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==0){
+				this.leftOrRight=1;
+				switch($args){
+					case 1:
+						this.damageLable.pos(this.width*0.3,0);
+						break ;
+					case 2:
+						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						break ;
+					case 3:
+						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						break ;
+					}
+				}else if($effectInfo.targetRoleInfo !=null && $effectInfo.targetRoleInfo.roleItemView.group==1){
+				this.leftOrRight=2;
+				switch($args){
+					case 1:
+						this.damageLable.pos(this.width*0.3,0);
+						break ;
+					case 2:
+						this.damageLable.pos(this.damageImage.width *0.5+this.damageLable.width*0.5,0);
+						break ;
+					case 3:
+						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						break ;
+					}
+			}
+			this.autoSize=true;
+			this.pivot(this.width*0.5,this.height*0.5);
+			$effectInfo.targetRoleInfo.roleItemView.lableArray.push(this);
+		}
+
+		__proto.showImage=function($url,$effectInfo){
+			this.damageImage=new Image();
+			this.damageImage.skin=$url;
+		}
+
+		__proto.addRoleItemView=function($effectInfo){
+			$effectInfo.targetRoleInfo.roleItemView.lableArray.push()
+		}
+
+		__proto.updateView=function(){
+			if (this.showNumber < 20){
+				if (this.damageType==2){
+					this.updateCrit();
+				}
+				}else if(this.showNumber > 41 && this.showNumber <=61){
+				this.alpha=1-(this.showNumber-40)/20
+				if (this.leftOrRight==1){
+					this.x-=1;
+					}else{
+					this.x+=1;
+				}
+				this.y-=2.0;
+				}else if(this.showNumber >62){
+				this.showState=true;
+			}
+			this.showNumber++
+		}
+
+		__proto.updateCrit=function(){
+			var scalNumber=this.showNumber < 11 ?(this.showNumber/30)+0.8 :(20-this.showNumber)/30+1;
+			this.scale(scalNumber,scalNumber);
+		}
+
+		return DamageView;
+	})(Sprite)
+
+
 	//class com.gamepark.casino.game.arena.view.RoleItemView extends laya.display.Sprite
 	var RoleItemView=(function(_super){
 		function RoleItemView($group,$position){
@@ -29835,6 +29924,7 @@ window.Laya=(function(window,document){
 			this.roleAni=null;
 			this.status=0;
 			this.secondStatus=0;
+			this.lableArray=[];
 			RoleItemView.__super.call(this);
 			this.group=$group;
 			this.position=$position;
@@ -36830,6 +36920,460 @@ window.Laya=(function(window,document){
 
 
 	/**
+	*<code>ScrollBar</code> 组件是一个滚动条组件。
+	*<p>当数据太多以至于显示区域无法容纳时，最终用户可以使用 <code>ScrollBar</code> 组件控制所显示的数据部分。</p>
+	*<p> 滚动条由四部分组成：两个箭头按钮、一个轨道和一个滑块。 </p> *
+	*
+	*@see laya.ui.VScrollBar
+	*@see laya.ui.HScrollBar
+	*/
+	//class laya.ui.ScrollBar extends laya.ui.Component
+	var ScrollBar=(function(_super){
+		function ScrollBar(skin){
+			this.changeHandler=null;
+			this.scaleBar=true;
+			this.autoHide=false;
+			this.elasticDistance=0;
+			this.elasticBackTime=500;
+			this._scrollSize=1;
+			this._skin=null;
+			this._upButton=null;
+			this._downButton=null;
+			this._slider=null;
+			this._thumbPercent=1;
+			this._target=null;
+			this._lastPoint=null;
+			this._lastOffset=0;
+			this._checkElastic=false;
+			this._isElastic=false;
+			this._value=NaN;
+			this._hide=false;
+			this._clickOnly=true;
+			this._offsets=null;
+			ScrollBar.__super.call(this);
+			this._showButtons=UIConfig.showButtons;
+			this._touchScrollEnable=UIConfig.touchScrollEnable;
+			this._mouseWheelEnable=UIConfig.mouseWheelEnable;
+			this.skin=skin;
+			this.max=1;
+		}
+
+		__class(ScrollBar,'laya.ui.ScrollBar',_super);
+		var __proto=ScrollBar.prototype;
+		/**@inheritDoc */
+		__proto.destroy=function(destroyChild){
+			(destroyChild===void 0)&& (destroyChild=true);
+			_super.prototype.destroy.call(this,destroyChild);
+			this._upButton && this._upButton.destroy(destroyChild);
+			this._downButton && this._downButton.destroy(destroyChild);
+			this._slider && this._slider.destroy(destroyChild);
+			this._upButton=this._downButton=null;
+			this._slider=null;
+			this.changeHandler=null;
+			this._offsets=null;
+		}
+
+		/**@inheritDoc */
+		__proto.createChildren=function(){
+			this.addChild(this._slider=new Slider());
+			this.addChild(this._upButton=new Button());
+			this.addChild(this._downButton=new Button());
+		}
+
+		/**@inheritDoc */
+		__proto.initialize=function(){
+			this._slider.showLabel=false;
+			this._slider.on("change",this,this.onSliderChange);
+			this._slider.setSlider(0,0,0);
+			this._upButton.on("mousedown",this,this.onButtonMouseDown);
+			this._downButton.on("mousedown",this,this.onButtonMouseDown);
+		}
+
+		/**
+		*@private
+		*滑块位置发生改变的处理函数。
+		*/
+		__proto.onSliderChange=function(){
+			this.value=this._slider.value;
+		}
+
+		/**
+		*@private
+		*向上和向下按钮的 <code>Event.MOUSE_DOWN</code> 事件侦听处理函数。
+		*/
+		__proto.onButtonMouseDown=function(e){
+			var isUp=e.currentTarget===this._upButton;
+			this.slide(isUp);
+			Laya.timer.once(Styles.scrollBarDelayTime,this,this.startLoop,[isUp]);
+			Laya.stage.once("mouseup",this,this.onStageMouseUp);
+		}
+
+		/**@private */
+		__proto.startLoop=function(isUp){
+			Laya.timer.frameLoop(1,this,this.slide,[isUp]);
+		}
+
+		/**@private */
+		__proto.slide=function(isUp){
+			if (isUp)this.value-=this._scrollSize;
+			else this.value+=this._scrollSize;
+		}
+
+		/**
+		*@private
+		*舞台的 <code>Event.MOUSE_DOWN</code> 事件侦听处理函数。
+		*/
+		__proto.onStageMouseUp=function(e){
+			Laya.timer.clear(this,this.startLoop);
+			Laya.timer.clear(this,this.slide);
+		}
+
+		/**
+		*@private
+		*更改对象的皮肤及位置。
+		*/
+		__proto.changeScrollBar=function(){
+			this._upButton.visible=this._showButtons;
+			this._downButton.visible=this._showButtons;
+			if (this._showButtons){
+				this._upButton.skin=this._skin.replace(".png","$up.png");
+				this._downButton.skin=this._skin.replace(".png","$down.png");
+			}
+			if (this._slider.isVertical)this._slider.y=this._showButtons ? this._upButton.height :0;
+			else this._slider.x=this._showButtons ? this._upButton.width :0;
+			this.resetPositions();
+		}
+
+		/**@inheritDoc */
+		__proto.changeSize=function(){
+			_super.prototype.changeSize.call(this);
+			this.resetPositions();
+			this.event("change");
+			this.changeHandler && this.changeHandler.runWith(this.value);
+		}
+
+		/**@private */
+		__proto.resetPositions=function(){
+			if (this._slider.isVertical)this._slider.height=this.height-(this._showButtons ? (this._upButton.height+this._downButton.height):0);
+			else this._slider.width=this.width-(this._showButtons ? (this._upButton.width+this._downButton.width):0);
+			this.resetButtonPosition();
+		}
+
+		/**@private */
+		__proto.resetButtonPosition=function(){
+			if (this._slider.isVertical)this._downButton.y=this._slider.y+this._slider.height;
+			else this._downButton.x=this._slider.x+this._slider.width;
+		}
+
+		/**
+		*设置滚动条信息。
+		*@param min 滚动条最小位置值。
+		*@param max 滚动条最大位置值。
+		*@param value 滚动条当前位置值。
+		*/
+		__proto.setScroll=function(min,max,value){
+			this.runCallLater(this.changeSize);
+			this._slider.setSlider(min,max,value);
+			this._slider.bar.visible=max > 0;
+			if (!this._hide && this.autoHide)this.visible=false;
+		}
+
+		/**@private */
+		__proto.onTargetMouseWheel=function(e){
+			this.value-=e.delta *this._scrollSize;
+			this.target=this._target;
+		}
+
+		/**@private */
+		__proto.onTargetMouseDown=function(e){
+			this._clickOnly=true;
+			this._lastOffset=0;
+			this._checkElastic=false;
+			this._lastPoint || (this._lastPoint=new Point());
+			this._lastPoint.setTo(Laya.stage.mouseX,Laya.stage.mouseY);
+			Laya.timer.clear(this,this.tweenMove);
+			Tween.clearTween(this);
+			Laya.stage.once("mouseup",this,this.onStageMouseUp2);
+			Laya.stage.once("mouseout",this,this.onStageMouseUp2);
+			Laya.timer.frameLoop(1,this,this.loop);
+		}
+
+		/**@private */
+		__proto.loop=function(){
+			var mouseY=Laya.stage.mouseY;
+			var mouseX=Laya.stage.mouseX;
+			this._lastOffset=this.isVertical ? (mouseY-this._lastPoint.y):(mouseX-this._lastPoint.x);
+			if (this._clickOnly){
+				if (Math.abs(this._lastOffset *(this.isVertical ? Laya.stage._canvasTransform.getScaleY():Laya.stage._canvasTransform.getScaleX()))> 1){
+					this._clickOnly=false;
+					this._offsets || (this._offsets=[]);
+					this._offsets.length=0;
+					this._target.mouseEnabled=false;
+					if (!this.hide && this.autoHide){
+						this.alpha=1;
+						this.visible=true;
+					}
+					this.event("start");
+				}else return;
+			}
+			this._offsets.push(this._lastOffset);
+			this._lastPoint.x=mouseX;
+			this._lastPoint.y=mouseY;
+			if (this._lastOffset===0)return;
+			if (!this._checkElastic){
+				if (this.elasticDistance > 0){
+					if (!this._checkElastic && this._lastOffset !=0){
+						this._checkElastic=true;
+						if ((this._lastOffset > 0 && this._value <=this.min)|| (this._lastOffset < 0 && this._value >=this.max)){
+							this._isElastic=true;
+							}else {
+							this._isElastic=false;
+						}
+					}
+					}else {
+					this._checkElastic=true;
+				}
+			}
+			if (this._checkElastic){
+				if (this._isElastic){
+					if (this._value <=this.min){
+						this.value-=this._lastOffset *Math.max(0,(1-((this.min-this._value)/ this.elasticDistance)));
+						}else if (this._value >=this.max){
+						this.value-=this._lastOffset *Math.max(0,(1-((this._value-this.max)/ this.elasticDistance)));
+					}
+					}else {
+					this.value-=this._lastOffset;
+				}
+			}
+		}
+
+		/**@private */
+		__proto.onStageMouseUp2=function(e){
+			Laya.stage.off("mouseup",this,this.onStageMouseUp2);
+			Laya.stage.off("mouseout",this,this.onStageMouseUp2);
+			Laya.timer.clear(this,this.loop);
+			if (this._clickOnly)return;
+			this._target.mouseEnabled=true;
+			if (this._isElastic){
+				if (this._value < this.min){
+					Tween.to(this,{value:this.min},this.elasticBackTime,Ease.sineOut,Handler.create(this,this.elasticOver));
+					}else if (this._value > this.max){
+					Tween.to(this,{value:this.max},this.elasticBackTime,Ease.sineOut,Handler.create(this,this.elasticOver));
+				}
+				}else {
+				if (this._offsets.length < 1){
+					this._offsets[0]=this.isVertical ? Laya.stage.mouseY-this._lastPoint.y :Laya.stage.mouseX-this._lastPoint.x;
+				};
+				var offset=0;
+				var n=Math.min(this._offsets.length,3);
+				for (var i=0;i < n;i++){
+					offset+=this._offsets[this._offsets.length-1-i];
+				}
+				this._lastOffset=offset / n;
+				offset=Math.abs(this._lastOffset);
+				if (offset < 2){
+					this.event("end");
+					return;
+				}
+				if (offset > 60)this._lastOffset=this._lastOffset > 0 ? 60 :-60;
+				Laya.timer.frameLoop(1,this,this.tweenMove);
+			}
+		}
+
+		/**@private */
+		__proto.elasticOver=function(){
+			this._isElastic=false;
+			if (!this.hide && this.autoHide){
+				Tween.to(this,{alpha:0},500);
+			}
+		}
+
+		/**@private */
+		__proto.tweenMove=function(){
+			this._lastOffset *=0.95;
+			this.value-=this._lastOffset;
+			if (Math.abs(this._lastOffset)< 1){
+				Laya.timer.clear(this,this.tweenMove);
+				this.event("end");
+				if (!this.hide && this.autoHide){
+					Tween.to(this,{alpha:0},500);
+				}
+			}
+		}
+
+		/**
+		*停止滑动。
+		*/
+		__proto.stopScroll=function(){
+			this.onStageMouseUp2(null);
+			Laya.timer.clear(this,this.tweenMove);
+			Tween.clearTween(this);
+		}
+
+		/**
+		*一个布尔值，指示滚动条是否为垂直滚动。如果值为true，则为垂直滚动，否则为水平滚动。
+		*<p>默认值为：true。</p>
+		*/
+		__getset(0,__proto,'isVertical',function(){
+			return this._slider.isVertical;
+			},function(value){
+			this._slider.isVertical=value;
+		});
+
+		/**
+		*@copy laya.ui.Image#skin
+		*/
+		__getset(0,__proto,'skin',function(){
+			return this._skin;
+			},function(value){
+			if (this._skin !=value){
+				this._skin=value;
+				this._slider.skin=this._skin;
+				this.callLater(this.changeScrollBar);
+			}
+		});
+
+		/**
+		*获取或设置表示最高滚动位置的数字。
+		*/
+		__getset(0,__proto,'max',function(){
+			return this._slider.max;
+			},function(value){
+			this._slider.max=value;
+		});
+
+		/**获取或设置一个值，该值表示按下滚动条轨道时页面滚动的增量。 */
+		__getset(0,__proto,'scrollSize',function(){
+			return this._scrollSize;
+			},function(value){
+			this._scrollSize=value;
+		});
+
+		/**@inheritDoc */
+		__getset(0,__proto,'measureHeight',function(){
+			if (this._slider.isVertical)return 100;
+			return this._slider.height;
+		});
+
+		/**@inheritDoc */
+		__getset(0,__proto,'measureWidth',function(){
+			if (this._slider.isVertical)return this._slider.width;
+			return 100;
+		});
+
+		/**
+		*<p>当前实例的 <code>Slider</code> 实例的有效缩放网格数据。</p>
+		*<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+		*<ul><li>例如："4,4,4,4,1"</li></ul></p>
+		*@see laya.ui.AutoBitmap.sizeGrid
+		*/
+		__getset(0,__proto,'sizeGrid',function(){
+			return this._slider.sizeGrid;
+			},function(value){
+			this._slider.sizeGrid=value;
+		});
+
+		/**
+		*获取或设置表示最低滚动位置的数字。
+		*/
+		__getset(0,__proto,'min',function(){
+			return this._slider.min;
+			},function(value){
+			this._slider.min=value;
+		});
+
+		/**
+		*获取或设置表示当前滚动位置的数字。
+		*/
+		__getset(0,__proto,'value',function(){
+			return this._value;
+			},function(v){
+			if (v!==this._value){
+				if (this._isElastic)this._value=v;
+				else {
+					this._slider.value=v;
+					this._value=this._slider.value;
+				}
+				this.event("change");
+				this.changeHandler && this.changeHandler.runWith(this.value);
+			}
+		});
+
+		/**@inheritDoc */
+		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
+			this._dataSource=value;
+			if ((typeof value=='number')|| (typeof value=='string'))this.value=Number(value);
+			else _super.prototype._$set_dataSource.call(this,value);
+		});
+
+		/**获取或设置一个值，该值表示滑条长度比例，值为：（0-1）。 */
+		__getset(0,__proto,'thumbPercent',function(){
+			return this._thumbPercent;
+			},function(value){
+			this.runCallLater(this.changeScrollBar);
+			this.runCallLater(this.changeSize);
+			value=value >=1 ? 0.99 :value;
+			this._thumbPercent=value;
+			if (this.scaleBar){
+				if (this._slider.isVertical)this._slider.bar.height=Math.max(this._slider.height *value,Styles.scrollBarMinNum);
+				else this._slider.bar.width=Math.max(this._slider.width *value,Styles.scrollBarMinNum);
+			}
+		});
+
+		/**
+		*设置滚动对象。
+		*@see laya.ui.TouchScroll#target
+		*/
+		__getset(0,__proto,'target',function(){
+			return this._target;
+			},function(value){
+			if (this._target){
+				this._target.off("mousewheel",this,this.onTargetMouseWheel);
+				this._target.off("mousedown",this,this.onTargetMouseDown);
+			}
+			this._target=value;
+			if (value){
+				this._mouseWheelEnable && this._target.on("mousewheel",this,this.onTargetMouseWheel);
+				this._touchScrollEnable && this._target.on("mousedown",this,this.onTargetMouseDown);
+			}
+		});
+
+		/**是否隐藏滚动条，不显示滚动条，但是可以正常滚动，默认为false。*/
+		__getset(0,__proto,'hide',function(){
+			return this._hide;
+			},function(value){
+			this._hide=value;
+			this.visible=!value;
+		});
+
+		/**一个布尔值，指定是否显示向上、向下按钮，默认值为true。*/
+		__getset(0,__proto,'showButtons',function(){
+			return this._showButtons;
+			},function(value){
+			this._showButtons=value;
+			this.callLater(this.changeScrollBar);
+		});
+
+		/**一个布尔值，指定是否开启触摸，默认值为true。*/
+		__getset(0,__proto,'touchScrollEnable',function(){
+			return this._touchScrollEnable;
+			},function(value){
+			this._touchScrollEnable=value;
+			this.target=this._target;
+		});
+
+		/**一个布尔值，指定是否滑轮滚动，默认值为true。*/
+		__getset(0,__proto,'mouseWheelEnable',function(){
+			return this._mouseWheelEnable;
+			},function(value){
+			this._mouseWheelEnable=value;
+		});
+
+		return ScrollBar;
+	})(Component)
+
+
+	/**
 	*<p><code>Input</code> 类用于创建显示对象以显示和输入文本。</p>
 	*
 	*@example 以下示例代码，创建了一个 <code>Text</code> 实例。
@@ -37396,460 +37940,6 @@ window.Laya=(function(window,document){
 		Input.isInputting=false;
 		return Input;
 	})(Text)
-
-
-	/**
-	*<code>ScrollBar</code> 组件是一个滚动条组件。
-	*<p>当数据太多以至于显示区域无法容纳时，最终用户可以使用 <code>ScrollBar</code> 组件控制所显示的数据部分。</p>
-	*<p> 滚动条由四部分组成：两个箭头按钮、一个轨道和一个滑块。 </p> *
-	*
-	*@see laya.ui.VScrollBar
-	*@see laya.ui.HScrollBar
-	*/
-	//class laya.ui.ScrollBar extends laya.ui.Component
-	var ScrollBar=(function(_super){
-		function ScrollBar(skin){
-			this.changeHandler=null;
-			this.scaleBar=true;
-			this.autoHide=false;
-			this.elasticDistance=0;
-			this.elasticBackTime=500;
-			this._scrollSize=1;
-			this._skin=null;
-			this._upButton=null;
-			this._downButton=null;
-			this._slider=null;
-			this._thumbPercent=1;
-			this._target=null;
-			this._lastPoint=null;
-			this._lastOffset=0;
-			this._checkElastic=false;
-			this._isElastic=false;
-			this._value=NaN;
-			this._hide=false;
-			this._clickOnly=true;
-			this._offsets=null;
-			ScrollBar.__super.call(this);
-			this._showButtons=UIConfig.showButtons;
-			this._touchScrollEnable=UIConfig.touchScrollEnable;
-			this._mouseWheelEnable=UIConfig.mouseWheelEnable;
-			this.skin=skin;
-			this.max=1;
-		}
-
-		__class(ScrollBar,'laya.ui.ScrollBar',_super);
-		var __proto=ScrollBar.prototype;
-		/**@inheritDoc */
-		__proto.destroy=function(destroyChild){
-			(destroyChild===void 0)&& (destroyChild=true);
-			_super.prototype.destroy.call(this,destroyChild);
-			this._upButton && this._upButton.destroy(destroyChild);
-			this._downButton && this._downButton.destroy(destroyChild);
-			this._slider && this._slider.destroy(destroyChild);
-			this._upButton=this._downButton=null;
-			this._slider=null;
-			this.changeHandler=null;
-			this._offsets=null;
-		}
-
-		/**@inheritDoc */
-		__proto.createChildren=function(){
-			this.addChild(this._slider=new Slider());
-			this.addChild(this._upButton=new Button());
-			this.addChild(this._downButton=new Button());
-		}
-
-		/**@inheritDoc */
-		__proto.initialize=function(){
-			this._slider.showLabel=false;
-			this._slider.on("change",this,this.onSliderChange);
-			this._slider.setSlider(0,0,0);
-			this._upButton.on("mousedown",this,this.onButtonMouseDown);
-			this._downButton.on("mousedown",this,this.onButtonMouseDown);
-		}
-
-		/**
-		*@private
-		*滑块位置发生改变的处理函数。
-		*/
-		__proto.onSliderChange=function(){
-			this.value=this._slider.value;
-		}
-
-		/**
-		*@private
-		*向上和向下按钮的 <code>Event.MOUSE_DOWN</code> 事件侦听处理函数。
-		*/
-		__proto.onButtonMouseDown=function(e){
-			var isUp=e.currentTarget===this._upButton;
-			this.slide(isUp);
-			Laya.timer.once(Styles.scrollBarDelayTime,this,this.startLoop,[isUp]);
-			Laya.stage.once("mouseup",this,this.onStageMouseUp);
-		}
-
-		/**@private */
-		__proto.startLoop=function(isUp){
-			Laya.timer.frameLoop(1,this,this.slide,[isUp]);
-		}
-
-		/**@private */
-		__proto.slide=function(isUp){
-			if (isUp)this.value-=this._scrollSize;
-			else this.value+=this._scrollSize;
-		}
-
-		/**
-		*@private
-		*舞台的 <code>Event.MOUSE_DOWN</code> 事件侦听处理函数。
-		*/
-		__proto.onStageMouseUp=function(e){
-			Laya.timer.clear(this,this.startLoop);
-			Laya.timer.clear(this,this.slide);
-		}
-
-		/**
-		*@private
-		*更改对象的皮肤及位置。
-		*/
-		__proto.changeScrollBar=function(){
-			this._upButton.visible=this._showButtons;
-			this._downButton.visible=this._showButtons;
-			if (this._showButtons){
-				this._upButton.skin=this._skin.replace(".png","$up.png");
-				this._downButton.skin=this._skin.replace(".png","$down.png");
-			}
-			if (this._slider.isVertical)this._slider.y=this._showButtons ? this._upButton.height :0;
-			else this._slider.x=this._showButtons ? this._upButton.width :0;
-			this.resetPositions();
-		}
-
-		/**@inheritDoc */
-		__proto.changeSize=function(){
-			_super.prototype.changeSize.call(this);
-			this.resetPositions();
-			this.event("change");
-			this.changeHandler && this.changeHandler.runWith(this.value);
-		}
-
-		/**@private */
-		__proto.resetPositions=function(){
-			if (this._slider.isVertical)this._slider.height=this.height-(this._showButtons ? (this._upButton.height+this._downButton.height):0);
-			else this._slider.width=this.width-(this._showButtons ? (this._upButton.width+this._downButton.width):0);
-			this.resetButtonPosition();
-		}
-
-		/**@private */
-		__proto.resetButtonPosition=function(){
-			if (this._slider.isVertical)this._downButton.y=this._slider.y+this._slider.height;
-			else this._downButton.x=this._slider.x+this._slider.width;
-		}
-
-		/**
-		*设置滚动条信息。
-		*@param min 滚动条最小位置值。
-		*@param max 滚动条最大位置值。
-		*@param value 滚动条当前位置值。
-		*/
-		__proto.setScroll=function(min,max,value){
-			this.runCallLater(this.changeSize);
-			this._slider.setSlider(min,max,value);
-			this._slider.bar.visible=max > 0;
-			if (!this._hide && this.autoHide)this.visible=false;
-		}
-
-		/**@private */
-		__proto.onTargetMouseWheel=function(e){
-			this.value-=e.delta *this._scrollSize;
-			this.target=this._target;
-		}
-
-		/**@private */
-		__proto.onTargetMouseDown=function(e){
-			this._clickOnly=true;
-			this._lastOffset=0;
-			this._checkElastic=false;
-			this._lastPoint || (this._lastPoint=new Point());
-			this._lastPoint.setTo(Laya.stage.mouseX,Laya.stage.mouseY);
-			Laya.timer.clear(this,this.tweenMove);
-			Tween.clearTween(this);
-			Laya.stage.once("mouseup",this,this.onStageMouseUp2);
-			Laya.stage.once("mouseout",this,this.onStageMouseUp2);
-			Laya.timer.frameLoop(1,this,this.loop);
-		}
-
-		/**@private */
-		__proto.loop=function(){
-			var mouseY=Laya.stage.mouseY;
-			var mouseX=Laya.stage.mouseX;
-			this._lastOffset=this.isVertical ? (mouseY-this._lastPoint.y):(mouseX-this._lastPoint.x);
-			if (this._clickOnly){
-				if (Math.abs(this._lastOffset *(this.isVertical ? Laya.stage._canvasTransform.getScaleY():Laya.stage._canvasTransform.getScaleX()))> 1){
-					this._clickOnly=false;
-					this._offsets || (this._offsets=[]);
-					this._offsets.length=0;
-					this._target.mouseEnabled=false;
-					if (!this.hide && this.autoHide){
-						this.alpha=1;
-						this.visible=true;
-					}
-					this.event("start");
-				}else return;
-			}
-			this._offsets.push(this._lastOffset);
-			this._lastPoint.x=mouseX;
-			this._lastPoint.y=mouseY;
-			if (this._lastOffset===0)return;
-			if (!this._checkElastic){
-				if (this.elasticDistance > 0){
-					if (!this._checkElastic && this._lastOffset !=0){
-						this._checkElastic=true;
-						if ((this._lastOffset > 0 && this._value <=this.min)|| (this._lastOffset < 0 && this._value >=this.max)){
-							this._isElastic=true;
-							}else {
-							this._isElastic=false;
-						}
-					}
-					}else {
-					this._checkElastic=true;
-				}
-			}
-			if (this._checkElastic){
-				if (this._isElastic){
-					if (this._value <=this.min){
-						this.value-=this._lastOffset *Math.max(0,(1-((this.min-this._value)/ this.elasticDistance)));
-						}else if (this._value >=this.max){
-						this.value-=this._lastOffset *Math.max(0,(1-((this._value-this.max)/ this.elasticDistance)));
-					}
-					}else {
-					this.value-=this._lastOffset;
-				}
-			}
-		}
-
-		/**@private */
-		__proto.onStageMouseUp2=function(e){
-			Laya.stage.off("mouseup",this,this.onStageMouseUp2);
-			Laya.stage.off("mouseout",this,this.onStageMouseUp2);
-			Laya.timer.clear(this,this.loop);
-			if (this._clickOnly)return;
-			this._target.mouseEnabled=true;
-			if (this._isElastic){
-				if (this._value < this.min){
-					Tween.to(this,{value:this.min},this.elasticBackTime,Ease.sineOut,Handler.create(this,this.elasticOver));
-					}else if (this._value > this.max){
-					Tween.to(this,{value:this.max},this.elasticBackTime,Ease.sineOut,Handler.create(this,this.elasticOver));
-				}
-				}else {
-				if (this._offsets.length < 1){
-					this._offsets[0]=this.isVertical ? Laya.stage.mouseY-this._lastPoint.y :Laya.stage.mouseX-this._lastPoint.x;
-				};
-				var offset=0;
-				var n=Math.min(this._offsets.length,3);
-				for (var i=0;i < n;i++){
-					offset+=this._offsets[this._offsets.length-1-i];
-				}
-				this._lastOffset=offset / n;
-				offset=Math.abs(this._lastOffset);
-				if (offset < 2){
-					this.event("end");
-					return;
-				}
-				if (offset > 60)this._lastOffset=this._lastOffset > 0 ? 60 :-60;
-				Laya.timer.frameLoop(1,this,this.tweenMove);
-			}
-		}
-
-		/**@private */
-		__proto.elasticOver=function(){
-			this._isElastic=false;
-			if (!this.hide && this.autoHide){
-				Tween.to(this,{alpha:0},500);
-			}
-		}
-
-		/**@private */
-		__proto.tweenMove=function(){
-			this._lastOffset *=0.95;
-			this.value-=this._lastOffset;
-			if (Math.abs(this._lastOffset)< 1){
-				Laya.timer.clear(this,this.tweenMove);
-				this.event("end");
-				if (!this.hide && this.autoHide){
-					Tween.to(this,{alpha:0},500);
-				}
-			}
-		}
-
-		/**
-		*停止滑动。
-		*/
-		__proto.stopScroll=function(){
-			this.onStageMouseUp2(null);
-			Laya.timer.clear(this,this.tweenMove);
-			Tween.clearTween(this);
-		}
-
-		/**
-		*一个布尔值，指示滚动条是否为垂直滚动。如果值为true，则为垂直滚动，否则为水平滚动。
-		*<p>默认值为：true。</p>
-		*/
-		__getset(0,__proto,'isVertical',function(){
-			return this._slider.isVertical;
-			},function(value){
-			this._slider.isVertical=value;
-		});
-
-		/**
-		*@copy laya.ui.Image#skin
-		*/
-		__getset(0,__proto,'skin',function(){
-			return this._skin;
-			},function(value){
-			if (this._skin !=value){
-				this._skin=value;
-				this._slider.skin=this._skin;
-				this.callLater(this.changeScrollBar);
-			}
-		});
-
-		/**
-		*获取或设置表示最高滚动位置的数字。
-		*/
-		__getset(0,__proto,'max',function(){
-			return this._slider.max;
-			},function(value){
-			this._slider.max=value;
-		});
-
-		/**获取或设置一个值，该值表示按下滚动条轨道时页面滚动的增量。 */
-		__getset(0,__proto,'scrollSize',function(){
-			return this._scrollSize;
-			},function(value){
-			this._scrollSize=value;
-		});
-
-		/**@inheritDoc */
-		__getset(0,__proto,'measureHeight',function(){
-			if (this._slider.isVertical)return 100;
-			return this._slider.height;
-		});
-
-		/**@inheritDoc */
-		__getset(0,__proto,'measureWidth',function(){
-			if (this._slider.isVertical)return this._slider.width;
-			return 100;
-		});
-
-		/**
-		*<p>当前实例的 <code>Slider</code> 实例的有效缩放网格数据。</p>
-		*<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-		*<ul><li>例如："4,4,4,4,1"</li></ul></p>
-		*@see laya.ui.AutoBitmap.sizeGrid
-		*/
-		__getset(0,__proto,'sizeGrid',function(){
-			return this._slider.sizeGrid;
-			},function(value){
-			this._slider.sizeGrid=value;
-		});
-
-		/**
-		*获取或设置表示最低滚动位置的数字。
-		*/
-		__getset(0,__proto,'min',function(){
-			return this._slider.min;
-			},function(value){
-			this._slider.min=value;
-		});
-
-		/**
-		*获取或设置表示当前滚动位置的数字。
-		*/
-		__getset(0,__proto,'value',function(){
-			return this._value;
-			},function(v){
-			if (v!==this._value){
-				if (this._isElastic)this._value=v;
-				else {
-					this._slider.value=v;
-					this._value=this._slider.value;
-				}
-				this.event("change");
-				this.changeHandler && this.changeHandler.runWith(this.value);
-			}
-		});
-
-		/**@inheritDoc */
-		__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
-			this._dataSource=value;
-			if ((typeof value=='number')|| (typeof value=='string'))this.value=Number(value);
-			else _super.prototype._$set_dataSource.call(this,value);
-		});
-
-		/**获取或设置一个值，该值表示滑条长度比例，值为：（0-1）。 */
-		__getset(0,__proto,'thumbPercent',function(){
-			return this._thumbPercent;
-			},function(value){
-			this.runCallLater(this.changeScrollBar);
-			this.runCallLater(this.changeSize);
-			value=value >=1 ? 0.99 :value;
-			this._thumbPercent=value;
-			if (this.scaleBar){
-				if (this._slider.isVertical)this._slider.bar.height=Math.max(this._slider.height *value,Styles.scrollBarMinNum);
-				else this._slider.bar.width=Math.max(this._slider.width *value,Styles.scrollBarMinNum);
-			}
-		});
-
-		/**
-		*设置滚动对象。
-		*@see laya.ui.TouchScroll#target
-		*/
-		__getset(0,__proto,'target',function(){
-			return this._target;
-			},function(value){
-			if (this._target){
-				this._target.off("mousewheel",this,this.onTargetMouseWheel);
-				this._target.off("mousedown",this,this.onTargetMouseDown);
-			}
-			this._target=value;
-			if (value){
-				this._mouseWheelEnable && this._target.on("mousewheel",this,this.onTargetMouseWheel);
-				this._touchScrollEnable && this._target.on("mousedown",this,this.onTargetMouseDown);
-			}
-		});
-
-		/**是否隐藏滚动条，不显示滚动条，但是可以正常滚动，默认为false。*/
-		__getset(0,__proto,'hide',function(){
-			return this._hide;
-			},function(value){
-			this._hide=value;
-			this.visible=!value;
-		});
-
-		/**一个布尔值，指定是否显示向上、向下按钮，默认值为true。*/
-		__getset(0,__proto,'showButtons',function(){
-			return this._showButtons;
-			},function(value){
-			this._showButtons=value;
-			this.callLater(this.changeScrollBar);
-		});
-
-		/**一个布尔值，指定是否开启触摸，默认值为true。*/
-		__getset(0,__proto,'touchScrollEnable',function(){
-			return this._touchScrollEnable;
-			},function(value){
-			this._touchScrollEnable=value;
-			this.target=this._target;
-		});
-
-		/**一个布尔值，指定是否滑轮滚动，默认值为true。*/
-		__getset(0,__proto,'mouseWheelEnable',function(){
-			return this._mouseWheelEnable;
-			},function(value){
-			this._mouseWheelEnable=value;
-		});
-
-		return ScrollBar;
-	})(Component)
 
 
 	/**
@@ -42414,107 +42504,6 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
-	*<p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
-	*
-	*@example 以下示例代码，创建了一个 <code>VSlider</code> 实例。
-	*<listing version="3.0">
-	*package
-	*{
-		*import laya.ui.HSlider;
-		*import laya.ui.VSlider;
-		*import laya.utils.Handler;
-		*public class VSlider_Example
-		*{
-			*private var vSlider:VSlider;
-			*public function VSlider_Example()
-			*{
-				*Laya.init(640,800);//设置游戏画布宽高。
-				*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-				*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,onLoadComplete));//加载资源。
-				*}
-			*private function onLoadComplete():void
-			*{
-				*vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-				*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-				*vSlider.min=0;//设置 vSlider 最低位置值。
-				*vSlider.max=10;//设置 vSlider 最高位置值。
-				*vSlider.value=2;//设置 vSlider 当前位置值。
-				*vSlider.tick=1;//设置 vSlider 刻度值。
-				*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-				*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-				*vSlider.changeHandler=new Handler(this,onChange);//设置 vSlider 位置变化处理器。
-				*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-				*}
-			*private function onChange(value:Number):void
-			*{
-				*trace("滑块的位置： value="+value);
-				*}
-			*}
-		*}
-	*</listing>
-	*<listing version="3.0">
-	*Laya.init(640,800);//设置游戏画布宽高
-	*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
-	*var vSlider;
-	*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],laya.utils.Handler.create(this,onLoadComplete));//加载资源。
-	*function onLoadComplete(){
-		*vSlider=new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-		*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-		*vSlider.min=0;//设置 vSlider 最低位置值。
-		*vSlider.max=10;//设置 vSlider 最高位置值。
-		*vSlider.value=2;//设置 vSlider 当前位置值。
-		*vSlider.tick=1;//设置 vSlider 刻度值。
-		*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-		*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-		*vSlider.changeHandler=new laya.utils.Handler(this,onChange);//设置 vSlider 位置变化处理器。
-		*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-		*}
-	*function onChange(value){
-		*console.log("滑块的位置： value="+value);
-		*}
-	*</listing>
-	*<listing version="3.0">
-	*import HSlider=laya.ui.HSlider;
-	*import VSlider=laya.ui.VSlider;
-	*import Handler=laya.utils.Handler;
-	*class VSlider_Example {
-		*private vSlider:VSlider;
-		*constructor(){
-			*Laya.init(640,800);//设置游戏画布宽高。
-			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-			*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,this.onLoadComplete));//加载资源。
-			*}
-		*private onLoadComplete():void {
-			*this.vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-			*this.vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-			*this.vSlider.min=0;//设置 vSlider 最低位置值。
-			*this.vSlider.max=10;//设置 vSlider 最高位置值。
-			*this.vSlider.value=2;//设置 vSlider 当前位置值。
-			*this.vSlider.tick=1;//设置 vSlider 刻度值。
-			*this.vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-			*this.vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-			*this.vSlider.changeHandler=new Handler(this,this.onChange);//设置 vSlider 位置变化处理器。
-			*Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
-			*}
-		*private onChange(value:number):void {
-			*console.log("滑块的位置： value="+value);
-			*}
-		*}
-	*</listing>
-	*@see laya.ui.Slider
-	*/
-	//class laya.ui.VSlider extends laya.ui.Slider
-	var VSlider=(function(_super){
-		function VSlider(){VSlider.__super.call(this);;
-		};
-
-		__class(VSlider,'laya.ui.VSlider',_super);
-		return VSlider;
-	})(Slider)
-
-
-	/**
 	*<code>TextInput</code> 类用于创建显示对象以显示和输入文本。
 	*
 	*@example 以下示例代码，创建了一个 <code>TextInput</code> 实例。
@@ -42796,6 +42785,107 @@ window.Laya=(function(window,document){
 
 		return TextInput;
 	})(Label)
+
+
+	/**
+	*使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
+	*<p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
+	*
+	*@example 以下示例代码，创建了一个 <code>VSlider</code> 实例。
+	*<listing version="3.0">
+	*package
+	*{
+		*import laya.ui.HSlider;
+		*import laya.ui.VSlider;
+		*import laya.utils.Handler;
+		*public class VSlider_Example
+		*{
+			*private var vSlider:VSlider;
+			*public function VSlider_Example()
+			*{
+				*Laya.init(640,800);//设置游戏画布宽高。
+				*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+				*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,onLoadComplete));//加载资源。
+				*}
+			*private function onLoadComplete():void
+			*{
+				*vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+				*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+				*vSlider.min=0;//设置 vSlider 最低位置值。
+				*vSlider.max=10;//设置 vSlider 最高位置值。
+				*vSlider.value=2;//设置 vSlider 当前位置值。
+				*vSlider.tick=1;//设置 vSlider 刻度值。
+				*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+				*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+				*vSlider.changeHandler=new Handler(this,onChange);//设置 vSlider 位置变化处理器。
+				*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+				*}
+			*private function onChange(value:Number):void
+			*{
+				*trace("滑块的位置： value="+value);
+				*}
+			*}
+		*}
+	*</listing>
+	*<listing version="3.0">
+	*Laya.init(640,800);//设置游戏画布宽高
+	*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
+	*var vSlider;
+	*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],laya.utils.Handler.create(this,onLoadComplete));//加载资源。
+	*function onLoadComplete(){
+		*vSlider=new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+		*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+		*vSlider.min=0;//设置 vSlider 最低位置值。
+		*vSlider.max=10;//设置 vSlider 最高位置值。
+		*vSlider.value=2;//设置 vSlider 当前位置值。
+		*vSlider.tick=1;//设置 vSlider 刻度值。
+		*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+		*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+		*vSlider.changeHandler=new laya.utils.Handler(this,onChange);//设置 vSlider 位置变化处理器。
+		*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+		*}
+	*function onChange(value){
+		*console.log("滑块的位置： value="+value);
+		*}
+	*</listing>
+	*<listing version="3.0">
+	*import HSlider=laya.ui.HSlider;
+	*import VSlider=laya.ui.VSlider;
+	*import Handler=laya.utils.Handler;
+	*class VSlider_Example {
+		*private vSlider:VSlider;
+		*constructor(){
+			*Laya.init(640,800);//设置游戏画布宽高。
+			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+			*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,this.onLoadComplete));//加载资源。
+			*}
+		*private onLoadComplete():void {
+			*this.vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+			*this.vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+			*this.vSlider.min=0;//设置 vSlider 最低位置值。
+			*this.vSlider.max=10;//设置 vSlider 最高位置值。
+			*this.vSlider.value=2;//设置 vSlider 当前位置值。
+			*this.vSlider.tick=1;//设置 vSlider 刻度值。
+			*this.vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+			*this.vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+			*this.vSlider.changeHandler=new Handler(this,this.onChange);//设置 vSlider 位置变化处理器。
+			*Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
+			*}
+		*private onChange(value:number):void {
+			*console.log("滑块的位置： value="+value);
+			*}
+		*}
+	*</listing>
+	*@see laya.ui.Slider
+	*/
+	//class laya.ui.VSlider extends laya.ui.Slider
+	var VSlider=(function(_super){
+		function VSlider(){VSlider.__super.call(this);;
+		};
+
+		__class(VSlider,'laya.ui.VSlider',_super);
+		return VSlider;
+	})(Slider)
 
 
 	/**
@@ -43227,7 +43317,8 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaLeftPlayerViewUI,
-		['uiView',function(){return this.uiView={"type":"View","child":[{"props":{"x":0,"y":0,"skin":"sanguo/img_header_top.png","var":"imgPlayerHeader","name":"imgPlayerHeader"},"type":"Image"},{"props":{"x":3,"y":0,"skin":"sanguo/img_header_1.png","var":"imgPlayerHeaderFg","name":"imgPlayerHeaderFg"},"type":"Image"},{"props":{"x":160,"y":16,"skin":"sanguo/img_player_hp_bg_left.png","var":"imgPlayerHpBg","name":"imgPlayerHpBg"},"type":"Image"},{"props":{"x":174,"y":16,"skin":"sanguo/img_player_hp.png","var":"imgPlayerHp","name":"imgPlayerHp"},"type":"Image"},{"props":{"x":147,"y":40,"text":"玩家名字七个字","font":"微软雅黑","color":"#ffffff","fontSize":22,"width":154,"height":22,"stroke":2,"var":"lbName","name":"lbName"},"type":"Label"},{"props":{"x":333,"y":39,"text":"先手值：4000","font":"微软雅黑","color":"#ffffff","fontSize":21,"width":154,"height":22,"stroke":2,"var":"lbFirstAttack","name":"lbFirstAttack"},"type":"Label"}],"props":{"width":487,"height":65}};}
+		['uiView',function(){return this.uiView={"type":"View","child":[{"props":{"x":0,"y":0,"skin":"sanguo/img_header_top.png","var":"imgPlayerHeader","name":"imgPlayerHeader"},"type":"Image"},{"props":{"x":3,"y":0,"skin":"sanguo/img_header_1.png","var":"imgPlayerHeaderFg","name":"imgPlayerHeaderFg"},"type":"Image"},{"props":{"x":160,"y":16,"skin":"sanguo/img_player_hp_bg_left.png","var":"imgPlayerHpBg","name":"imgPlayerHpBg"},"type":"Image"},{"props":{"x":174,"y":16,"skin":"sanguo/img_player_hp.png","var":"imgPlayerHp","name":"imgPlayerHp","sizeGrid":"4,32,4,32","pivotX":0,"pivotY":0},"type":"Image"},{"props":{"x":147,"y":40,"text":"玩家名字七个字","font":"微软雅黑","color":"#ffffff","fontSize":22,"width":154,"height":22,"stroke":2,"var":"lbName","name":"lbName"},"type":"Label"},{"props":{"x":333,"y":39,"text":"先手值：4000","font":"微软雅黑","color":"#ffffff","fontSize":21,"width":154,"height":22,"stroke":2,"var":"lbFirstAttack","name":"lbFirstAttack"},"type":"Label"}],"props"
+				:{"width":487,"height":65}};}
 		]);
 		return ArenaLeftPlayerViewUI;
 	})(View)
@@ -43253,7 +43344,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaRightPlayerViewUI,
-		['uiView',function(){return this.uiView={"type":"View","child":[{"props":{"x":0,"y":16,"skin":"sanguo/img_player_hp_bg_right.png","var":"imgPlayerHpBg","name":"imgPlayerHpBg"},"type":"Image"},{"props":{"x":6,"y":16,"skin":"sanguo/img_player_hp.png","var":"imgPlayerHp","name":"imgPlayerHp"},"type":"Image"},{"props":{"x":351,"y":0,"skin":"sanguo/img_header_top.png","var":"imgPlayerHeader","name":"imgPlayerHeader","visible":true},"type":"Image"},{"props":{"x":354,"y":0,"skin":"sanguo/img_header_1.png","var":"imgPlayerHeaderFg","name":"imgPlayerHeaderFg"},"type":"Image"},{"props":{"x":183,"y":40,"text":"玩家名字七个字","font":"微软雅黑","color":"#ffffff","fontSize":22,"width":154,"height":22,"stroke":2,"var":"lbName","name":"lbName"},"type":"Label"},{"props":{"x":19,"y":39,"text":"先手值：4000","font":"微软雅黑","color":"#ffffff","fontSize":21,"width":154,"height":22,"stroke":2,"var":"lbFirstAttack","name":"lbFirstAttack"},"type":"Label"}],"props":{"width":487,"height":66}};}
+		['uiView',function(){return this.uiView={"type":"View","child":[{"props":{"x":0,"y":16,"skin":"sanguo/img_player_hp_bg_right.png","var":"imgPlayerHpBg","name":"imgPlayerHpBg"},"type":"Image"},{"props":{"x":6,"y":16,"skin":"sanguo/img_player_hp.png","var":"imgPlayerHp","name":"imgPlayerHp","sizeGrid":"4,32,4,32","pivotX":0,"pivotY":0},"type":"Image"},{"props":{"x":351,"y":0,"skin":"sanguo/img_header_top.png","var":"imgPlayerHeader","name":"imgPlayerHeader","visible":true},"type":"Image"},{"props":{"x":354,"y":0,"skin":"sanguo/img_header_1.png","var":"imgPlayerHeaderFg","name":"imgPlayerHeaderFg"},"type":"Image"},{"props":{"x":183,"y":40,"text":"玩家名字七个字","font":"微软雅黑","color":"#ffffff","fontSize":22,"width":154,"height":22,"stroke":2,"var":"lbName","name":"lbName"},"type":"Label"},{"props":{"x":19,"y":39,"text":"先手值：4000","font":"微软雅黑","color":"#ffffff","fontSize":21,"width":154,"height":22,"stroke":2,"var":"lbFirstAttack","name":"lbFirstAttack"},"type":"Label"}],"props":{"width":487,"height":66}};}
 		]);
 		return ArenaRightPlayerViewUI;
 	})(View)
@@ -44165,12 +44256,22 @@ window.Laya=(function(window,document){
 	//class com.gamepark.casino.game.arena.view.ArenaRoleItemView extends ui.game.ArenaRoleItemViewUI
 	var ArenaRoleItemView=(function(_super){
 		function ArenaRoleItemView(){
+			this.imgHeaderFgState=false;
 			ArenaRoleItemView.__super.call(this);
+			this.imgHeaderFgState=false;
 		}
 
 		__class(ArenaRoleItemView,'com.gamepark.casino.game.arena.view.ArenaRoleItemView',_super);
 		var __proto=ArenaRoleItemView.prototype;
 		__proto.refreshHP=function($mpNumber){
+			if ($mpNumber==1){
+				this.imgHeader.blendMode="light";
+				this.imgHeaderFg.frameLoop(10,this,this.imgBlink,[this.imgHeaderFg]);
+				}else{
+				this.imgHeader.blendMode="";
+				this.imgHeaderFg.timer.clearAll(this);
+				this.imgHeaderFg.visible=true;
+			}
 			Tween.to(this.mpView.imgMp,{
 				scaleX:$mpNumber
 			},300,null);
@@ -44181,15 +44282,36 @@ window.Laya=(function(window,document){
 				scaleX:$hpNumber
 			},300,null);
 			if ($hpNumber==0){
+				this.imgHeaderFg.timer.clearAll(this);
+				this.imgHeaderFg.visible=true;
+				this.imgHeader.blendMode="";
 				this.disabled=true;
 				Tween.to(this.mpView.imgMp,{
 					scaleX:0
 				},300,null);
 			}
 			else{
+				if ($mpNumber==1){
+					this.imgHeader.blendMode="add";
+					this.imgHeaderFg.frameLoop(10,this,this.imgBlink,[this.imgHeaderFg]);
+					}else{
+					this.imgHeader.blendMode="";
+					this.imgHeaderFg.timer.clearAll(this);
+					this.imgHeaderFg.visible=true;
+				}
 				Tween.to(this.mpView.imgMp,{
 					scaleX:$mpNumber
 				},300,null);
+			}
+		}
+
+		__proto.imgBlink=function($img){
+			if (this.imgHeaderFgState){
+				this.imgHeaderFgState=false;
+				$img.visible=false;
+				}else{
+				this.imgHeaderFgState=true;
+				$img.visible=true;
 			}
 		}
 
@@ -44250,7 +44372,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ComboViewUI,
-		['uiView',function(){return this.uiView={"type":"Dialog","child":[{"props":{"x":80,"skin":"combo/img_combo_bg.png","var":"img_multy_bg","name":"img_multy_bg","y":53,"pivotX":64.5,"pivotY":46.5},"type":"Image"},{"props":{"x":81,"y":48,"text":"X12","width":103,"height":48,"var":"lab_multy","name":"lab_multy","align":"center","font":"comboBS","pivotX":51.5,"pivotY":24},"type":"Label"},{"props":{"x":78,"y":96,"skin":"combo/img_multy.png","var":"img_multy_bg1","name":"img_multy_bg1","pivotX":77.5,"pivotY":22.5},"type":"Image"}],"props":{"width":160,"height":100,"pivotX":80,"pivotY":50,"x":0,"y":0}};}
+		['uiView',function(){return this.uiView={"type":"Dialog","child":[{"props":{"x":80,"skin":"combo/img_combo_bg.png","var":"img_multy_bg","name":"img_multy_bg","y":53,"pivotX":64.5,"pivotY":46.5},"type":"Image"},{"props":{"x":77,"y":48,"text":"X1.4","width":103,"height":48,"var":"lab_multy","name":"lab_multy","align":"center","font":"comboBS","pivotX":51.5,"pivotY":24,"scaleX":0.7,"scaleY":0.7},"type":"Label"},{"props":{"x":78,"y":96,"skin":"combo/img_multy.png","var":"img_multy_bg1","name":"img_multy_bg1","pivotX":77.5,"pivotY":22.5},"type":"Image"}],"props":{"width":160,"height":100,"pivotX":80,"pivotY":50,"x":0,"y":0}};}
 		]);
 		return ComboViewUI;
 	})(Dialog)
@@ -44318,7 +44440,7 @@ window.Laya=(function(window,document){
 	})(TestPageUI)
 
 
-	Laya.__init([EventDispatcher,Timer,ErisGamePropertyObserver,Browser,ShaderCompile,WebGLContext,WebGLContext2D,Render,LoaderManager,WebGLFilter,AtlasGrid,RenderTargetMAX,DrawText,Dialog]);
+	Laya.__init([EventDispatcher,Dialog,Timer,ErisGamePropertyObserver,Browser,ShaderCompile,WebGLContext,WebGLContext2D,Render,LoaderManager,AtlasGrid,RenderTargetMAX,DrawText,WebGLFilter]);
 	new Sanguo();
 
 })(window,document,Laya);
