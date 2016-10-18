@@ -523,8 +523,7 @@ window.Laya=(function(window,document){
 		*
 		*/
 		__proto.initialize=function(){
-			if
-			(!this.hasInit){
+			if(!this.hasInit){
 				this.onInitialize();
 				this.hasInit=true;
 			}
@@ -561,8 +560,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'view',function(){
 			return this._view;
 			},function(value){
-			this._view=value
-			;
+			this._view=value;
 		});
 
 		return BaseMediator;
@@ -4695,6 +4693,7 @@ window.Laya=(function(window,document){
 			Laya.stage.alignH="center";
 			Laya.stage.alignV="middle";
 			Laya.stage.scaleMode="showall";
+			Laya.stage.frameRate="slow";
 			Stat.show();
 			GameContext.i.initialize(new DefaultPlatformDelegate());
 			console.log(1,Laya.stage.width,Laya.stage.height);
@@ -10155,7 +10154,8 @@ window.Laya=(function(window,document){
 		__static(VertexPositionNormalTexture0Texture1Skin,
 		['_vertexDeclaration',function(){return this._vertexDeclaration=new VertexDeclaration(72,[
 			new VertexElement(0,"vector3","POSITION"),
-			new VertexElement(12,"vector3","NORMAL"),
+			new VertexElement(12
+			,"vector3","NORMAL"),
 			new VertexElement(24,"vector2","UV"),
 			new VertexElement(32,"vector2","UV1"),
 			new VertexElement(40,"vector4","BLENDWEIGHT"),
@@ -38161,7 +38161,8 @@ window.Laya=(function(window,document){
 			var max=0;
 			this.commitMeasure();
 			for (var i=this.numChildren-1;i >-1;i--){
-				var comp=this.getChildAt(i);
+				var comp=this.getChildAt(i)
+				;
 				if (comp.visible){
 					max=Math.max(comp.y+comp.height *comp.scaleY,max);
 				}
@@ -49590,7 +49591,8 @@ window.Laya=(function(window,document){
 		*/
 		__proto.createView=function(uiView){
 			if (uiView.animations && !this._idMap)this._idMap={};
-			View.createComp(uiView,this,this);
+			View.createComp(uiView
+			,this,this);
 			if (uiView.animations){
 				var anilist=[];
 				var animations=uiView.animations;
