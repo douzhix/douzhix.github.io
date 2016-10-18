@@ -1,0 +1,16 @@
+{
+	"messages":[
+		{
+			"className":"com.gpf.common.protocol.CsHelloWorld",
+			"id":"1",
+			"javaClassName":"com.gpf.common.protocol.HelloWorldProtocol$CsHelloWorld",
+			"protoFile":"common/HelloWorld.proto"
+		},
+		{
+			"className":"com.gpf.common.protocol.ScHelloWorld",
+			"id":"2",
+			"javaClassName":"com.gpf.common.protocol.HelloWorldProtocol$ScHelloWorld",
+			"protoFile":"common/HelloWorld.proto"
+		}
+	]
+}
