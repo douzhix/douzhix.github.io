@@ -177,29 +177,31 @@ window.Laya=(function(window,document){
 
 (function(window,document,Laya){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
-	Laya.interface('laya.runtime.IMarket');
-	Laya.interface('laya.webgl.shapes.IShape');
-	Laya.interface('laya.d3.core.render.IRenderable');
-	Laya.interface('laya.d3.graphics.IVertex');
-	Laya.interface('laya.runtime.ICPlatformClass');
-	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
-	Laya.interface('laya.filters.IFilter');
-	Laya.interface('laya.ui.IItem');
-	Laya.interface('laya.filters.IFilterAction');
-	Laya.interface('laya.resource.IDispose');
-	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
-	Laya.interface('laya.webgl.text.ICharSegment');
-	Laya.interface('laya.webgl.submit.ISubmit');
-	Laya.interface('laya.ui.ISelect');
-	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
 	Laya.interface('laya.display.ILayout');
+	Laya.interface('laya.webgl.text.ICharSegment');
+	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
+	Laya.interface('laya.ui.ISelect');
+	Laya.interface('laya.filters.IFilterAction');
 	Laya.interface('laya.d3.core.render.IRender');
 	Laya.interface('laya.runtime.IConchNode');
+	Laya.interface('laya.ui.IItem');
+	Laya.interface('laya.webgl.shapes.IShape');
 	Laya.interface('laya.webgl.canvas.save.ISaveData');
+	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.runtime.IMarket');
 	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
+	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
+	Laya.interface('laya.runtime.ICPlatformClass');
+	Laya.interface('laya.filters.IFilter');
+	Laya.interface('laya.d3.core.render.IRenderable');
+	Laya.interface('laya.resource.IDispose');
+	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
 	Laya.interface('laya.filters.IFilterActionGL','laya.filters.IFilterAction');
-	var sleep=Laya.sleep=function(value){
-		Asyn.sleep(value);
+	var await=Laya.await=function(caller,fn,nextLine){
+		Asyn._caller_=caller;
+		Asyn._callback_=fn;
+		Asyn._nextLine_=nextLine;
 	}
 
 
@@ -213,10 +215,8 @@ window.Laya=(function(window,document){
 	}
 
 
-	var await=Laya.await=function(caller,fn,nextLine){
-		Asyn._caller_=caller;
-		Asyn._callback_=fn;
-		Asyn._nextLine_=nextLine;
+	var sleep=Laya.sleep=function(value){
+		Asyn.sleep(value);
 	}
 
 
@@ -937,6 +937,22 @@ window.Laya=(function(window,document){
 	})()
 
 
+	//class com.gamepark.casino.game.arena.enum.ArenaLuckyEnum
+	var ArenaLuckyEnum=(function(){
+		function ArenaLuckyEnum(){};
+		__class(ArenaLuckyEnum,'com.gamepark.casino.game.arena.enum.ArenaLuckyEnum');
+		ArenaLuckyEnum.XIAO_JI=0;
+		ArenaLuckyEnum.JI=1;
+		ArenaLuckyEnum.ZHONG_JI=2;
+		ArenaLuckyEnum.DA_JI=3;
+		ArenaLuckyEnum.CHAO_JI=4;
+		__static(ArenaLuckyEnum,
+		['LUCKY_EFFECT_LIST',function(){return this.LUCKY_EFFECT_LIST=[0.04,0.08,0.12,0.16,0.2];}
+		]);
+		return ArenaLuckyEnum;
+	})()
+
+
 	//class com.gamepark.casino.game.arena.enum.ArenaRoleAniNameEnum
 	var ArenaRoleAniNameEnum=(function(){
 		function ArenaRoleAniNameEnum(){};
@@ -1614,8 +1630,10 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.onMyRoleSuperUniqueSkill=function($roleItemLogic){}
-		__proto.onMyRoleAttack=function($roleItemLogic){
-			this.arenaContext.gameMediator.hideRoleItemLable($roleItemLogic)
+		__proto.onMyRoleAttack=function($roleItemLogic){}
+		// this.arenaContext.gameMediator.hideRoleItemLable($roleItemLogic)
+		__proto.onMyRoleFinishAttackKeyFrameAction=function($roleItemLogic){
+			this.arenaContext.gameMediator.hideRoleItemLable($roleItemLogic);
 		}
 
 		__proto.onMyRoleDie=function($roleItemLogic){
@@ -1678,6 +1696,12 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.isAutoBattle=false;
 			this.attackDefenceRolePosition=0;
+			var i=0;
+			var playerInfo;
+			for(i=0;i < this.playerList.length;i++){
+				playerInfo=this.playerList[i];
+				playerInfo.startGame();
+			}
 			this.battleVO.initialize();
 			this.superUniquePositionList=[];
 		}
@@ -1714,6 +1738,11 @@ window.Laya=(function(window,document){
 		}
 
 		__class(ArenaPlayerInfo,'com.gamepark.casino.game.arena.model.ArenaPlayerInfo');
+		var __proto=ArenaPlayerInfo.prototype;
+		__proto.startGame=function(){
+			this.roleVO.startGame();
+		}
+
 		return ArenaPlayerInfo;
 	})()
 
@@ -2141,6 +2170,15 @@ window.Laya=(function(window,document){
 		}
 
 		// }
+		__proto.startGame=function(){
+			this.initialize();
+			var roleItemLogic=GameContext.i.arenaContext.manager.roleListLogic.roleItemLogicList[this.group *6+this.position];
+			this.roleItemLogic=roleItemLogic;
+			roleItemLogic.roleInfo=this;
+			roleItemLogic.view.roleInfo=this;
+			this.roleItemLogic.startGame();
+		}
+
 		__proto.turnToAttack=function(){
 			this.addMp(0);
 		}
@@ -2237,6 +2275,11 @@ window.Laya=(function(window,document){
 			this.roleHp=this.roleInfo.hp;
 			this.roleMp=this.roleInfo.mp;
 			this.roleStatus=1;
+		}
+
+		__proto.startGame=function(){
+			this.initialize();
+			this.view.startGame();
 		}
 
 		__proto.update=function(){
@@ -2419,7 +2462,7 @@ window.Laya=(function(window,document){
 						break ;
 					case 902:
 						console.log("dying!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-						Tween.to(this.view.aniContainer,{alpha :0},1000);
+						Tween.to(this.view,{alpha :0},1000);
 						this.secondStatus=903;
 						break ;
 					case 903:
@@ -2729,10 +2772,6 @@ window.Laya=(function(window,document){
 			for(i=0;i < $playerInfo.roleVO.roleInfoList.length;i++){
 				roleInfo=$playerInfo.roleVO.roleInfoList[i];
 				roleItemLogic=this.roleItemLogicList[$group *6+roleInfo.position];
-				roleInfo.roleItemLogic=roleItemLogic;
-				roleItemLogic.view.roleInfo=roleInfo;
-				roleItemLogic.roleInfo=roleInfo;
-				roleItemLogic.roleInfo.roleItemLogic=roleItemLogic;
 				roleItemLogic.initialize();
 				roleItemLogic.view.showRoleView();
 			}
@@ -2921,6 +2960,15 @@ window.Laya=(function(window,document){
 			else{
 				this.position=1;
 				this.isMe=false;
+			}
+		}
+
+		__proto.startGame=function(){
+			var roleInfo;
+			var i=0;
+			for(i=0;i < this.roleInfoList.length;i++){
+				roleInfo=this.roleInfoList[i];
+				roleInfo.startGame();
 			}
 		}
 
@@ -3145,9 +3193,9 @@ window.Laya=(function(window,document){
 			var i=0;
 			for(i=0;i < attackRoleInfoList.length;i++){
 				roleInfo=attackRoleInfoList[i];
-				lucky=Math.floor(Math.random()*ArenaComboEnum.COMBO_EFFECT_LIST.length);
+				lucky=Math.floor(Math.random()*ArenaLuckyEnum.LUCKY_EFFECT_LIST.length);
 				console.log("this.qteEffectList[",i,"]" ,this.qteEffectList[i]);
-				luckyEffect=this.qteEffectList[i]+ArenaComboEnum.COMBO_EFFECT_LIST[lucky];
+				luckyEffect=this.qteEffectList[i]+ArenaLuckyEnum.LUCKY_EFFECT_LIST[lucky];
 				console.log("luckyEffect : ",luckyEffect);
 				roleInfo.roleItemLogic.lucky=lucky;
 				roleInfo.roleItemLogic.luckyEffect=luckyEffect;
@@ -3985,11 +4033,13 @@ window.Laya=(function(window,document){
 			this.fightSkillMetaList=[];
 			this.fightSkillEffectMetaList=[];
 			this.heroResourceMetaList=[];
+			this.qteComboMetaList=[];
 			this.fightAttackTypeMetaDict=new Dictionary();
 			this.heroBaseMetaDict=new Dictionary();
 			this.fightSkillMetaDict=new Dictionary();
 			this.fightSkillEffectMetaDict=new Dictionary();
 			this.heroResourceMetaDict=new Dictionary();
+			this.qteComboMetaDict=new Dictionary();
 		}
 
 		__class(MetaData,'com.gamepark.casino.meta.MetaData');
@@ -4044,9 +4094,17 @@ window.Laya=(function(window,document){
 				this.fightSkillEffectMetaList.push(fightSkillEffectMeta);
 				this.fightSkillEffectMetaDict.set(fightSkillEffectMeta.id,fightSkillEffectMeta);
 			}
+			metaObjList=$metaData["QTE_combo"];
+			this.qteComboMetaList=[];
+			var qteComboMeta
+			for (var j=0;j < metaObjList.length;j++){
+				metaObj=metaObjList[j];
+				qteComboMeta=new QteComboMeta(metaObj);
+				this.qteComboMetaList.push(qteComboMeta);
+				this.qteComboMetaDict.set(qteComboMeta.id,qteComboMeta);
+			}
 		}
 
-		// trace("i : ",i," fightSkillEffectMetaList : ",fightSkillEffectMetaList);
 		__proto.getFightAttackTypeList=function(){
 			var fightAttackTypeMeta=this.fightAttackTypeMetaList[Math.floor(Math.random()*this.fightAttackTypeMetaList.length)];
 			return fightAttackTypeMeta.attackTypeList;
@@ -4687,6 +4745,7 @@ window.Laya=(function(window,document){
 			this.comboHBitmapFont=null;
 			this.comboIBitmapFont=null;
 			this.comboRBitmapFont=null;
+			this.jiBitmapFont=null;
 			this.qtecdBitmapFont=null;
 			Laya.init(1136,640,WebGL);
 			Laya.stage.screenMode="horizontal";
@@ -4802,6 +4861,12 @@ window.Laya=(function(window,document){
 
 		__proto.onLoadBmFontQteHandler=function(){
 			Text.registerBitmapFont("qtecd",this.qtecdBitmapFont);
+			this.jiBitmapFont=new BitmapFont();
+			this.jiBitmapFont.loadFont("bmfont/ji.fnt",Handler.create(this,this.onLoadBmFontJiHandler));
+		}
+
+		__proto.onLoadBmFontJiHandler=function(){
+			Text.registerBitmapFont("ji",this.jiBitmapFont);
 			GameContext.i.loadingService=new LoadingService();
 			GameContext.i.loadingService.initialize();
 		}
@@ -10154,8 +10219,7 @@ window.Laya=(function(window,document){
 		__static(VertexPositionNormalTexture0Texture1Skin,
 		['_vertexDeclaration',function(){return this._vertexDeclaration=new VertexDeclaration(72,[
 			new VertexElement(0,"vector3","POSITION"),
-			new VertexElement(12
-			,"vector3","NORMAL"),
+			new VertexElement(12,"vector3","NORMAL"),
 			new VertexElement(24,"vector2","UV"),
 			new VertexElement(32,"vector2","UV1"),
 			new VertexElement(40,"vector4","BLENDWEIGHT"),
@@ -26000,9 +26064,12 @@ window.Laya=(function(window,document){
 				this.arenaView.arenaFootView.roleListView["roleItemView"+(i+1)].hpView.imgHp.scaleX=1;
 				this.arenaView.arenaFootView.roleListView["roleItemView"+(i+1)].refreshHP(0);
 			}
+			this.arenaView.arenaFootView.btn_auto.skin="res/btn_auto.png"
+			this.arenaView.arenaFootView.btn_auto.stateNum=3;
+			this.gameContext.arenaContext.gameView.arenaFootView.img_state.visible=false;
+			this.gameContext.arenaContext.gameView.arenaFootView.img_state_bg.visible=false;
 		}
 
-		//GameContext.i.arenaContext.gameView.leftPlayerInfoView.imgPlayerHp.scaleX=1;
 		__proto.refreshRound=function($value){
 			this.arenaView.battleRoundView.lab_text1.text=""+(11-$value);
 		}
@@ -26031,6 +26098,7 @@ window.Laya=(function(window,document){
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgType.skin="res/img_type_"+playerInfo.roleVO.roleInfoList[j].meta.type+".png";
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgHeaderNumber=j;
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].lab_number.visible=false;
+						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].img_die.visible=false;
 						this.arenaView.arenaFootView.showView(roleInfo,j);
 					}
 				}
@@ -26060,11 +26128,11 @@ window.Laya=(function(window,document){
 			this.gameContext.arenaContext.data.attackDefenceRolePosition=this.gameContext.arenaContext.manager.roleListLogic.defensePlayer.roleVO.getAutoAttackDefenceRolePosition();
 			this.qteTime=0;
 			this.addImageTouch();
-			this.timer.loop(1000,this,this.addUniqueSkillOrQteStage);
 			this.addUniqueSkillOrQteStage();
 			this.initButtonShow();
 			this.arenaView.roleView.showFirstSelect();
-			this.roleViewTouch();
+			this.roleViewTouch()
+			this.timer.loop(1000,this,this.addUniqueSkillOrQteStage);
 		}
 
 		//fight阶段
@@ -26135,7 +26203,7 @@ window.Laya=(function(window,document){
 				}
 				roleInfo=attackRoleInfoList[i];
 				roleInfo.roleItemLogic.view.playAnmation(($luckyList[i]+1),attackRoleInfoList.length-1,i);
-				luckAndHitNumber=this.gameContext.arenaContext.data.qteComboEffectList[roleInfo.position]+ArenaComboEnum.COMBO_EFFECT_LIST[$luckyList[i]];
+				luckAndHitNumber=this.gameContext.arenaContext.data.qteComboEffectList[roleInfo.position]+ArenaLuckyEnum.LUCKY_EFFECT_LIST[$luckyList[i]]
 				this.qteRefreshHit(roleInfo.position+1,luckAndHitNumber);
 			}
 		}
@@ -26303,6 +26371,7 @@ window.Laya=(function(window,document){
 			this.refreshStateView();
 			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
 			this.initButtonShow();
+			this.arenaView.arenaFootView.roleListView.scale(0.8,0.8);
 		}
 
 		__proto.qteJumpHandler=function(){
@@ -26402,9 +26471,23 @@ window.Laya=(function(window,document){
 
 		*/
 		__proto.hideRoleItemLable=function($roleItemLogic){
-			this.arenaView.arenaFootView.roleListView["roleItemView"+($roleItemLogic.roleInfo.position+1)].lab_jiacheng.visible=false;
+			var roleItemView=this.arenaView.arenaFootView.roleListView["roleItemView"+($roleItemLogic.roleInfo.position+1)]
+			Tween.to(roleItemView.lab_jiacheng,{
+				y:-20
+			},400,null,Handler.create(this,this.changeLable,[roleItemView.lab_jiacheng]));
 		}
 
+		__proto.changeLable=function($lable){
+			Tween.to($lable,{
+				y:20
+			},300,null,Handler.create(this,this.removeLable,[$lable]));
+		}
+
+		__proto.removeLable=function($lable){
+			$lable.visible=false;
+		}
+
+		// TODO Auto Generated method stub
 		__proto.refreshSkillLable=function(){}
 		__proto.refreshSkill=function($roleItemLogic){
 			for (var i=0;i < this.gameContext.arenaContext.data.superUniquePositionList.length;i++){
@@ -26449,6 +26532,25 @@ window.Laya=(function(window,document){
 	})(BaseService)
 
 
+	//class com.gamepark.casino.game.mainscene.service.MainService extends com.gamepark.casino.service.BaseService
+	var MainService=(function(_super){
+		function MainService(){
+			MainService.__super.call(this);
+		}
+
+		__class(MainService,'com.gamepark.casino.game.mainscene.service.MainService',_super);
+		var __proto=MainService.prototype;
+		__proto.onInitialize=function(){
+			_super.prototype.onInitialize.call(this);
+			this.gameContext.uiService.addChildOnGameModuleLayer(this.gameContext.mainSceneContext.mainView);
+			this.gameContext.mainSceneContext.mainSceneMediator.initialize();
+			this.gameContext.mainSceneContext.mainSceneMediator.open();
+		}
+
+		return MainService;
+	})(BaseService)
+
+
 	//class com.gamepark.casino.game.mainscene.MainSceneContext extends com.gamepark.casino.context.BaseContext
 	var MainSceneContext=(function(_super){
 		function MainSceneContext(){
@@ -26478,25 +26580,6 @@ window.Laya=(function(window,document){
 		MainSceneContext._i=null
 		return MainSceneContext;
 	})(BaseContext)
-
-
-	//class com.gamepark.casino.game.mainscene.service.MainService extends com.gamepark.casino.service.BaseService
-	var MainService=(function(_super){
-		function MainService(){
-			MainService.__super.call(this);
-		}
-
-		__class(MainService,'com.gamepark.casino.game.mainscene.service.MainService',_super);
-		var __proto=MainService.prototype;
-		__proto.onInitialize=function(){
-			_super.prototype.onInitialize.call(this);
-			this.gameContext.uiService.addChildOnGameModuleLayer(this.gameContext.mainSceneContext.mainView);
-			this.gameContext.mainSceneContext.mainSceneMediator.initialize();
-			this.gameContext.mainSceneContext.mainSceneMediator.open();
-		}
-
-		return MainService;
-	})(BaseService)
 
 
 	//class com.gamepark.casino.game.mainscene.mediator.MainSceneMediator extends com.gamepark.casino.mediator.BaseMediator
@@ -26972,7 +27055,8 @@ window.Laya=(function(window,document){
 						do {
 							var frameIndex=Math.floor(tm / cacheFrameInterval+0.5);
 							for (var k=lastFrameIndex+1;k < frameIndex;k++)
-							nodeFullFrames[k]=n;
+							nodeFullFrames[k]=n
+							;
 							lastFrameIndex=frameIndex;
 							nodeFullFrames[frameIndex]=n;
 							tm+=cacheFrameInterval;
@@ -28135,6 +28219,20 @@ window.Laya=(function(window,document){
 	})(MetaBase)
 
 
+	//class com.gamepark.casino.meta.QteComboMeta extends com.gamepark.casino.meta.MetaBase
+	var QteComboMeta=(function(_super){
+		function QteComboMeta($metaObj){
+			this.id=0;
+			this.qteType=[];
+			this.appearTime=[];
+			QteComboMeta.__super.call(this,$metaObj);
+		}
+
+		__class(QteComboMeta,'com.gamepark.casino.meta.QteComboMeta',_super);
+		return QteComboMeta;
+	})(MetaBase)
+
+
 	/**
 	*<code>Render</code> 类用于渲染器的父类，抽象类不允许示例。
 	*/
@@ -28360,6 +28458,29 @@ window.Laya=(function(window,document){
 
 		return BaseRender;
 	})(EventDispatcher)
+
+
+	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
+	var PlayerInfo1=(function(_super){
+		function PlayerInfo(){
+			this.id=0;
+			this.name=null;
+			this._chip=0;
+			PlayerInfo.__super.call(this);
+		}
+
+		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
+		var __proto=PlayerInfo.prototype;
+		__getset(0,__proto,'chip',function(){
+			return this._chip;
+			},function(value){
+			var old=this._chip;
+			this._chip=value;
+			this.validateProperty("chip",old,value);
+		});
+
+		return PlayerInfo;
+	})(ErisGamePropertyObserver)
 
 
 	/**
@@ -28959,29 +29080,6 @@ window.Laya=(function(window,document){
 
 		return MeshFilter;
 	})(EventDispatcher)
-
-
-	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
-	var PlayerInfo1=(function(_super){
-		function PlayerInfo(){
-			this.id=0;
-			this.name=null;
-			this._chip=0;
-			PlayerInfo.__super.call(this);
-		}
-
-		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
-		var __proto=PlayerInfo.prototype;
-		__getset(0,__proto,'chip',function(){
-			return this._chip;
-			},function(value){
-			var old=this._chip;
-			this._chip=value;
-			this.validateProperty("chip",old,value);
-		});
-
-		return PlayerInfo;
-	})(ErisGamePropertyObserver)
 
 
 	/**
@@ -38161,8 +38259,7 @@ window.Laya=(function(window,document){
 			var max=0;
 			this.commitMeasure();
 			for (var i=this.numChildren-1;i >-1;i--){
-				var comp=this.getChildAt(i)
-				;
+				var comp=this.getChildAt(i);
 				if (comp.visible){
 					max=Math.max(comp.y+comp.height *comp.scaleY,max);
 				}
@@ -38521,8 +38618,8 @@ window.Laya=(function(window,document){
 						GameContext.i.arenaContext.gameView.multyView.lab_total_damge.visible=true;
 						GameContext.i.arenaContext.gameView.multyView.hitState=0;
 						GameContext.i.arenaContext.gameView.multyView.lab_total_damge.text=""+this.skillNumber;
-						var lableJumpsp=new UtilNumberAnmation();
-						lableJumpsp.showAnmation(GameContext.i.arenaContext.gameView.multyView.lab_total_damge,effectInfo.damage,this.skillNumber)
+						var lableJumpspq=new UtilNumberAnmation();
+						lableJumpspq.showAnmation(GameContext.i.arenaContext.gameView.multyView.lab_total_damge,effectInfo.damage,this.skillNumber)
 						this.skillNumber=effectInfo.damage;
 						break ;
 					case 10:
@@ -38536,6 +38633,7 @@ window.Laya=(function(window,document){
 						GameContext.i.arenaContext.gameView.multyView.hideView();
 						break ;
 					case 12:{
+							console.log("effectInfo.damage::",effectInfo.damage)
 							GameContext.i.arenaContext.gameView.multyView.visible=true;
 							GameContext.i.arenaContext.gameView.multyView.img_hit.visible=false;
 							GameContext.i.arenaContext.gameView.multyView.multyText.visible=false;;
@@ -38544,8 +38642,7 @@ window.Laya=(function(window,document){
 							GameContext.i.arenaContext.gameView.multyView.lab_total_damge.text="1";
 							var lableJumpsp1=new UtilNumberAnmation();
 							lableJumpsp1.showAnmation(GameContext.i.arenaContext.gameView.multyView.lab_total_damge,effectInfo.damage,1)
-							GameContext.i.arenaContext.gameView.multyView.hitState=1;
-							GameContext.i.arenaContext.gameView.multyView.hideView();
+							GameContext.i.arenaContext.gameView.multyView.hideTotalView();
 							break ;
 						}
 					}
@@ -38861,6 +38958,11 @@ window.Laya=(function(window,document){
 			this.imgTouch=null;
 			this.roleLeftHpView=null;
 			this.roleRightHpView=null;
+			this.jixing1View=null;
+			this.jixing2View=null;
+			this.jixing3View=null;
+			this.jixing4View=null;
+			this.jixing5View=null;
 			this._roleAni=null;
 			this._effectAni=null;
 			this._superUniqueSkillFlyItemAni=null;
@@ -38917,26 +39019,15 @@ window.Laya=(function(window,document){
 			this.imgTouch.autoSize=true;
 			this.imgTouch.pivot(this.imgTouch.width *0.5,this.imgTouch.height);
 			this.addChild(this.imgTouch);
-			if ($group==0){
-				this.roleLeftHpView=new AreanRoleLeftHpView();
-				this.roleLeftHpView.pos(0,-140);
-				this.roleLeftHpView.autoSize=true;
-				this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
-				this.roleLeftHpView.visible=false;
-				this.aniContainer.addChild(this.roleLeftHpView);
-				}else if($group==1){
-				this.roleRightHpView=new AreanRoleRightHpView();
-				this.roleRightHpView.pos(0,-140);
-				this.roleRightHpView.autoSize=true;
-				this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
-				this.roleRightHpView.visible=false;
-				this.aniContainer.addChild(this.roleRightHpView);
-			}
 		}
 
 		__class(RoleItemView,'com.gamepark.casino.game.arena.view.RoleItemView',_super);
 		var __proto=RoleItemView.prototype;
 		// this.timer.frameLoop(1,this,enterFrameHandler);
+		__proto.startGame=function(){
+			this.alpha=1;
+		}
+
 		__proto.showRoleView=function(){
 			if(this._roleAni !=null){
 				this.aniContainer.removeChild(this._roleAni);
@@ -38990,6 +39081,21 @@ window.Laya=(function(window,document){
 				this.changeSpeed();
 				this.playIdle();
 				this.parent.setChildIndex(this,this._childIndex);
+				if (this.group==0){
+					this.roleLeftHpView=new AreanRoleLeftHpView();
+					this.roleLeftHpView.pos(0,-140);
+					this.roleLeftHpView.autoSize=true;
+					this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
+					this.roleLeftHpView.visible=false;
+					this.aniContainer.addChild(this.roleLeftHpView);
+					}else if(this.group==1){
+					this.roleRightHpView=new AreanRoleRightHpView();
+					this.roleRightHpView.pos(0,-140);
+					this.roleRightHpView.autoSize=true;
+					this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
+					this.roleRightHpView.visible=false;
+					this.aniContainer.addChild(this.roleRightHpView);
+				}
 			}
 		}
 
@@ -39047,6 +39153,21 @@ window.Laya=(function(window,document){
 			this.changeSpeed();
 			this.playIdle();
 			this.parent.setChildIndex(this,this._childIndex);
+			if (this.group==0){
+				this.roleLeftHpView=new AreanRoleLeftHpView();
+				this.roleLeftHpView.pos(0,-140);
+				this.roleLeftHpView.autoSize=true;
+				this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
+				this.roleLeftHpView.visible=false;
+				this.aniContainer.addChild(this.roleLeftHpView);
+				}else if(this.group==1){
+				this.roleRightHpView=new AreanRoleRightHpView();
+				this.roleRightHpView.pos(0,-140);
+				this.roleRightHpView.autoSize=true;
+				this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
+				this.roleRightHpView.visible=false;
+				this.aniContainer.addChild(this.roleRightHpView);
+			}
 		}
 
 		__proto.faceLeft=function(){
@@ -39103,6 +39224,9 @@ window.Laya=(function(window,document){
 				if(this.logic.firstStatus==5){
 					if(this.logic.checkNextAttackStatus==2){
 						this.logic.onCheckNextAttackStatusHandler(this._roleAni.player.currentKeyframeIndex);
+					}
+					if(this.logic.roleInfo.roleVO.isMe){
+						GameContext.i.arenaContext.manager.onMyRoleFinishAttackKeyFrameAction(this.logic);
 					}
 				};
 				var keyFrameList;
@@ -39767,41 +39891,102 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.playAnmation=function($args,$last,$delayTime){
-			console.log("play animation");
-			var texture=Loader.getRes("res/skeleton/qteORfight/wuyunlv/wuyunlv.png");
-			var data=Loader.getRes("res/skeleton/qteORfight/wuyunlv/wuyunlv.sk");
-			var factory=new Templet();
-			factory.on("complete",this,this.delayBeginAnmation,[factory,$args,$last,$delayTime]);
-			factory.parseData(texture,data,24);
+			this.timerOnce($delayTime*290,this,this.onPlayAnmation,[$args,$last,$delayTime]);
 		}
 
-		__proto.delayBeginAnmation=function($factory,$args,$last,$delayTime){
-			this.timerOnce($delayTime*290,this,this.onSkeletonPlayAnmation,[$factory,$args,$last,$delayTime]);
+		__proto.onPlayAnmation=function($args,$last,$delayTime){
+			switch($args){
+				case 1:
+					this.jixing1View=new ArenaJixing1ViewUI();
+					this.jixing1View.scale(0.3,0.3);
+					this.jixing1View.lab_jixing.text=ArenaLuckyEnum.LUCKY_EFFECT_LIST[$args-1] *100+"%"
+					this.jixing1View.autoSize=true;
+					this.jixing1View.pivot(this.jixing1View.width *0.5,this.jixing1View.height *0.5);
+					this.aniContainer.addChild(this.jixing1View);
+					this.jixing1View.pos(0,-170);
+					Tween.to(this.jixing1View,{
+						scaleX:0.8,
+						scaleY:0.8,
+						alpha:1
+					},400,null,Handler.create(this,this.changeJixingView,[$args,$last,$delayTime]))
+					break ;
+				case 2:
+					this.jixing2View=new ArenaJixing2ViewUI();
+					this.jixing2View.lab_jixing.text=ArenaLuckyEnum.LUCKY_EFFECT_LIST[$args-1] *100+"%"
+					this.jixing2View.scale(0.3,0.3);
+					this.aniContainer.addChild(this.jixing2View);
+					this.jixing2View.autoSize=true;
+					this.jixing2View.pivot(this.jixing2View.width *0.5,this.jixing2View.height *0.5);
+					this.jixing2View.pos(0,-170);
+					Tween.to(this.jixing2View,{
+						scaleX:0.8,
+						scaleY:0.8,
+						alpha:1
+					},400,null,Handler.create(this,this.changeJixingView,[$args,$last,$delayTime]))
+					break ;
+				case 3:
+					this.jixing3View=new ArenaJixing3ViewUI();
+					this.jixing3View.lab_jixing.text=ArenaLuckyEnum.LUCKY_EFFECT_LIST[$args-1] *100+"%"
+					this.jixing3View.scale(0.3,0.3);
+					this.aniContainer.addChild(this.jixing3View);
+					this.jixing3View.autoSize=true;
+					this.jixing3View.pivot(this.jixing3View.width *0.5,this.jixing3View.height *0.5);
+					this.jixing3View.pos(0,-170);
+					Tween.to(this.jixing3View,{
+						scaleX:0.8,
+						scaleY:0.8,
+						alpha:1
+					},400,null,Handler.create(this,this.changeJixingView,[$args,$last,$delayTime]))
+					break ;
+				case 4:
+					this.jixing4View=new ArenaJixing4ViewUI();
+					this.jixing4View.lab_jixing.text=ArenaLuckyEnum.LUCKY_EFFECT_LIST[$args-1] *100+"%"
+					this.jixing4View.scale(0.3,0.3);
+					this.aniContainer.addChild(this.jixing4View);
+					this.jixing4View.autoSize=true;
+					this.jixing4View.pivot(this.jixing4View.width *0.5,this.jixing4View.height *0.5);
+					this.jixing4View.pos(0,-170);
+					Tween.to(this.jixing4View,{
+						scaleX:0.8,
+						scaleY:0.8,
+						alpha:1
+					},400,null,Handler.create(this,this.changeJixingView,[$args,$last,$delayTime]))
+					break ;
+				case 5:
+					this.jixing5View=new ArenaJixing5ViewUI();
+					this.jixing5View.lab_jixing.text=ArenaLuckyEnum.LUCKY_EFFECT_LIST[$args-1] *100+"%"
+					this.jixing5View.scale(0.3,0.3);
+					this.aniContainer.addChild(this.jixing5View);
+					this.jixing5View.autoSize=true;
+					this.jixing5View.pivot(this.jixing5View.width *0.5,this.jixing5View.height *0.5);
+					this.jixing5View.pos(0,-170);
+					Tween.to(this.jixing5View,{
+						scaleX:0.8,
+						scaleY:0.8,
+						alpha:1
+					},400,null,Handler.create(this,this.changeJixingView,[$args,$last,$delayTime]))
+					break ;
+				}
 		}
 
-		__proto.onSkeletonPlayAnmation=function($factory,$args,$last,$delayTime){
-			this.swordmanAnmation=$factory.buildArmature(0);
-			this.swordmanAnmation.play("Wuyunlv"+$args+"_begin",false);
-			this.aniContainer.addChild(this.swordmanAnmation);
-			this.swordmanAnmation.pos(0,-170);
-			this.swordmanAnmation.on("stopped",this,this.delayEndAnmation,[$args,$last,$delayTime]);
+		__proto.changeJixingView=function($args,$last,$delayTime){
+			this.timerOnce(($last-$delayTime)*290,this,this.delayEndAnmation,[$args,$last,$delayTime]);
 		}
 
+		//this["jixing"+$args+"View"].removeSelf();
 		__proto.delayEndAnmation=function($args,$last,$delayTime){
-			this.timerOnce(($last-$delayTime)*290,this,this.onBeginAnimationFinish,[$args,$last,$delayTime]);
+			Tween.to(this["jixing"+$args+"View"],{
+				scaleX:0,
+				scaleY:0,
+				alpha:0
+			},400,null,Handler.create(this,this.removeJixingView,[$args,$last,$delayTime]))
 		}
 
-		__proto.onBeginAnimationFinish=function($args,$last,$delayTime){
-			this.swordmanAnmation.offAll();
-			this.swordmanAnmation.play("Wuyunlv"+$args+"_end",false);
-			this.swordmanAnmation.on("stopped",this,this.onEndAnimationFinish,[$last,$delayTime]);
-		}
-
-		__proto.onEndAnimationFinish=function($last,$delayTime){
+		__proto.removeJixingView=function($args,$last,$delayTime){
 			if ($last==$delayTime){
 				GameContext.i.arenaContext.manager.onFinishPlayLucky();
 			}
-			this.swordmanAnmation.removeSelf();
+			this["jixing"+$args+"View"].removeSelf();
 		}
 
 		return RoleItemView;
@@ -45531,38 +45716,6 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*<code>SkyMesh</code> 类用于创建网格天空。
-	*/
-	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
-	var SkyMesh=(function(_super){
-		/**
-		*创建一个 <code>SkyMesh</code> 实例。
-		*/
-		function SkyMesh(){
-			SkyMesh.__super.call(this);
-		}
-
-		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
-		var __proto=SkyMesh.prototype;
-		/**
-		*@private
-		*/
-		__proto._addToRenderQuene=function(state,material){
-			return state.scene.getRenderObject(0)
-		}
-
-		/**
-		*@private
-		*/
-		__proto._praseSubMeshTemplet=function(subMeshTemplet){
-			return new SkySubMesh(subMeshTemplet);
-		}
-
-		return SkyMesh;
-	})(Mesh)
-
-
-	/**
 	*<p> <code>Clip</code> 类是位图切片动画。</p>
 	*<p> <code>Clip</code> 可将一张图片，按横向分割数量 <code>clipX</code> 、竖向分割数量 <code>clipY</code> ，
 	*或横向分割每个切片的宽度 <code>clipWidth</code> 、竖向分割每个切片的高度 <code>clipHeight</code> ，
@@ -46817,6 +46970,38 @@ window.Laya=(function(window,document){
 
 		return ComboBox;
 	})(Component)
+
+
+	/**
+	*<code>SkyMesh</code> 类用于创建网格天空。
+	*/
+	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
+	var SkyMesh=(function(_super){
+		/**
+		*创建一个 <code>SkyMesh</code> 实例。
+		*/
+		function SkyMesh(){
+			SkyMesh.__super.call(this);
+		}
+
+		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
+		var __proto=SkyMesh.prototype;
+		/**
+		*@private
+		*/
+		__proto._addToRenderQuene=function(state,material){
+			return state.scene.getRenderObject(0)
+		}
+
+		/**
+		*@private
+		*/
+		__proto._praseSubMeshTemplet=function(subMeshTemplet){
+			return new SkySubMesh(subMeshTemplet);
+		}
+
+		return SkyMesh;
+	})(Mesh)
 
 
 	/**
@@ -49591,8 +49776,7 @@ window.Laya=(function(window,document){
 		*/
 		__proto.createView=function(uiView){
 			if (uiView.animations && !this._idMap)this._idMap={};
-			View.createComp(uiView
-			,this,this);
+			View.createComp(uiView,this,this);
 			if (uiView.animations){
 				var anilist=[];
 				var animations=uiView.animations;
@@ -51173,7 +51357,8 @@ window.Laya=(function(window,document){
 		*/
 		__getset(0,__proto,'xml',null,function(value){
 			var arr=[];
-			this.parseXml(value.childNodes[0],arr,null,true);
+			this.parseXml(value.childNodes[0],arr
+			,null,true);
 			this.array=arr;
 		});
 
@@ -53863,6 +54048,7 @@ window.Laya=(function(window,document){
 			this.img_glod=null;
 			this.lab_exp_text=null;
 			this.lab_gold_text=null;
+			this.btn_goon=null;
 			AreanResultViewUI.__super.call(this);
 		}
 
@@ -53876,7 +54062,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(AreanResultViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":-4,"x":0,"var":"img_bg","skin":"result/img_win_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":280,"x":298,"width":47,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":18,"font":"20","color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":-4,"x":0,"var":"img_bg","skin":"result/img_win_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":280,"x":298,"width":47,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":18,"font":"20","color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]},{"type":"Button","props":{"y":388,"x":763,"var":"btn_goon","stateNum":"1","skin":"result/btn_goon.png","name":"btn_goon"}}]};}
 		]);
 		return AreanResultViewUI;
 	})(View)
@@ -53898,7 +54084,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaLeftHpViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":0,"x":0,"var":"img_hp_bg","skin":"res/img_battle_red.png","name":"img_hp_bg"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_battle_green.png","name":"img_hp"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"skin":"res/img_battle_bg.png"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp_bg","skin":"res/img_battle_red.png","name":"img_hp_bg"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_battle_green.png","name":"img_hp"}}]};}
 		]);
 		return ArenaLeftHpViewUI;
 	})(View)
@@ -53920,7 +54106,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaRightHpViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":7,"x":90,"width":90,"var":"img_hp_bg","skin":"res/img_battle_red.png","pivotY":7,"pivotX":90,"name":"img_hp_bg","height":7}},{"type":"Image","props":{"y":7,"x":90,"var":"img_hp","skin":"res/img_battle_green.png","pivotY":7,"pivotX":90,"name":"img_hp"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"y":0,"x":0,"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"width":92,"skin":"res/img_battle_bg.png","height":9}},{"type":"Image","props":{"y":7,"x":90,"width":90,"var":"img_hp_bg","skin":"res/img_battle_red.png","pivotY":7,"pivotX":90,"name":"img_hp_bg","height":7}},{"type":"Image","props":{"y":7,"x":90,"var":"img_hp","skin":"res/img_battle_green.png","pivotY":7,"pivotX":90,"name":"img_hp"}}]};}
 		]);
 		return ArenaRightHpViewUI;
 	})(View)
@@ -54255,6 +54441,111 @@ window.Laya=(function(window,document){
 		['uiView',function(){return this.uiView={"type":"View","props":{"width":165,"height":95},"child":[{"type":"Label","props":{"y":48,"x":51,"width":71,"var":"lab_text2","text":"1/20","name":"lab_text2","height":30,"font":"B","align":"center"}},{"type":"Label","props":{"y":-12,"x":54,"var":"lab_text1","text":"12","name":"lab_text1","font":"A","align":"center"}}]};}
 		]);
 		return ArenaBattleRoundViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaJixing1ViewUI extends laya.ui.View
+	var ArenaJixing1ViewUI=(function(_super){
+		function ArenaJixing1ViewUI(){
+			this.lab_jixing=null;
+			ArenaJixing1ViewUI.__super.call(this);
+		}
+
+		__class(ArenaJixing1ViewUI,'ui.game.ArenaJixing1ViewUI',_super);
+		var __proto=ArenaJixing1ViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaJixing1ViewUI.uiView);
+		}
+
+		__static(ArenaJixing1ViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":93,"height":68},"child":[{"type":"Image","props":{"y":34,"x":46.5,"skin":"res/img_jixing_1.png","pivotY":34,"pivotX":46.5}},{"type":"Label","props":{"y":30,"x":38,"var":"lab_jixing","text":"10%","strokeColor":"#a20000","name":"lab_jixing","font":"ji","bold":false,"align":"center"}}]};}
+		]);
+		return ArenaJixing1ViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaJixing2ViewUI extends laya.ui.View
+	var ArenaJixing2ViewUI=(function(_super){
+		function ArenaJixing2ViewUI(){
+			this.lab_jixing=null;
+			ArenaJixing2ViewUI.__super.call(this);
+		}
+
+		__class(ArenaJixing2ViewUI,'ui.game.ArenaJixing2ViewUI',_super);
+		var __proto=ArenaJixing2ViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaJixing2ViewUI.uiView);
+		}
+
+		__static(ArenaJixing2ViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":98,"height":80},"child":[{"type":"Image","props":{"y":40,"x":49,"skin":"res/img_jixing_2.png","pivotY":40,"pivotX":49}},{"type":"Label","props":{"y":40,"x":40,"var":"lab_jixing","text":"10%","name":"lab_jixing","font":"ji"}}]};}
+		]);
+		return ArenaJixing2ViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaJixing3ViewUI extends laya.ui.View
+	var ArenaJixing3ViewUI=(function(_super){
+		function ArenaJixing3ViewUI(){
+			this.lab_jixing=null;
+			ArenaJixing3ViewUI.__super.call(this);
+		}
+
+		__class(ArenaJixing3ViewUI,'ui.game.ArenaJixing3ViewUI',_super);
+		var __proto=ArenaJixing3ViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaJixing3ViewUI.uiView);
+		}
+
+		__static(ArenaJixing3ViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":115,"height":89},"child":[{"type":"Image","props":{"y":44.5,"x":57.5,"skin":"res/img_jixing_3.png","pivotY":44.5,"pivotX":57.5}},{"type":"Label","props":{"y":48,"x":51,"var":"lab_jixing","text":"10%","name":"lab_jixing","font":"ji"}}]};}
+		]);
+		return ArenaJixing3ViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaJixing4ViewUI extends laya.ui.View
+	var ArenaJixing4ViewUI=(function(_super){
+		function ArenaJixing4ViewUI(){
+			this.lab_jixing=null;
+			ArenaJixing4ViewUI.__super.call(this);
+		}
+
+		__class(ArenaJixing4ViewUI,'ui.game.ArenaJixing4ViewUI',_super);
+		var __proto=ArenaJixing4ViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaJixing4ViewUI.uiView);
+		}
+
+		__static(ArenaJixing4ViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":140,"height":111},"child":[{"type":"Image","props":{"y":55.5,"x":70,"skin":"res/img_jixing_4.png","pivotY":55.5,"pivotX":70}},{"type":"Label","props":{"y":61,"x":64,"var":"lab_jixing","text":"10%","name":"lab_jixing","font":"ji"}}]};}
+		]);
+		return ArenaJixing4ViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaJixing5ViewUI extends laya.ui.View
+	var ArenaJixing5ViewUI=(function(_super){
+		function ArenaJixing5ViewUI(){
+			this.lab_jixing=null;
+			ArenaJixing5ViewUI.__super.call(this);
+		}
+
+		__class(ArenaJixing5ViewUI,'ui.game.ArenaJixing5ViewUI',_super);
+		var __proto=ArenaJixing5ViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaJixing5ViewUI.uiView);
+		}
+
+		__static(ArenaJixing5ViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":202,"height":168},"child":[{"type":"Image","props":{"y":84,"x":101,"skin":"res/img_jixing_5.png","pivotY":84,"pivotX":101}},{"type":"Label","props":{"y":108,"x":98,"var":"lab_jixing","text":"10%","name":"lab_jixing","font":"ji"}}]};}
+		]);
+		return ArenaJixing5ViewUI;
 	})(View)
 
 
@@ -55225,11 +55516,26 @@ window.Laya=(function(window,document){
 			this.win_1.visible=true;
 			this.win_2.visible=false;
 			this.timer.frameOnce(80,this,this.showWin2View);
+			this.btn_goon.visible=false;
 		}
 
 		__proto.showWin2View=function(){
 			this.win_1.visible=false;
 			this.win_2.visible=true;
+			this.btn_goon.visible=true;
+			this.btn_goon.on("click",this,this.goonClickButtonHandler);
+		}
+
+		/*
+		public function winClickButtonHandler($e:Event):void{
+			GameContext.i.arenaContext.gameMediator.restartGame();
+			GameContext.i.uiService.removePopup(this);
+		}
+
+		*/
+		__proto.goonClickButtonHandler=function($e){
+			GameContext.i.arenaContext.gameMediator.restartGame();
+			GameContext.i.uiService.removePopup(this);
 		}
 
 		return AreanResultView;
@@ -55607,13 +55913,13 @@ window.Laya=(function(window,document){
 			this.arenaStarView=null;
 			ArenaView.__super.call(this);
 			this.img_touch_bg.mouseThrough=true;
+			this.roleView=new RoleListView();
+			this.addChild(this.roleView);
 			this.multyView=new AreanMultyView();
 			this.multyView.multyText.text="1";
 			this.multyView.pos(50,50);
 			this.multyView.visible=false;
 			this.addChild(this.multyView);
-			this.roleView=new RoleListView();
-			this.addChild(this.roleView);
 			this.effectView=new ArenaEffectView();
 			this.effectView.mouseThrough=true;
 			this.addChild(this.effectView);
@@ -55694,22 +56000,22 @@ window.Laya=(function(window,document){
 			this.speedX=0.0;
 			this.speedY=0.0;
 			this.radius=0.0;
-			this.accelerator=0.3;
+			this.accelerator=0.5;
 			this.acceleratorX=0.0;
 			this.acceleratorY=0.0;
 			this.initX=0.0;
 			this.initY=0.0;
 			QteHeadImageView.__super.call(this);
+			this.swordmanqteHitAdd
 		}
 
 		__class(QteHeadImageView,'com.gamepark.casino.game.arena.view.QteHeadImageView',_super);
 		var __proto=QteHeadImageView.prototype;
-		__proto.initUI=function($x,$y,$totalNumber,$radius){
+		__proto.initUI=function($x,$y,$radius){
 			this.initX=this.x;
 			this.initY=this.y;
 			console.log("this.initX : ",this.initX);
 			console.log("this.initY : ",this.initY);
-			this.updateTotalNumber=$totalNumber;
 			this.updateTotalNumber=35;
 			this.posX=$x;
 			this.posY=$y;
@@ -55760,6 +56066,9 @@ window.Laya=(function(window,document){
 				return number;
 			};
 			var range=Math.sqrt(Math.pow((this.x-this.initX),2)+Math.pow((this.y-this.initY),2));
+			console.log("range:",range)
+			console.log("this.radius:",this.radius);
+			console.log("this.updateNumber:",this.updateNumber);
 			if(range < this.radius *0.25){
 				number=1
 				return number
@@ -55768,11 +56077,11 @@ window.Laya=(function(window,document){
 				number=2
 				return number
 			}
-			else if(range < this.radius *0.975){
+			else if(range < this.radius *0.919){
 				number=3
 				return number
 			}
-			else if(range <=this.radius *1.025){
+			else if(range <=this.radius *1.05){
 				number=4;
 				return number
 			}
@@ -55795,6 +56104,27 @@ window.Laya=(function(window,document){
 			return number;
 		}
 
+		__proto.qteHitAddAnmation=function(){
+			var texture=Loader.getRes("res/skeleton/qteORfight/QTEhit_Add/QTEhit_Add.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/QTEhit_Add/QTEhit_Add.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.onSkeletonQteAdd,[factory]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkeletonQteAdd=function($factory){
+			this.swordmanqteHitAdd=$factory.buildArmature(0);
+			this.swordmanqteHitAdd.play("Hit_Miss",true);
+			this.addChild(this.swordmanqteHitAdd);
+			this.swordmanqteHitAdd.pos(this.posX,this.posY);
+		}
+
+		__proto.onhitAddAnimationFinish=function(){
+			if (this.swordmanqteHitAdd !=null){
+				this.swordmanqteHitAdd.visible=false;
+			}
+		}
+
 		return QteHeadImageView;
 	})(QteHeadImageViewUI)
 
@@ -55811,12 +56141,16 @@ window.Laya=(function(window,document){
 			this.showComboImage=[];
 			this.comboImage=null;
 			this.QteResultList=[];
-			this.QteSpeedList=[];
+			this.qteSpeedList=[];
+			this.qtePostionList=[];
 			this.qteRoleInfoList=[];
 			this.qteShowHeadViewState=false;
 			this.qteHeadViewNumber=0;
+			this.qteHeadNumber=0;
+			this.qteHeadHideNumber=0;
 			this.qteUpdateNumber=0;
 			this.qteHitNumber=100;
+			this.qteLastState=false;
 			this.qteLuckList=[];
 			this.swordmanCuoutDown=null;
 			this.swordmanQteNormal=null;
@@ -55827,7 +56161,6 @@ window.Laya=(function(window,document){
 			this.initUI();
 			this.qteRoleInfoList=[];
 			this.showView();
-			this.initRandom();
 			this.QteResultList=[];
 		}
 
@@ -55835,7 +56168,13 @@ window.Laya=(function(window,document){
 		var __proto=QteSelectView.prototype;
 		__proto.showView=function(){
 			this.qteRoleInfoList=GameContext.i.arenaContext.manager.roleListLogic.attackPlayer.roleVO.getAttackRoleInfoList();
+			this.randomShowTime=[];
+			this.qtePostionList=[];
+			this.qteSpeedList=[];
+			this.initComboData();
 			this.qteHeadViewNumber=0;
+			this.qteHeadNumber=0;
+			this.qteHeadHideNumber=0;
 		}
 
 		__proto.initUI=function(){
@@ -55856,41 +56195,59 @@ window.Laya=(function(window,document){
 			this.img_touch.visible=true
 			this.img_touch.mouseThrough=false;
 			this.img_touch.on("click",this,this.clickDecideHandler);
-			this.timer.frameLoop(1,this,this.updateAnmation,[1]);
+			this.timer.once(500,this,this.delayTimer);
 			this.qteBgNormalAnmation()
 			this.qteBgAddAnmation();
 			this.qteHitAddAnmation();
 			this.qteHitNormalAnmation();
 		}
 
+		__proto.delayTimer=function(){
+			this.timer.frameLoop(1,this,this.updateAnmation);
+		}
+
+		__proto.initComboData=function(){
+			var randomLenght=GameContext.i.data.metaData.qteComboMetaList.length;
+			var randomInt=Math.ceil(Math.random()*1000%randomLenght)-1;
+			var qteComboMeta=GameContext.i.data.metaData.qteComboMetaList[randomInt];
+			this.qteSpeedList=qteComboMeta.appearTime;
+			this.qtePostionList=qteComboMeta.qteType;
+			var numberTime=0;
+			var speedNumber=0;
+			for (var i=0;i <this.qteRoleInfoList.length;i++){
+				speedNumber=this.qteSpeedList[i];
+				numberTime+=speedNumber
+				this.randomShowTime.push(Math.ceil(numberTime *0.03));
+			}
+		}
+
 		__proto.initRandom=function(){
+			this.randomList=[1,2,3,4,5,6];
+			this.randomSpeed=[10,20,15];
 			var numberTime=10;
 			var speedNumber=0;
 			for (var i=0;i <this.qteRoleInfoList.length;i++){
 				speedNumber=this.randomSpeed[Math.ceil(Math.random()*1000%3)-1];
-				this.QteSpeedList.push(speedNumber);
-				numberTime+=(speedNumber+40);
+				this.qteSpeedList.push(speedNumber);
+				numberTime+=(speedNumber+10);
 				this.randomShowTime.push(numberTime);
 			}
-			this.randomList=[1,2,3,4,5,6];
-			this.randomSpeed=[25,35,45];
-			this.qteLuckList=ArenaUtil.getRandomComboList(0);
 		}
 
+		//this.qteLuckList=ArenaUtil.getRandomComboList(0);
 		__proto.clickDecideHandler=function(){
-			this.onSkeletonQteBgAddHit();
-			console.log("sssssssssssssssss")
 			var number=0;
 			if (this.showViewList.length > 0){
 				var itemHeadView=this.showViewList[0];
 				number=itemHeadView.clickDecide();
+				this.qteHeadHideNumber++;
 				this.addBuffImage(number,itemHeadView.x,itemHeadView.y);
 				itemHeadView.removeSelf();
 				this.showViewList.splice(0,1);
-				this.qteShowHeadViewState=false;
 			}
 		}
 
+		// this.qteShowHeadViewState=false;
 		__proto.addBuffImage=function($args,$x,$y){
 			($x===void 0)&& ($x=0);
 			($y===void 0)&& ($y=0);
@@ -55921,43 +56278,62 @@ window.Laya=(function(window,document){
 					break ;
 				}
 			this.QteResultList.push(this.qteHitNumber/100);
-			GameContext.i.arenaContext.gameMediator.qteRefreshHit(6-this.qteRoleInfoList.length+this.qteHeadViewNumber,this.qteHitNumber/100);
+			GameContext.i.arenaContext.gameMediator.qteRefreshHit(6-this.qteRoleInfoList.length+this.qteHeadHideNumber,this.qteHitNumber/100);
 		}
 
-		__proto.showHeadImage=function($args){
+		__proto.showHeadImage=function($args,numberPos){
 			var radius=this.img_hit_bg.width*0.5;
 			var itemHeadView=new QteHeadImageView();
 			itemHeadView.pivot(itemHeadView.img_head.x,itemHeadView.img_head.y);
-			var numberPos=this.randomPos();
 			switch(numberPos){
 				case 1:
-					itemHeadView.img_bg.rotation=30;
-					itemHeadView.pos(this.img_hit_bg.x+Math.cos(Math.PI/3)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/3)*radius);break ;
-				case 2:
-					itemHeadView.img_bg.rotation=60;
-					itemHeadView.pos(this.img_hit_bg.x+Math.cos(Math.PI/6)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/6)*radius);
-					break ;
-				case 3:
 					itemHeadView.img_bg.rotation=90;
 					itemHeadView.pos(this.img_hit_bg.x+radius ,this.img_hit_bg.y);
 					break ;
+				case 2:
+					itemHeadView.img_bg.rotation=72;
+					itemHeadView.pos(this.img_hit_bg.x+Math.cos(Math.PI/10)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/12)*radius);
+					break ;
+				case 3:
+					itemHeadView.img_bg.rotation=54;
+					itemHeadView.pos(this.img_hit_bg.x+Math.cos(Math.PI/5)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/6)*radius);
+					break ;
 				case 4:
-					itemHeadView.img_bg.rotation=270;
-					itemHeadView.pos(this.img_hit_bg.x-radius ,this.img_hit_bg.y);
+					itemHeadView.img_bg.rotation=36;
+					itemHeadView.pos(this.img_hit_bg.x+Math.cos(3 *Math.PI/ 10)*radius ,this.img_hit_bg.y-Math.sin(3 *Math.PI/12)*radius);
 					break ;
 				case 5:
-					itemHeadView.img_bg.rotation=300;
-					itemHeadView.pos(this.img_hit_bg.x-Math.cos(Math.PI/6)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/6)*radius);
+					itemHeadView.img_bg.rotation=18;
+					itemHeadView.pos(this.img_hit_bg.x+Math.cos(4 *Math.PI/10)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/3)*radius);
 					break ;
 				case 6:
-					itemHeadView.img_bg.rotation=330;
-					itemHeadView.pos(this.img_hit_bg.x-Math.cos(Math.PI/3)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/3)*radius);
+					itemHeadView.img_bg.rotation=0;
+					itemHeadView.pos(this.img_hit_bg.x ,this.img_hit_bg.y-radius);
+					break ;
+				case 7:
+					itemHeadView.img_bg.rotation=-18;
+					itemHeadView.pos(this.img_hit_bg.x-Math.cos(4 *Math.PI/10)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/3)*radius);
+					break ;
+				case 8:
+					itemHeadView.img_bg.rotation=-36;
+					itemHeadView.pos(this.img_hit_bg.x-Math.cos(3*Math.PI/10)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/4)*radius);
+					break ;
+				case 9:
+					itemHeadView.img_bg.rotation=-54;
+					itemHeadView.pos(this.img_hit_bg.x-Math.cos(Math.PI/5)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/6)*radius);
+					break ;
+				case 10:
+					itemHeadView.img_bg.rotation=-72;
+					itemHeadView.pos(this.img_hit_bg.x-Math.cos(Math.PI/10)*radius ,this.img_hit_bg.y-Math.sin(Math.PI/12)*radius);
+					break ;
+				case 11:
+					itemHeadView.img_bg.rotation=-90;
+					itemHeadView.pos(this.img_hit_bg.x-radius ,this.img_hit_bg.y);
 					break ;
 				}
 			this.addChild(itemHeadView);
 			var posPoint=itemHeadView.fromParentPoint(new Point(this.img_hit_bg.x,this.img_hit_bg.y))
-			var speed=this.QteSpeedList[$args];
-			itemHeadView.initUI(posPoint.x,posPoint.y,speed,radius);
+			itemHeadView.initUI(posPoint.x,posPoint.y,radius);
 			this.showViewList.push(itemHeadView);
 		}
 
@@ -55971,25 +56347,27 @@ window.Laya=(function(window,document){
 				}else{
 				numberPos=this.randomList[0];
 				this.randomList=[];
-				this.randomList=[1,2,3,4,5,6];
+				this.randomList=[1,2,3,4,5,6,7,8,9,10,11];
 			}
 			return numberPos;
 		}
 
 		__proto.updateAnmation=function(){
-			if (this.qteShowHeadViewState==false && this.qteHeadViewNumber < this.qteRoleInfoList.length){
-				this.showHeadImage(this.qteHeadViewNumber);
+			var qteShowTime=this.randomShowTime[this.qteHeadViewNumber];
+			if (this.qteHeadViewNumber < this.qteRoleInfoList.length && this.updateTimeNumber==qteShowTime){
+				var posInt=this.qteHeadViewNumber;
+				this.showHeadImage(posInt,this.qtePostionList[this.qteHeadViewNumber]);
 				this.qteHeadViewNumber++;
-				this.qteShowHeadViewState=true;
+				this.qteHeadNumber++;
 			}
-			else if(this.qteShowHeadViewState==false && this.qteHeadViewNumber==this.qteRoleInfoList.length){
+			if (this.qteHeadNumber==this.randomShowTime.length){
+				this.qteHeadNumber++;
 				this.img_hit_bg.visible=false;
 				this.img_hit_normal.visible=false;
 				this.qteUpdateNumber=this.updateTimeNumber;
-				this.qteHeadViewNumber++;
 			}
-			else if(this.updateTimeNumber==this.qteUpdateNumber+45 && this.qteHeadViewNumber==this.qteRoleInfoList.length+1){
-				this.qteHeadViewNumber++;
+			else if(this.qteHeadNumber==this.randomShowTime.length+1 && (this.qteUpdateNumber+45)<=this.updateTimeNumber){
+				this.qteHeadNumber++;
 				GameContext.i.arenaContext.gameMediator.qteEndHandler(this.QteResultList)
 				GameContext.i.arenaContext.gameMediator.touchImageState=false;
 				this.removeSelf();
@@ -56010,8 +56388,6 @@ window.Laya=(function(window,document){
 
 		__proto.jumpQteToAuto=function(){
 			this.timer.clearAll(this);
-			console.log(" this.qteRoleInfoList.length:",this.qteRoleInfoList.length)
-			console.log("this.QteResultList.lenght:",this.QteResultList.length)
 			var qteLength=this.QteResultList.length;
 			if (qteLength < this.qteRoleInfoList.length){
 				console.log("qteLength",qteLength)
@@ -56311,6 +56687,14 @@ window.Laya=(function(window,document){
 			if(this.hitState!=0){
 				this.visible=false;
 			}
+		}
+
+		__proto.hideTotalView=function(){
+			this.timer.frameOnce(60,this,this.hideTView);
+		}
+
+		__proto.hideTView=function(){
+			this.visible=false;
 		}
 
 		return AreanMultyView;
