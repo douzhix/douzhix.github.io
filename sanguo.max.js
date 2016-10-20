@@ -23366,13 +23366,11 @@ window.Laya=(function(window,document){
 
 		__proto.releaseRender=function(){
 			var cache=SubmitCMD._cache;
-			cache
-			[cache._length++]=this;
+			cache[cache._length++]=this;
 		}
 
 		SubmitCMD.create=function(args,fun){
-			var o=SubmitCMD._cache._length?SubmitCMD._cache
-			[--SubmitCMD._cache._length]:new SubmitCMD();
+			var o=SubmitCMD._cache._length?SubmitCMD._cache[--SubmitCMD._cache._length]:new SubmitCMD();
 			o.fun=fun;
 			o.args=args;
 			return o;
@@ -25388,8 +25386,7 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.png",type:"image"});
 			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.sk",type:"arraybuffer"});
-			assets.push(
-			{url:"res/skeleton/zhugeliang/zhugeliang.png",type:"image"});
+			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang_effect/qingqizhuqiang_effect.sk",type:"arraybuffer"});
@@ -35086,8 +35083,7 @@ window.Laya=(function(window,document){
 		*<p>当值为ture时：将对此对象使用了scrollRect 设定的显示区域以外的显示内容不进行渲染，以提高性能。</p>
 		*/
 		__getset(0,__proto,'optimizeScrollRect',function(){
-			return this._optimizeScrollRect
-			;
+			return this._optimizeScrollRect;
 			},function(b){
 			if (this._optimizeScrollRect !=b){
 				this._optimizeScrollRect=b;
@@ -40007,10 +40003,10 @@ window.Laya=(function(window,document){
 		function RoleListView(){
 			this.position=0;
 			this.roleItemViewList=[];
-			this.roleItemViewPositionList=[new Point(440,270),new Point(400,350),new Point(360,430),
-			new Point(310,270),new Point(270,350),new Point(230,430),
-			new Point(710,270),new Point(750,350),new Point(790,430),
-			new Point(840,270),new Point(880,350),new Point(920,430)];
+			this.roleItemViewPositionList=[new Point(440,320),new Point(400,400),new Point(360,480),
+			new Point(310,320),new Point(270,400),new Point(230,480),
+			new Point(710,320),new Point(750,400),new Point(790,480),
+			new Point(840,320),new Point(880,400),new Point(920,480)];
 			this.logic=null;
 			RoleListView.__super.call(this);
 			var roleItemView;
@@ -55249,7 +55245,8 @@ window.Laya=(function(window,document){
 			}
 			if ($roleInfo.quality <=1){
 				var imgQuality1=new Image("res/img_star_0.png");
-				imgQuality1.pos(this.roleListView["roleItemView"+($args+1)].imgPin.x,
+				imgQuality1.pos(this.roleListView
+				["roleItemView"+($args+1)].imgPin.x,
 				this.roleListView["roleItemView"+($args+1)].imgPin.y)
 				this.roleListView["roleItemView"+($args+1)].addChild(imgQuality1);
 				this.roleListView["roleItemView"+($args+1)].imgHeaderFg.skin="res/img_headImage_bg0.png"
