@@ -23366,11 +23366,13 @@ window.Laya=(function(window,document){
 
 		__proto.releaseRender=function(){
 			var cache=SubmitCMD._cache;
-			cache[cache._length++]=this;
+			cache
+			[cache._length++]=this;
 		}
 
 		SubmitCMD.create=function(args,fun){
-			var o=SubmitCMD._cache._length?SubmitCMD._cache[--SubmitCMD._cache._length]:new SubmitCMD();
+			var o=SubmitCMD._cache._length?SubmitCMD._cache
+			[--SubmitCMD._cache._length]:new SubmitCMD();
 			o.fun=fun;
 			o.args=args;
 			return o;
@@ -25386,7 +25388,8 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.png",type:"image"});
 			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.sk",type:"arraybuffer"});
-			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.png",type:"image"});
+			assets.push(
+			{url:"res/skeleton/zhugeliang/zhugeliang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang_effect/qingqizhuqiang_effect.sk",type:"arraybuffer"});
@@ -27055,8 +27058,7 @@ window.Laya=(function(window,document){
 						do {
 							var frameIndex=Math.floor(tm / cacheFrameInterval+0.5);
 							for (var k=lastFrameIndex+1;k < frameIndex;k++)
-							nodeFullFrames[k]=n
-							;
+							nodeFullFrames[k]=n;
 							lastFrameIndex=frameIndex;
 							nodeFullFrames[frameIndex]=n;
 							tm+=cacheFrameInterval;
@@ -35084,7 +35086,8 @@ window.Laya=(function(window,document){
 		*<p>当值为ture时：将对此对象使用了scrollRect 设定的显示区域以外的显示内容不进行渲染，以提高性能。</p>
 		*/
 		__getset(0,__proto,'optimizeScrollRect',function(){
-			return this._optimizeScrollRect;
+			return this._optimizeScrollRect
+			;
 			},function(b){
 			if (this._optimizeScrollRect !=b){
 				this._optimizeScrollRect=b;
@@ -39033,6 +39036,7 @@ window.Laya=(function(window,document){
 				this.aniContainer.removeChild(this._roleAni);
 				this._roleAni.off("enterframe",this,this.onAnimationEnterFrameHandler);
 				this._roleAni.off("stopped",this,this.onAnimationFinish);
+				this._roleAni.destroy();
 				this._roleAni=null;
 			};
 			var texture=Loader.getRes(this.roleInfo.meta.modelResMeta.resAniTexture);
@@ -39054,6 +39058,7 @@ window.Laya=(function(window,document){
 		__proto.showEffectView=function(){
 			if(this._effectAni !=null){
 				this.aniContainer.removeChild(this._effectAni);
+				this._effectAni.destroy();
 				this._effectAni=null;
 			};
 			var texture=Loader.getRes(this.roleInfo.meta.modelResMeta.resEffectAniTexture);
@@ -39102,6 +39107,9 @@ window.Laya=(function(window,document){
 		__proto.showFlyItemView=function(){
 			if(this._superUniqueSkillFlyItemAni !=null){
 				this.aniContainer.removeChild(this._superUniqueSkillFlyItemAni);
+				this._superUniqueSkillFlyItemAni.off("enterframe",this,this.onFlyItemAnimationEnterFrameHandler);
+				this._superUniqueSkillFlyItemAni.off("stopped",this,this.onFlyItemAnimationFinish);
+				this._superUniqueSkillFlyItemAni.destroy();
 				this._superUniqueSkillFlyItemAni=null;
 			}
 			console.log(1,"fly item tex : ",this.roleInfo.meta.modelResMeta.resFlyItemAniTexture);
@@ -39128,6 +39136,7 @@ window.Laya=(function(window,document){
 		__proto.showFlyItemEffectView=function(){
 			if(this._superUniqueSkillFlyItemEffectAni !=null){
 				this.aniContainer.removeChild(this._superUniqueSkillFlyItemEffectAni);
+				this._superUniqueSkillFlyItemEffectAni.destroy();
 				this._superUniqueSkillFlyItemEffectAni=null;
 			};
 			var texture=Loader.getRes(this.roleInfo.meta.modelResMeta.resFlyItemEffectAniTexture);
@@ -51357,8 +51366,7 @@ window.Laya=(function(window,document){
 		*/
 		__getset(0,__proto,'xml',null,function(value){
 			var arr=[];
-			this.parseXml(value.childNodes[0],arr
-			,null,true);
+			this.parseXml(value.childNodes[0],arr,null,true);
 			this.array=arr;
 		});
 
