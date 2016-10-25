@@ -177,26 +177,26 @@ window.Laya=(function(window,document){
 
 (function(window,document,Laya){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
-	Laya.interface('laya.display.ILayout');
-	Laya.interface('laya.webgl.text.ICharSegment');
-	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
-	Laya.interface('laya.ui.ISelect');
-	Laya.interface('laya.filters.IFilterAction');
-	Laya.interface('laya.d3.core.render.IRender');
-	Laya.interface('laya.runtime.IConchNode');
 	Laya.interface('laya.ui.IItem');
-	Laya.interface('laya.webgl.shapes.IShape');
-	Laya.interface('laya.webgl.canvas.save.ISaveData');
-	Laya.interface('laya.webgl.submit.ISubmit');
-	Laya.interface('laya.runtime.IMarket');
-	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
-	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
-	Laya.interface('laya.runtime.ICPlatformClass');
-	Laya.interface('laya.filters.IFilter');
 	Laya.interface('laya.d3.core.render.IRenderable');
+	Laya.interface('laya.runtime.IConchNode');
 	Laya.interface('laya.resource.IDispose');
-	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
+	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.d3.core.render.IRender');
 	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
+	Laya.interface('laya.runtime.IMarket');
+	Laya.interface('laya.webgl.text.ICharSegment');
+	Laya.interface('laya.runtime.ICPlatformClass');
+	Laya.interface('laya.filters.IFilterAction');
+	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
+	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
+	Laya.interface('laya.webgl.canvas.save.ISaveData');
+	Laya.interface('laya.ui.ISelect');
+	Laya.interface('laya.display.ILayout');
+	Laya.interface('laya.filters.IFilter');
+	Laya.interface('laya.webgl.shapes.IShape');
 	Laya.interface('laya.filters.IFilterActionGL','laya.filters.IFilterAction');
 	var await=Laya.await=function(caller,fn,nextLine){
 		Asyn._caller_=caller;
@@ -205,13 +205,13 @@ window.Laya=(function(window,document){
 	}
 
 
-	var wait=Laya.wait=function(conditions){
-		return Asyn.wait(conditions);
+	var load=Laya.load=function(url,type){
+		return Asyn.load(url,type);
 	}
 
 
-	var load=Laya.load=function(url,type){
-		return Asyn.load(url,type);
+	var wait=Laya.wait=function(conditions){
+		return Asyn.wait(conditions);
 	}
 
 
@@ -494,6 +494,152 @@ window.Laya=(function(window,document){
 		});
 
 		return BaseService;
+	})()
+
+
+	//class com.gamepark.casino.camara.Camera2D
+	var Camera2D=(function(){
+		function Camera2D(){
+			this.width=0;
+			this.height=0;
+			this.focus=null;
+			this.snapView=null;
+			this._sourcePoint=null;
+			this._targetPoint=null;
+			this._sourceScale=NaN;
+			this._targetScale=NaN;
+			this._totalFrame=0;
+			this._counter=0;
+			this._shakeInitPoint=null;
+			this._needStopShake=false;
+			this.status=0;
+			this.status=1;
+			Laya.timer.frameLoop(1,this,this.enterFrameHandler);
+		}
+
+		__class(Camera2D,'com.gamepark.casino.camara.Camera2D');
+		var __proto=Camera2D.prototype;
+		__proto.enterFrameHandler=function(){
+			switch(this.status){
+				case 1:
+					break ;
+				case 2:
+					this._counter++;
+					var unitX=Math.round((this._targetPoint.x-this._sourcePoint.x)/ this._totalFrame);
+					var unitY=Math.round((this._targetPoint.y-this._sourcePoint.y)/ this._totalFrame);
+					var unitScale=(this._targetScale-this._sourceScale)/ this._totalFrame;
+					console.log(78,"unitX : ",unitX);
+					console.log(78,"unitY : ",unitY);
+					this.snapView.x-=unitX;
+					this.snapView.y-=unitY;
+					this.snapView.scaleX+=unitScale;
+					this.snapView.scaleY+=unitScale;
+					if(this._counter==this._totalFrame){
+						console.log(98,"this.target.x : ",this.snapView.x);
+						console.log(98,"this.target.y : ",this.snapView.y);
+						console.log(98,"this.target.scaleX : ",this.snapView.scaleX);
+						console.log(98,"this.target.scaleY : ",this.snapView.scaleY);
+						this.status=1;
+					}
+					break ;
+				case 3:
+					this._counter++;
+				switch(this._counter){
+					case 1:
+						this.snapView.x=this._shakeInitPoint.x-3;
+						this.snapView.y=this._shakeInitPoint.y+1;
+						break ;
+					case 3:
+						this.snapView.x=this._shakeInitPoint.x+3;
+						this.snapView.y=this._shakeInitPoint.y+2;
+						break ;
+					case 5:
+						this.snapView.x=this._shakeInitPoint.x-1;
+						this.snapView.y=this._shakeInitPoint.y+3;
+						break ;
+					case 7:
+						this.snapView.x=this._shakeInitPoint.x+3;
+						this.snapView.y=this._shakeInitPoint.y-2;
+						break ;
+					case 9:
+						this.snapView.x=this._shakeInitPoint.x;
+						this.snapView.y=this._shakeInitPoint.y;
+						break ;
+					}
+				if((this._counter==9)){
+					if(this._needStopShake){
+						this.doNormal();
+					}
+					else{
+						this._counter=0;
+					}
+				}
+				break ;
+			}
+		}
+
+		__proto.focusOnView=function($snapView,$focus){
+			this.snapView=$snapView;
+			this.focus=$focus;
+			this.snapView.x=this.focus.x;
+			this.snapView.y=this.focus.y;
+		}
+
+		// this._sourcePoint=new Point(this.snapView.x,this.snapView.y);
+		__proto.operateCamera=function($targetPoint,$scale,$totalFrame){
+			console.log(88,"$targetPoint : ",$targetPoint);
+			console.log(88,"$scale : ",$scale);
+			console.log(88,"$totalFrame : ",$totalFrame);
+			this._targetPoint=$targetPoint;
+			this._totalFrame=$totalFrame;
+			this._sourceScale=this.snapView.scaleX;
+			this._targetScale=$scale;
+			this._sourcePoint=new Point((1136-this.snapView.x),(640-this.snapView.y));
+			this._counter=0;
+			this.status=2;
+			console.log(88,"this._sourceScale : ",this._sourceScale);
+			console.log(88,"this._sourcePoint : ",this._sourcePoint);
+		}
+
+		__proto.isNormal=function(){
+			return this.status==1;
+		}
+
+		__proto.doNormal=function(){
+			this.status=1;
+		}
+
+		__proto.shake=function(){
+			this.status=3;
+			this._counter=0;
+			this._shakeInitPoint=new Point(this.snapView.x,this.snapView.y);
+			this._needStopShake=false;
+		}
+
+		__proto.stopShake=function(){
+			this._needStopShake=true;
+		}
+
+		__getset(1,Camera2D,'i',function(){
+			if(Camera2D._i==null){
+				Camera2D._i=new Camera2D();
+			}
+			return Camera2D._i;
+		});
+
+		Camera2D._i=null
+		return Camera2D;
+	})()
+
+
+	//class com.gamepark.casino.camara.enum.Camera2DStatusEnum
+	var Camera2DStatusEnum=(function(){
+		function Camera2DStatusEnum(){};
+		__class(Camera2DStatusEnum,'com.gamepark.casino.camara.enum.Camera2DStatusEnum');
+		Camera2DStatusEnum.NORMAL=1;
+		Camera2DStatusEnum.OPERATE=2;
+		Camera2DStatusEnum.SHAKE=3;
+		return Camera2DStatusEnum;
 	})()
 
 
@@ -953,6 +1099,20 @@ window.Laya=(function(window,document){
 	})()
 
 
+	//class com.gamepark.casino.game.arena.enum.ArenaQteStatusEnum
+	var ArenaQteStatusEnum=(function(){
+		function ArenaQteStatusEnum(){};
+		__class(ArenaQteStatusEnum,'com.gamepark.casino.game.arena.enum.ArenaQteStatusEnum');
+		ArenaQteStatusEnum.CUTDOWN=1;
+		ArenaQteStatusEnum.QTEVIEW=2;
+		ArenaQteStatusEnum.FIGHT=3;
+		ArenaQteStatusEnum.PLAY=4;
+		ArenaQteStatusEnum.PAUSE=5;
+		ArenaQteStatusEnum.WAITING=5;
+		return ArenaQteStatusEnum;
+	})()
+
+
 	//class com.gamepark.casino.game.arena.enum.ArenaRoleAniNameEnum
 	var ArenaRoleAniNameEnum=(function(){
 		function ArenaRoleAniNameEnum(){};
@@ -1047,12 +1207,21 @@ window.Laya=(function(window,document){
 		ArenaStatusEnum.READY_TO_ENTER=101;
 		ArenaStatusEnum.ENTERING=102;
 		ArenaStatusEnum.FINISH_ENTER=103;
+		ArenaStatusEnum.LEFT_ENTERING=104;
+		ArenaStatusEnum.FINISH_LEFT_ENTER=105;
+		ArenaStatusEnum.READY_TO_RIGHT_ENTER=106;
+		ArenaStatusEnum.RIGHT_ENTERING=107;
+		ArenaStatusEnum.FINISH_RIGHT_ENTER=108;
 		ArenaStatusEnum.CHECK_FIRST_ATTACK=2;
 		ArenaStatusEnum.TURN_ATTACK_AND_DEFENSE=3;
 		ArenaStatusEnum.BATTLE_OPERATION=5;
 		ArenaStatusEnum.READY_TO_BATTLE_OPERATION=501;
 		ArenaStatusEnum.BATTLE_OPERATING=502;
 		ArenaStatusEnum.FINISH_BATTLE_OPERATION=503;
+		ArenaStatusEnum.BATTLE_START=10;
+		ArenaStatusEnum.READY_TO_BATTLE_START=1001;
+		ArenaStatusEnum.BATTLE_STARTING=1002;
+		ArenaStatusEnum.FINISH_BATTLE_START=1003;
 		ArenaStatusEnum.BUFF=4;
 		ArenaStatusEnum.LUCKY=9;
 		ArenaStatusEnum.READY_TO_PLAY_LUCKY=901;
@@ -1246,8 +1415,15 @@ window.Laya=(function(window,document){
 				case 1:
 				switch(this.secondStatus){
 					case 101:
-						this.roleListLogic.doEnter();
-						this.secondStatus=102;
+						this.roleListLogic.doStandOutSide();
+						if(this.arenaContext.data.battleVO.isManualMode()){
+							this.roleListLogic.doLeftEnter();
+							this.secondStatus=104;
+						}
+						else{
+							this.roleListLogic.doEnter();
+							this.secondStatus=102;
+						}
 						break ;
 					case 102:
 						if(this.roleListLogic.isCompleteEntering()){
@@ -1257,6 +1433,30 @@ window.Laya=(function(window,document){
 					case 103:
 						this.roleListLogic.doIdle();
 						this.firstStatus=2;
+					case 104:
+						if(this.roleListLogic.isLeftCompleteEntering()){
+							this.secondStatus=105;
+						}
+						break ;
+					case 105:
+						this.roleListLogic.doIdle();
+						this.firstStatus=2;
+						break ;
+					case 106:
+						if(this.arenaContext.data.battleVO.isManualMode()){
+							this.roleListLogic.doRightEnter();
+							this.secondStatus=107;
+						}
+						break ;
+					case 107:
+						if(this.roleListLogic.isRightCompleteEntering()){
+							this.secondStatus=108;
+						}
+						break ;
+					case 108:
+						this.firstStatus=10;
+						this.secondStatus=1001;
+						console.log("finish right enter!!!");
 						break ;
 					}
 				break ;
@@ -1296,6 +1496,20 @@ window.Laya=(function(window,document){
 					case 502:
 						break ;
 					case 503:
+						this.firstStatus=1;
+						this.secondStatus=106;
+						break ;
+					}
+				break ;
+				case 10:
+				switch(this.secondStatus){
+					case 1001:
+						this.secondStatus=1002;
+						this.showBattleStart();
+						break ;
+					case 1002:
+						break ;
+					case 1003:
 						this.firstStatus=9;
 						this.secondStatus=901;
 						break ;
@@ -1394,7 +1608,8 @@ window.Laya=(function(window,document){
 						this.secondStatus=604;
 						break ;
 					case 604:
-						if(this._battleAttackRoleInfo.logic.isFinishSuperUniqueSkill()){
+						if(this._battleAttackRoleInfo.logic.isFinishSuperUniqueSkill()&& (GameContext.i.camera2D.isNormal())){
+							console.log("GameContext.i.camera2D.status : ",GameContext.i.camera2D.status);
 							if(this.arenaContext.data.battleVO.isManualMode()){
 								if(this.roleListLogic.defensePlayer.roleVO.isAllDie()){
 									this.firstStatus=8;
@@ -1639,6 +1854,14 @@ window.Laya=(function(window,document){
 
 		__proto.onMyRoleDie=function($roleItemLogic){
 			this.arenaContext.gameMediator.refreshSkill($roleItemLogic);
+		}
+
+		__proto.showBattleStart=function(){
+			this.arenaContext.gameMediator.uniqueSkillStage();
+		}
+
+		__proto.onFinishBattleStartHandler=function(){
+			this.secondStatus=1003;
 		}
 
 		__getset(0,__proto,'round',function(){
@@ -2150,7 +2373,7 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.hp=this.meta.hp;
 			this.hpMax=this.meta.hp;
-			this.mp=0;
+			this.mp=1000;
 			this.attack=this.meta.attack;
 			this.defense=this.meta.defense;
 			this.attackRate=this.meta.attackRate;
@@ -2158,6 +2381,7 @@ window.Laya=(function(window,document){
 			this.damageRate=this.meta.damageRate;
 			this.undamageRate=this.meta.undamageRate;
 			this.crit=this.meta.crit;
+			this.crit=100;
 			this.uncrit=this.meta.uncrit;
 			this.critDeepen=this.meta.critDeepen;
 			this.block=this.meta.block;
@@ -2319,7 +2543,7 @@ window.Laya=(function(window,document){
 						}
 						break ;
 					case 103:
-						this.view.playIdle();
+						this.doIdle();
 						break ;
 					}
 				break ;
@@ -2481,6 +2705,10 @@ window.Laya=(function(window,document){
 			}
 		}
 
+		__proto.doStandOutSide=function(){
+			this.view.initEnterPos();
+		}
+
 		__proto.doEnter=function(){
 			this.firstStatus=1;
 			this.secondStatus=101;
@@ -2506,6 +2734,25 @@ window.Laya=(function(window,document){
 			this.actionRoleInfo=$battleAttackRoleInfo;
 			this.firstStatus=4;
 			this.updateActionInfo($battleAttackRoleInfo);
+			var targetRoleView;
+			var battleTargetRoleInfo;
+			if(this.roleInfo.meta.modelResMeta.superUniqueSkillType==1){
+				battleTargetRoleInfo=this.actionRoleInfo.targetRoleInfoList[0];
+				targetRoleView=battleTargetRoleInfo.logic.view;
+			}
+			else{
+				targetRoleView=this.view;
+			};
+			var targetPoint=new Point(targetRoleView.x,targetRoleView.y);
+			if(targetRoleView.logic.group==0){
+				targetPoint.x=468;
+				targetPoint.y=320;
+			}
+			else{
+				targetPoint.x=668;
+				targetPoint.y=320;
+			}
+			GameContext.i.camera2D.operateCamera(targetPoint,1.2,10);
 		}
 
 		__proto.doAttack=function($battleAttackRoleInfo){
@@ -2624,6 +2871,9 @@ window.Laya=(function(window,document){
 			this.secondStatus=509;
 			this.view.playRun();
 			this.view.turnFace();
+			if(this.firstStatus==4){
+				GameContext.i.camera2D.operateCamera(new Point(GameContext.i.uiService.screenWidth / 2,GameContext.i.uiService.screenHeight / 2),1,10);
+			}
 		}
 
 		// this.view.roleAni.scaleX=0-this.view.roleAni.scaleX;
@@ -2787,10 +3037,40 @@ window.Laya=(function(window,document){
 			}
 		}
 
+		__proto.doStandOutSide=function(){
+			var roleItemLogic;
+			var i=0;
+			for(i=0;i < this.roleItemLogicList.length;i++){
+				roleItemLogic=this.roleItemLogicList[i];
+				roleItemLogic.doStandOutSide();
+			}
+		}
+
+		// roleItemView.showRoleView();
 		__proto.doEnter=function(){
 			var roleItemLogic;
 			var i=0;
 			for(i=0;i < this.roleItemLogicList.length;i++){
+				roleItemLogic=this.roleItemLogicList[i];
+				roleItemLogic.doEnter();
+			}
+		}
+
+		// roleItemView.showRoleView();
+		__proto.doLeftEnter=function(){
+			var roleItemLogic;
+			var i=0;
+			for(i=0;i < 6;i++){
+				roleItemLogic=this.roleItemLogicList[i];
+				roleItemLogic.doEnter();
+			}
+		}
+
+		// roleItemView.showRoleView();
+		__proto.doRightEnter=function(){
+			var roleItemLogic;
+			var i=0;
+			for(i=6;i < 12;i++){
 				roleItemLogic=this.roleItemLogicList[i];
 				roleItemLogic.doEnter();
 			}
@@ -2802,6 +3082,34 @@ window.Laya=(function(window,document){
 			var roleItemLogic;
 			var i=0;
 			for(i=0;i < this.roleItemLogicList.length;i++){
+				roleItemLogic=this.roleItemLogicList[i];
+				if(!roleItemLogic.isCompleteEntering()){
+					isCompleteEntering=false;
+					break ;
+				}
+			}
+			return isCompleteEntering;
+		}
+
+		__proto.isLeftCompleteEntering=function(){
+			var isCompleteEntering=true;
+			var roleItemLogic;
+			var i=0;
+			for(i=0;i < 6;i++){
+				roleItemLogic=this.roleItemLogicList[i];
+				if(!roleItemLogic.isCompleteEntering()){
+					isCompleteEntering=false;
+					break ;
+				}
+			}
+			return isCompleteEntering;
+		}
+
+		__proto.isRightCompleteEntering=function(){
+			var isCompleteEntering=true;
+			var roleItemLogic;
+			var i=0;
+			for(i=6;i < 12;i++){
 				roleItemLogic=this.roleItemLogicList[i];
 				if(!roleItemLogic.isCompleteEntering()){
 					isCompleteEntering=false;
@@ -3523,7 +3831,7 @@ window.Laya=(function(window,document){
 
 		ArenaUtil.caleSuperUniqueSkillDamageByAttackerAndDefenser=function($attackRoleInfo,$targetRoleInfo,$battleAttackRoleInfo,$battleTargetRoleInfo){
 			var targetRoleInfo=$targetRoleInfo;
-			var cuitPercent=Math.min(0.5,Math.max(($attackRoleInfo.meta.crit-targetRoleInfo.meta.uncrit),0));
+			var cuitPercent=Math.min(0.5,Math.max(($attackRoleInfo.crit-targetRoleInfo.meta.uncrit),0));
 			var isCuit=Math.random()<=cuitPercent;
 			var parryPercent=Math.min(1,Math.max((targetRoleInfo.meta.block-$attackRoleInfo.meta.unblock),0));
 			var isParry=Math.random()<=parryPercent;
@@ -3624,7 +3932,7 @@ window.Laya=(function(window,document){
 
 		ArenaUtil.caleAttackDamageByAttackerAndDefenser=function($attackRoleInfo,$targetRoleInfo,$battleAttackRoleInfo,$battleTargetRoleInfo,$useSkillFlag,$comboEffect){
 			var targetRoleInfo=$targetRoleInfo;
-			var cuitPercent=Math.min(0.5,Math.max(($attackRoleInfo.meta.crit-targetRoleInfo.meta.uncrit),0));
+			var cuitPercent=Math.min(0.5,Math.max(($attackRoleInfo.crit-targetRoleInfo.meta.uncrit),0));
 			var isCuit=Math.random()<=cuitPercent;
 			var parryPercent=Math.min(1,Math.max((targetRoleInfo.meta.block-$attackRoleInfo.meta.unblock),0));
 			var isParry=Math.random()<=parryPercent;
@@ -3977,6 +4285,7 @@ window.Laya=(function(window,document){
 			this.loadingService=null;
 			this.arenaContext=null;
 			this.mainSceneContext=null;
+			this.camera2D=null;
 			this.gameModuleContextList=new Dictionary();
 			GameContext._i=this;
 		}
@@ -3992,6 +4301,9 @@ window.Laya=(function(window,document){
 			this.data=new GameData();
 			this.communicationService=new CommunicationService();
 			this.loginContexnt=LoginContext.i;
+			this.camera2D=Camera2D.i;
+			this.camera2D.width=this.uiService.screenWidth;
+			this.camera2D.height=this.uiService.screenHeight;
 		}
 
 		// this.gameModuleContextList.set(GameNameEnum.BACCARAT,this.baccaratContext);
@@ -25382,12 +25694,6 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/atlas/combo.json",type:"atlas"});
 			assets.push({url:"res/atlas/result.json",type:"atlas"});
 			assets.push({url:"res/atlas/res.json",type:"atlas"});
-			assets.push({url:"res/skeleton/zhangfei/zhangfei.sk",type:"arraybuffer"});
-			assets.push({url:"res/skeleton/zhangfei/zhangfei.png",type:"image"});
-			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.sk",type:"arraybuffer"});
-			assets.push({url:"res/skeleton/zhaoyun/zhaoyun.png",type:"image"});
-			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.sk",type:"arraybuffer"});
-			assets.push({url:"res/skeleton/zhugeliang/zhugeliang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang_effect/qingqizhuqiang_effect.sk",type:"arraybuffer"});
@@ -25400,6 +25706,10 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/heishenyushan_fly_item/heishenyushan_fly_item.png",type:"image"});
 			assets.push({url:"res/skeleton/heishenyushan_fly_item_effect/heishenyushan_fly_item_effect.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/heishenyushan_fly_item_effect/heishenyushan_fly_item_effect.png",type:"image"});
+			assets.push({url:"res/skeleton/xingyuebian/xingyuebian.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/xingyuebian/xingyuebian.png",type:"image"});
+			assets.push({url:"res/skeleton/xingyuebian_effect/xingyuebian_effect.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/xingyuebian_effect/xingyuebian_effect.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/Fight/Fight.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qteORfight/Fight/Fight.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/Go/Go.sk",type:"arraybuffer"});
@@ -25426,6 +25736,12 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/qteORfight/IconPower/IconPower.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/wuyunlv/wuyunlv.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qteORfight/wuyunlv/wuyunlv.png",type:"image"});
+			assets.push({url:"res/skeleton/qteORfight/KO_add/KO_add.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/qteORfight/KO_add/KO_add.png",type:"image"});
+			assets.push({url:"res/skeleton/qteORfight/KO_normal/KO_normal.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/qteORfight/KO_normal/KO_normal.png",type:"image"});
+			assets.push({url:"res/skeleton/qteORfight/SoundT/SoundT.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/qteORfight/SoundT/SoundT.png",type:"image"});
 			this.loadAsset(assets);
 		}
 
@@ -25949,9 +26265,8 @@ window.Laya=(function(window,document){
 			this.touchStartTime=0;
 			this.touchEndTime=0;
 			this.qteSelectView=null;
-			this.qteState=false;
-			this.battleSate=false;
 			this.pauseState=false;
+			this.playGameStatus=0;
 			ArenaMediator.__super.call(this);
 			this.timer=new Timer();
 			this.qteTime=0;
@@ -25959,11 +26274,8 @@ window.Laya=(function(window,document){
 
 		__class(ArenaMediator,'com.gamepark.casino.game.arena.mediator.ArenaMediator',_super);
 		var __proto=ArenaMediator.prototype;
-		__proto.onInitialize=function(){
-			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
-			this.initButtonShow();
-		}
-
+		__proto.onInitialize=function(){}
+		//this.initButtonShow();
 		__proto.btnPauseClickHandler=function($evt){
 			if (this.pauseState==false){
 				this.pauseState=true;
@@ -25981,45 +26293,28 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.btnAutoClickHandler=function($evt){
-			console.log("auto qte ckick")
-			console.log("gameContext.arenaContext.manager.isBattleOperation():",this.gameContext.arenaContext.manager.isBattleOperation())
-			if (this.gameContext.arenaContext.manager.isBattleOperation()){
-				if (this.gameContext.arenaContext.data.isAutoBattle==true){
-					this.arenaView.arenaFootView.btn_auto.skin="res/btn_auto.png"
-					this.arenaView.arenaFootView.btn_auto.stateNum=3;
-					this.gameContext.arenaContext.data.isAutoBattle=false;
-				}
-				else{
-					this.arenaView.arenaFootView.btn_auto.skin="res/img_result_rolebg.png"
-					this.arenaView.arenaFootView.btn_auto.stateNum=1;
-					this.gameContext.arenaContext.data.isAutoBattle=true
-					console.log("this.qteState:",this.qteState)
-					console.log("this.battleSate:",this.battleSate)
-					if (this.qteState==true){
-						this.qteJumpHandler();
-						this.qteSelectView.jumpQteToAuto();
-					}
-					if(this.battleSate==true){
-						console.log("jump")
-						this.jumpGo();
-					}
-					this.arenaView.arenaStarView.img_fight.visible=false;
-					this.refreshStateView();
-				}
+			if(this.playGameStatus !=2){
+				return;
+			}
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				this.arenaView.arenaFootView.btn_auto.skin="res/btn_auto.png"
+				this.arenaView.arenaFootView.btn_auto.stateNum=3;
+				this.gameContext.arenaContext.data.isAutoBattle=false;
 			}
 			else{
-				if (this.gameContext.arenaContext.data.isAutoBattle==true){
-					this.arenaView.arenaFootView.btn_auto.skin="res/btn_auto.png"
-					this.arenaView.arenaFootView.btn_auto.stateNum=3;
-					this.gameContext.arenaContext.data.isAutoBattle=false;
+				if (this.playGameStatus==1){
+					this.qteJumpHandler();
+					this.qteSelectView.jumpQteToAuto();
 				}
-				else{
-					this.gameContext.arenaContext.data.isAutoBattle=true
-					this.arenaView.arenaFootView.btn_auto.skin="res/img_result_rolebg.png"
-					this.arenaView.arenaFootView.btn_auto.stateNum=1;
+				if(this.playGameStatus==3){
+					this.jumpGo();
 				}
-				this.refreshStateView();
+				this.arenaView.arenaFootView.btn_auto.skin="res/img_result_rolebg.png"
+				this.arenaView.arenaFootView.btn_auto.stateNum=1;
+				this.gameContext.arenaContext.data.isAutoBattle=true
+				this.arenaView.arenaStarView.img_fight.visible=false;
 			}
+			this.refreshStateView();
 		}
 
 		//gameContext.arenaContext.data.doAutoBattleOperation();
@@ -26078,6 +26373,8 @@ window.Laya=(function(window,document){
 			GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.x=0
 			this.refreshImgHeaderLable();
 			this.arenaView.arenaFootView.roleListView.scale(1.0,1.0);
+			this.gameContext.arenaContext.data.speed=1;
+			this.arenaView.arenaFootView.btnSpeed.skin="res/btn_quick_1.png"
 		}
 
 		__proto.refreshRound=function($value){
@@ -26134,13 +26431,19 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.uniqueSkillOrQteStage=function(){
+			this.arenaView.arenaFootView.btn_auto.visible=true;
+			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
+			this.initButtonShow();
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				this.qteJumpHandler();
+				this.qteSelectView.jumpQteToAuto();
+				this.playGameStatus=4;
+			}
 			this.touchStartTime=0;
 			this.touchImageState=false;
 			this.gameContext.arenaContext.data.attackDefenceRolePosition=this.gameContext.arenaContext.manager.roleListLogic.defensePlayer.roleVO.getAutoAttackDefenceRolePosition();
 			this.qteTime=0;
-			this.addImageTouch();
 			this.addUniqueSkillOrQteStage();
-			this.initButtonShow();
 			this.arenaView.roleView.showFirstSelect();
 			this.roleViewTouch()
 			this.timer.loop(1000,this,this.addUniqueSkillOrQteStage);
@@ -26148,15 +26451,20 @@ window.Laya=(function(window,document){
 
 		//fight阶段
 		__proto.uniqueSkillStage=function(){
-			this.qteState=false;
+			this.playGameStatus=3;
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				this.gameContext.arenaContext.manager.onFinishBattleStartHandler();
+				this.playGameStatus=4;
+				return;
+			}
+			this.arenaView.arenaFootView.btn_auto.skin="res/btn_auto.png"
+			this.arenaView.arenaFootView.btn_auto.stateNum=3;
 			this.touchImageState=false;
-			this.battleSate=true;
-			console.log("fight==battleSate",this.battleSate)
+			this.addImageTouch();
 			this.arenaView.arenaStarView.img_fight.visible=true;
 			this.arenaView.arenaStarView.mouseThrough=true;
 			this.arenaView.arenaStarView.img_fight.on("click",this,this.fightImageClickHandler);
 			this.arenaView.arenaStarView.beginFight();
-			this.addImageTouch();
 			Tween.to(this.arenaView.arenaFootView.roleListView,{
 				scaleX:0.8,
 				scaleY:0.8
@@ -26175,31 +26483,26 @@ window.Laya=(function(window,document){
 			this.touchStartTime=0;
 		}
 
+		//this.endGOHandler();
 		__proto.endGOHandler=function(){
-			this.battleSate=false;
+			this.playGameStatus=4;
 			this.refreshStateView();
 			this.arenaView.arenaFootView.lab_time.visible=false;
 			this.arenaView.arenaFootView.img_clock_bg.visible=false;
-			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
+			this.gameContext.arenaContext.manager.onFinishBattleStartHandler();
 			this.initButtonShow();
+			this.addImageTouch();
 		}
 
-		/*
-		Tween.to(this.arenaView.arenaFootView.roleListView,{
-			scaleX:0.8,
-			scaleY:0.8
-		},300);
-
-		*/
 		__proto.jumpGo=function(){
-			console.log("jumpGo,jumpGojumpGojumpGo")
-			this.battleSate=false;
+			this.playGameStatus=4;
 			this.arenaView.arenaStarView.removeAllAnmation();
 			this.timer.clearAll(this);
 			this.qteTime=0;
 			this.touchStartTime=0;
-			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
+			this.gameContext.arenaContext.manager.onFinishBattleStartHandler();
 			this.initButtonShow();
+			this.addImageTouch();
 		}
 
 		//大吉小吉
@@ -26297,20 +26600,20 @@ window.Laya=(function(window,document){
 		//添加qte阶段
 		__proto.addUniqueSkillOrQteStage=function(){
 			this.decideAutoBattle();
-			if (this.gameContext.arenaContext.data.isAutoBattle==true){
-				this.qteJumpHandler();
-				this.qteSelectView.jumpQteToAuto();
-			}
+			console.log("pppppppp")
 			if(this.qteTime==1){
 				this.gameContext.arenaContext.gameView.img_touch_bg.on("click",this,this.imgTouchHandler);
 				this.qteSelectView=new QteSelectView();
 				this.arenaView.img_qte.visible=true;
 				this.arenaView.img_qte.addChild(this.qteSelectView);
-				this.qteState=true;
+				this.playGameStatus=1;
 				this.qteSelectView.mouseThrough=true;
 				this.qteSelectView.qteCountdownAnmation();
 			}
 			else if(this.qteTime==3){
+				this.playGameStatus=2;
+				this.arenaView.arenaFootView.btn_auto.skin="res/img_suoding.png"
+				this.arenaView.arenaFootView.btn_auto.stateNum=1;
 				if(this.qteTime==3){
 					this.qteSelectView.endQteTimer();
 				}
@@ -26333,7 +26636,6 @@ window.Laya=(function(window,document){
 					this.arenaView.img_qte.removeChild(this.qteSelectView);
 					this.arenaView.img_qte.visible=false;
 				}
-				this.gameContext.arenaContext.data.isAutoBattle=true
 				this.arenaView.arenaFootView.lab_time.visible=false;
 				this.arenaView.arenaFootView.img_clock_bg.visible=false;
 				this.timer.clearAll(this);
@@ -26342,7 +26644,10 @@ window.Laya=(function(window,document){
 				this.arenaView.arenaStarView.img_fight.visible=false;
 				this.arenaView.arenaStarView.removeAllAnmation();
 				this.gameContext.arenaContext.gameView.img_touch_bg.offAll();
+				this.arenaView.arenaFootView.btn_auto.skin="res/img_result_rolebg.png"
+				this.arenaView.arenaFootView.btn_auto.stateNum=1;
 				this.jumpGo();
+				this.gameContext.arenaContext.data.isAutoBattle=true
 			}
 			else if(this.qteTime==800){
 			}
@@ -26357,24 +26662,26 @@ window.Laya=(function(window,document){
 			roleItemView.refreshHitLable($itemViewNumber,$hitNumber,delayTime)
 		}
 
-		// }
 		__proto.qteEndHandler=function($qteResultList){
-			this.qteState=false;
 			this.gameContext.arenaContext.data.qteComboEffectList=$qteResultList;
 			this.arenaView.img_qte.visible=false
+			console.log("qte____qteEnd")
+			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
 			this.initButtonShow();
 			this.refreshStateView();
+			Tween.to(this.arenaView.arenaFootView.roleListView,{
+				scaleX:0.8,
+				scaleY:0.8
+			},300);
 			this.imgTouchHandler();
-			this.uniqueSkillStage();
 		}
 
 		//跳过qte直接进入战斗状态
 		__proto.qieEndAndJumpFight=function($qteResultList){
-			console.log("$qteResultList$qteResultList$qteResultList:",$qteResultList.length)
-			this.qteState=false;
 			this.gameContext.arenaContext.data.qteComboEffectList=$qteResultList;
 			this.arenaView.img_qte.visible=false
 			this.refreshStateView();
+			console.log("qte____qieEndAnd")
 			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
 			this.initButtonShow();
 			Tween.to(this.arenaView.arenaFootView.roleListView,{
@@ -26399,6 +26706,7 @@ window.Laya=(function(window,document){
 		//this.arenaView.roleView.hideAllSelect();
 		__proto.imgHeaderClickHandler=function($args,$roleInfo,$roleItemView,$evt){
 			this.imgTouchHandler();
+			console.log("$roleInfo.canSuperUniqueSkill():",$roleInfo.canSuperUniqueSkill())
 			if ($roleInfo.canSuperUniqueSkill()==false){
 				return;
 			};
@@ -26540,7 +26848,12 @@ window.Laya=(function(window,document){
 		var __proto=ArenaService.prototype;
 		__proto.onInitialize=function(){
 			this.gameContext.arenaContext.testCase.buildTestData();
+			this.gameContext.arenaContext.gameView.pivotX=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.pivotY=this.gameContext.uiService.screenHeight / 2;
 			this.gameContext.uiService.addChildOnGameModuleLayer(this.gameContext.arenaContext.gameView);
+			this.gameContext.arenaContext.gameView.x=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.y=this.gameContext.uiService.screenHeight / 2;
+			this.gameContext.camera2D.focusOnView(this.gameContext.arenaContext.gameView,new Point(this.gameContext.uiService.screenWidth / 2,this.gameContext.uiService.screenHeight / 2));
 			this.gameContext.arenaContext.gameMediator.initialize();
 			this.gameContext.arenaContext.gameMediator.open();
 		}
@@ -28194,7 +28507,13 @@ window.Laya=(function(window,document){
 			this.attack5TotalTime=0;
 			this.skillTotalTime=0;
 			this.superUniqueSkillType=0;
+			this.attack1EffectWordType=0;
+			this.attack2EffectWordType=0;
+			this.attack3EffectWordType=0;
+			this.attack4EffectWordType=0;
+			this.attack5EffectWordType
 			HeroResourceMeta.__super.call(this,$metaObj);
+			console.log("$metaObj : ",$metaObj);
 		}
 
 		__class(HeroResourceMeta,'com.gamepark.casino.meta.HeroResourceMeta',_super);
@@ -28474,29 +28793,6 @@ window.Laya=(function(window,document){
 
 		return BaseRender;
 	})(EventDispatcher)
-
-
-	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
-	var PlayerInfo1=(function(_super){
-		function PlayerInfo(){
-			this.id=0;
-			this.name=null;
-			this._chip=0;
-			PlayerInfo.__super.call(this);
-		}
-
-		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
-		var __proto=PlayerInfo.prototype;
-		__getset(0,__proto,'chip',function(){
-			return this._chip;
-			},function(value){
-			var old=this._chip;
-			this._chip=value;
-			this.validateProperty("chip",old,value);
-		});
-
-		return PlayerInfo;
-	})(ErisGamePropertyObserver)
 
 
 	/**
@@ -29096,6 +29392,29 @@ window.Laya=(function(window,document){
 
 		return MeshFilter;
 	})(EventDispatcher)
+
+
+	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
+	var PlayerInfo1=(function(_super){
+		function PlayerInfo(){
+			this.id=0;
+			this.name=null;
+			this._chip=0;
+			PlayerInfo.__super.call(this);
+		}
+
+		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
+		var __proto=PlayerInfo.prototype;
+		__getset(0,__proto,'chip',function(){
+			return this._chip;
+			},function(value){
+			var old=this._chip;
+			this._chip=value;
+			this.validateProperty("chip",old,value);
+		});
+
+		return PlayerInfo;
+	})(ErisGamePropertyObserver)
 
 
 	/**
@@ -39001,6 +39320,7 @@ window.Laya=(function(window,document){
 			this._hurtActionName=null;
 			this.swordmanAnmation=null;
 			this.swordmanSelectAnmation=null;
+			this.texiaoziSelectAnmation=null;
 			RoleItemView.__super.call(this);
 			this.group=$group;
 			this.position=$position;
@@ -39307,8 +39627,15 @@ window.Laya=(function(window,document){
 					var battleTargetRoleInfo;
 					var changePropertyInfo;
 					var roleStatus=0;
+					var hasCritDamage=false;
 					for(i=0;i < this.logic.actionRoleInfo.targetRoleInfoList.length;i++){
 						battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[i];
+						if(battleTargetRoleInfo.damageType==2){
+							hasCritDamage=true;
+						}
+						if((this.roleInfo.actionInfo.animationIndex==0)&& (this.logic.actionRoleInfo.useSkillFlag==0)&& (this.logic.firstStatus==5)){
+							battleTargetRoleInfo.logic.view.playTexiaoZi(battleTargetRoleInfo.attackType);
+						}
 						if(battleTargetRoleInfo.logic.roleStatus==4){
 							if(this.roleInfo.actionInfo.animationIndex >=(keyFrameList.length-1)){
 								if(this.logic.firstStatus==5){
@@ -39348,6 +39675,12 @@ window.Laya=(function(window,document){
 						effectInfo.targetRoleLogic=battleTargetRoleInfo.logic;
 						GameContext.i.arenaContext.gameView.effectView.addEffect(effectInfo);
 						totalDamage+=Math.round((0-battleTargetRoleInfo.damage)/ keyFrameList.length *(i+1));
+					}
+					if((this.roleInfo.actionInfo.animationIndex==0)&& hasCritDamage && (this.logic.firstStatus==4)){
+						GameContext.i.camera2D.shake();
+					}
+					if((this.roleInfo.actionInfo.animationIndex >=(keyFrameList.length-1))&& hasCritDamage && (this.logic.firstStatus==4)){
+						GameContext.i.camera2D.stopShake();
 					}
 					if(this.roleInfo.isMe){
 						effectInfo=new EffectItemInfo();
@@ -39648,8 +39981,12 @@ window.Laya=(function(window,document){
 					var battleTargetRoleInfo;
 					var changePropertyInfo;
 					var roleStatus=0;
+					var hasCritDamage=false;
 					for(i=0;i < this.logic.actionRoleInfo.targetRoleInfoList.length;i++){
 						battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[i];
+						if(battleTargetRoleInfo.damageType==2){
+							hasCritDamage=true;
+						}
 						if(battleTargetRoleInfo.logic.roleStatus==4){
 							if(this.roleInfo.actionInfo.animationIndex >=(keyFrameList.length-1)){
 								if(this.logic.firstStatus==5){
@@ -39689,6 +40026,12 @@ window.Laya=(function(window,document){
 						effectInfo.targetRoleLogic=battleTargetRoleInfo.logic;
 						GameContext.i.arenaContext.gameView.effectView.addEffect(effectInfo);
 						totalDamage+=Math.round((0-battleTargetRoleInfo.damage)/ keyFrameList.length *(i+1));
+					}
+					if((this.roleInfo.actionInfo.animationIndex==0)&& hasCritDamage){
+						GameContext.i.camera2D.shake();
+					}
+					if((this.roleInfo.actionInfo.animationIndex >=(keyFrameList.length-1))&& hasCritDamage && (this.logic.firstStatus==4)){
+						GameContext.i.camera2D.stopShake();
 					}
 					if(this.roleInfo.isMe){
 						effectInfo=new EffectItemInfo();
@@ -39745,6 +40088,7 @@ window.Laya=(function(window,document){
 			this._superUniqueSkillFlyItemEffectAni.visible=false;
 		}
 
+		// GameContext.i.camera2D.operateCamera(new Point(GameContext.i.uiService.screenWidth / 2,GameContext.i.uiService.screenHeight / 2),1,BattleSetValueEnum.RUN_TIME);
 		__proto.initEnterPos=function(){
 			if(this.group==0){
 				this.aniContainer.x=-568;
@@ -39801,6 +40145,7 @@ window.Laya=(function(window,document){
 			this._superUniqueSkillFlyItemEffectAni.visible=true;
 			this._superUniqueSkillFlyItemAni.play("superUniqueSkill",false);
 			this._superUniqueSkillFlyItemEffectAni.play("superUniqueSkill",false);
+			GameContext.i.camera2D.operateCamera(new Point(GameContext.i.uiService.screenWidth / 2,GameContext.i.uiService.screenHeight / 2),1,3);
 		}
 
 		__proto.isCompleteEntering=function(){
@@ -40065,6 +40410,26 @@ window.Laya=(function(window,document){
 				GameContext.i.arenaContext.manager.onFinishPlayLucky();
 			}
 			this["jixing"+$args+"View"].removeSelf();
+		}
+
+		__proto.playTexiaoZi=function($args){
+			var texture=Loader.getRes("res/skeleton/qteORfight/SoundT/SoundT.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/SoundT/SoundT.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.texiaoziBeginAnmation,[factory,$args]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.texiaoziBeginAnmation=function($factory,$args){
+			this.texiaoziSelectAnmation=$factory.buildArmature(0);
+			this.texiaoziSelectAnmation.play(($args-1),false);
+			this.aniContainer.addChild(this.texiaoziSelectAnmation);
+			this.texiaoziSelectAnmation.pos(0,-170);
+			this.texiaoziSelectAnmation.on("stopped",this,this.texiaoziEndAnmation,[$args]);
+		}
+
+		__proto.texiaoziEndAnmation=function(){
+			this.texiaoziSelectAnmation.removeSelf();
 		}
 
 		return RoleItemView;
@@ -47051,38 +47416,6 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*<code>SkyMesh</code> 类用于创建网格天空。
-	*/
-	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
-	var SkyMesh=(function(_super){
-		/**
-		*创建一个 <code>SkyMesh</code> 实例。
-		*/
-		function SkyMesh(){
-			SkyMesh.__super.call(this);
-		}
-
-		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
-		var __proto=SkyMesh.prototype;
-		/**
-		*@private
-		*/
-		__proto._addToRenderQuene=function(state,material){
-			return state.scene.getRenderObject(0)
-		}
-
-		/**
-		*@private
-		*/
-		__proto._praseSubMeshTemplet=function(subMeshTemplet){
-			return new SkySubMesh(subMeshTemplet);
-		}
-
-		return SkyMesh;
-	})(Mesh)
-
-
-	/**
 	*<code>ScrollBar</code> 组件是一个滚动条组件。
 	*<p>当数据太多以至于显示区域无法容纳时，最终用户可以使用 <code>ScrollBar</code> 组件控制所显示的数据部分。</p>
 	*<p> 滚动条由四部分组成：两个箭头按钮、一个轨道和一个滑块。 </p> *
@@ -47535,6 +47868,38 @@ window.Laya=(function(window,document){
 
 		return ScrollBar;
 	})(Component)
+
+
+	/**
+	*<code>SkyMesh</code> 类用于创建网格天空。
+	*/
+	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
+	var SkyMesh=(function(_super){
+		/**
+		*创建一个 <code>SkyMesh</code> 实例。
+		*/
+		function SkyMesh(){
+			SkyMesh.__super.call(this);
+		}
+
+		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
+		var __proto=SkyMesh.prototype;
+		/**
+		*@private
+		*/
+		__proto._addToRenderQuene=function(state,material){
+			return state.scene.getRenderObject(0)
+		}
+
+		/**
+		*@private
+		*/
+		__proto._praseSubMeshTemplet=function(subMeshTemplet){
+			return new SkySubMesh(subMeshTemplet);
+		}
+
+		return SkyMesh;
+	})(Mesh)
 
 
 	/**
@@ -49861,8 +50226,7 @@ window.Laya=(function(window,document){
 				var i=0,len=animations.length;
 				var tAni;
 				var tAniO;
-				for (i=0;i < len
-				;i++){
+				for (i=0;i < len;i++){
 					tAni=new FrameClip();
 					tAniO=animations[i];
 					tAni._setUp(this._idMap,tAniO);
@@ -52878,107 +53242,6 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
-	*<p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
-	*
-	*@example 以下示例代码，创建了一个 <code>VSlider</code> 实例。
-	*<listing version="3.0">
-	*package
-	*{
-		*import laya.ui.HSlider;
-		*import laya.ui.VSlider;
-		*import laya.utils.Handler;
-		*public class VSlider_Example
-		*{
-			*private var vSlider:VSlider;
-			*public function VSlider_Example()
-			*{
-				*Laya.init(640,800);//设置游戏画布宽高。
-				*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-				*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,onLoadComplete));//加载资源。
-				*}
-			*private function onLoadComplete():void
-			*{
-				*vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-				*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-				*vSlider.min=0;//设置 vSlider 最低位置值。
-				*vSlider.max=10;//设置 vSlider 最高位置值。
-				*vSlider.value=2;//设置 vSlider 当前位置值。
-				*vSlider.tick=1;//设置 vSlider 刻度值。
-				*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-				*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-				*vSlider.changeHandler=new Handler(this,onChange);//设置 vSlider 位置变化处理器。
-				*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-				*}
-			*private function onChange(value:Number):void
-			*{
-				*trace("滑块的位置： value="+value);
-				*}
-			*}
-		*}
-	*</listing>
-	*<listing version="3.0">
-	*Laya.init(640,800);//设置游戏画布宽高
-	*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
-	*var vSlider;
-	*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],laya.utils.Handler.create(this,onLoadComplete));//加载资源。
-	*function onLoadComplete(){
-		*vSlider=new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-		*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-		*vSlider.min=0;//设置 vSlider 最低位置值。
-		*vSlider.max=10;//设置 vSlider 最高位置值。
-		*vSlider.value=2;//设置 vSlider 当前位置值。
-		*vSlider.tick=1;//设置 vSlider 刻度值。
-		*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-		*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-		*vSlider.changeHandler=new laya.utils.Handler(this,onChange);//设置 vSlider 位置变化处理器。
-		*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
-		*}
-	*function onChange(value){
-		*console.log("滑块的位置： value="+value);
-		*}
-	*</listing>
-	*<listing version="3.0">
-	*import HSlider=laya.ui.HSlider;
-	*import VSlider=laya.ui.VSlider;
-	*import Handler=laya.utils.Handler;
-	*class VSlider_Example {
-		*private vSlider:VSlider;
-		*constructor(){
-			*Laya.init(640,800);//设置游戏画布宽高。
-			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-			*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,this.onLoadComplete));//加载资源。
-			*}
-		*private onLoadComplete():void {
-			*this.vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
-			*this.vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
-			*this.vSlider.min=0;//设置 vSlider 最低位置值。
-			*this.vSlider.max=10;//设置 vSlider 最高位置值。
-			*this.vSlider.value=2;//设置 vSlider 当前位置值。
-			*this.vSlider.tick=1;//设置 vSlider 刻度值。
-			*this.vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
-			*this.vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
-			*this.vSlider.changeHandler=new Handler(this,this.onChange);//设置 vSlider 位置变化处理器。
-			*Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
-			*}
-		*private onChange(value:number):void {
-			*console.log("滑块的位置： value="+value);
-			*}
-		*}
-	*</listing>
-	*@see laya.ui.Slider
-	*/
-	//class laya.ui.VSlider extends laya.ui.Slider
-	var VSlider=(function(_super){
-		function VSlider(){VSlider.__super.call(this);;
-		};
-
-		__class(VSlider,'laya.ui.VSlider',_super);
-		return VSlider;
-	})(Slider)
-
-
-	/**
 	*<code>TextInput</code> 类用于创建显示对象以显示和输入文本。
 	*
 	*@example 以下示例代码，创建了一个 <code>TextInput</code> 实例。
@@ -53269,6 +53532,107 @@ window.Laya=(function(window,document){
 
 		return TextInput;
 	})(Label)
+
+
+	/**
+	*使用 <code>VSlider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
+	*<p> <code>VSlider</code> 控件采用垂直方向。滑块轨道从下往上扩展，而标签位于轨道的左右两侧。</p>
+	*
+	*@example 以下示例代码，创建了一个 <code>VSlider</code> 实例。
+	*<listing version="3.0">
+	*package
+	*{
+		*import laya.ui.HSlider;
+		*import laya.ui.VSlider;
+		*import laya.utils.Handler;
+		*public class VSlider_Example
+		*{
+			*private var vSlider:VSlider;
+			*public function VSlider_Example()
+			*{
+				*Laya.init(640,800);//设置游戏画布宽高。
+				*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+				*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,onLoadComplete));//加载资源。
+				*}
+			*private function onLoadComplete():void
+			*{
+				*vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+				*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+				*vSlider.min=0;//设置 vSlider 最低位置值。
+				*vSlider.max=10;//设置 vSlider 最高位置值。
+				*vSlider.value=2;//设置 vSlider 当前位置值。
+				*vSlider.tick=1;//设置 vSlider 刻度值。
+				*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+				*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+				*vSlider.changeHandler=new Handler(this,onChange);//设置 vSlider 位置变化处理器。
+				*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+				*}
+			*private function onChange(value:Number):void
+			*{
+				*trace("滑块的位置： value="+value);
+				*}
+			*}
+		*}
+	*</listing>
+	*<listing version="3.0">
+	*Laya.init(640,800);//设置游戏画布宽高
+	*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
+	*var vSlider;
+	*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],laya.utils.Handler.create(this,onLoadComplete));//加载资源。
+	*function onLoadComplete(){
+		*vSlider=new laya.ui.VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+		*vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+		*vSlider.min=0;//设置 vSlider 最低位置值。
+		*vSlider.max=10;//设置 vSlider 最高位置值。
+		*vSlider.value=2;//设置 vSlider 当前位置值。
+		*vSlider.tick=1;//设置 vSlider 刻度值。
+		*vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+		*vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+		*vSlider.changeHandler=new laya.utils.Handler(this,onChange);//设置 vSlider 位置变化处理器。
+		*Laya.stage.addChild(vSlider);//把 vSlider 添加到显示列表。
+		*}
+	*function onChange(value){
+		*console.log("滑块的位置： value="+value);
+		*}
+	*</listing>
+	*<listing version="3.0">
+	*import HSlider=laya.ui.HSlider;
+	*import VSlider=laya.ui.VSlider;
+	*import Handler=laya.utils.Handler;
+	*class VSlider_Example {
+		*private vSlider:VSlider;
+		*constructor(){
+			*Laya.init(640,800);//设置游戏画布宽高。
+			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+			*Laya.loader.load(["resource/ui/vslider.png","resource/ui/vslider$bar.png"],Handler.create(this,this.onLoadComplete));//加载资源。
+			*}
+		*private onLoadComplete():void {
+			*this.vSlider=new VSlider();//创建一个 VSlider 类的实例对象 vSlider 。
+			*this.vSlider.skin="resource/ui/vslider.png";//设置 vSlider 的皮肤。
+			*this.vSlider.min=0;//设置 vSlider 最低位置值。
+			*this.vSlider.max=10;//设置 vSlider 最高位置值。
+			*this.vSlider.value=2;//设置 vSlider 当前位置值。
+			*this.vSlider.tick=1;//设置 vSlider 刻度值。
+			*this.vSlider.x=100;//设置 vSlider 对象的属性 x 的值，用于控制 vSlider 对象的显示位置。
+			*this.vSlider.y=100;//设置 vSlider 对象的属性 y 的值，用于控制 vSlider 对象的显示位置。
+			*this.vSlider.changeHandler=new Handler(this,this.onChange);//设置 vSlider 位置变化处理器。
+			*Laya.stage.addChild(this.vSlider);//把 vSlider 添加到显示列表。
+			*}
+		*private onChange(value:number):void {
+			*console.log("滑块的位置： value="+value);
+			*}
+		*}
+	*</listing>
+	*@see laya.ui.Slider
+	*/
+	//class laya.ui.VSlider extends laya.ui.Slider
+	var VSlider=(function(_super){
+		function VSlider(){VSlider.__super.call(this);;
+		};
+
+		__class(VSlider,'laya.ui.VSlider',_super);
+		return VSlider;
+	})(Slider)
 
 
 	/**
@@ -54127,6 +54491,7 @@ window.Laya=(function(window,document){
 			this.lab_exp_text=null;
 			this.lab_gold_text=null;
 			this.btn_goon=null;
+			this.img_red=null;
 			AreanResultViewUI.__super.call(this);
 		}
 
@@ -54140,7 +54505,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(AreanResultViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":-4,"x":0,"var":"img_bg","skin":"result/img_win_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":277,"x":295,"width":52,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":25,"fontSize":20,"color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]},{"type":"Button","props":{"y":388,"x":763,"var":"btn_goon","stateNum":"1","skin":"result/btn_goon.png","name":"btn_goon"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":-4,"x":0,"var":"img_bg","skin":"result/img_win_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":277,"x":295,"width":52,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":25,"fontSize":20,"color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]},{"type":"Button","props":{"y":388,"x":763,"var":"btn_goon","stateNum":"1","skin":"result/btn_goon.png","name":"btn_goon"}},{"type":"Image","props":{"y":320,"x":568,"width":1136,"var":"img_red","skin":"res/img_redbg.png","sizeGrid":"12,12,12,12","pivotY":320,"pivotX":568,"name":"img_red","height":640}}]};}
 		]);
 		return AreanResultViewUI;
 	})(View)
@@ -54161,7 +54526,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaLeftHpViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"skin":"res/img_battle_bg.png"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_battle_green.png","name":"img_hp"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"skin":"res/img_battle_bg.png"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_zhandouxuetiao.png","name":"img_hp"}}]};}
 		]);
 		return ArenaLeftHpViewUI;
 	})(View)
@@ -54552,7 +54917,8 @@ window.Laya=(function(window,document){
 		__class(ArenaJixing3ViewUI,'ui.game.ArenaJixing3ViewUI',_super);
 		var __proto=ArenaJixing3ViewUI.prototype;
 		__proto.createChildren=function(){
-			laya.ui.Component.prototype.createChildren.call(this);
+			laya.ui.Component.prototype.createChildren.call(this)
+			;
 			this.createView(ArenaJixing3ViewUI.uiView);
 		}
 
@@ -55285,6 +55651,9 @@ window.Laya=(function(window,document){
 		__proto.initUI=function(){
 			this.img_clock_bg.visible=false;
 			this.lab_time.visible=false;
+			this.btnSpeed.visible=false;
+			this.btn_auto.visible=false;
+			this.btn_pause.visible=false;
 		}
 
 		__proto.showView=function($roleInfo,$args){
@@ -55593,6 +55962,9 @@ window.Laya=(function(window,document){
 	//class com.gamepark.casino.game.arena.view.AreanResultView extends ui.game.AreanResultViewUI
 	var AreanResultView=(function(_super){
 		function AreanResultView(){
+			this.swordmanKoNormal=null;
+			this.swordmanKoAdd=null;
+			this.updateNumber=0;
 			AreanResultView.__super.call(this);
 			this.showResultView()
 		}
@@ -55600,16 +55972,42 @@ window.Laya=(function(window,document){
 		__class(AreanResultView,'com.gamepark.casino.game.arena.view.AreanResultView',_super);
 		var __proto=AreanResultView.prototype;
 		__proto.showResultView=function(){
-			this.win_2.visible=true;
-			this.showWin2View();
-			this.btn_goon.visible=true;
+			this.win_1.visible=false;
+			this.win_2.visible=false;
+			this.img_bg.visible=false;
+			this.img_bg1.visible=false;
+			this.btn_goon.visible=false;
+			this.img_red.visible=true;
+			this.timer.frameLoop(1,this,this.updateAnmation);
 		}
 
+		//this.win_1.visible=true;
 		__proto.showWin2View=function(){
 			this.win_1.visible=false;
 			this.win_2.visible=true;
 			this.btn_goon.visible=true;
 			this.btn_goon.on("click",this,this.goonClickButtonHandler);
+		}
+
+		__proto.updateAnmation=function(){
+			this.updateNumber++;
+			if (this.updateNumber < 10){
+				this.img_red.alpha=this.updateNumber *0.1
+			}
+			else if(this.updateNumber >=10 && this.updateNumber < 20){
+				this.img_red.alpha=1-(this.updateNumber-10)*0.1
+			}
+			else if(this.updateNumber >=20 && this.updateNumber < 30){
+				this.img_red.alpha=(this.updateNumber-20)*0.1
+			}
+			else if(this.updateNumber >=30 && this.updateNumber < 40){
+				this.img_red.alpha=1-(this.updateNumber-30)*0.1
+			}
+			else if(this.updateNumber==40){
+				this.timer.clearAll(this);
+				this.koNormalAnmation();
+				this.koAddAnmation();
+			}
 		}
 
 		/*
@@ -55622,6 +56020,53 @@ window.Laya=(function(window,document){
 		__proto.goonClickButtonHandler=function($e){
 			GameContext.i.arenaContext.gameMediator.restartGame();
 			GameContext.i.uiService.removePopup(this);
+		}
+
+		__proto.koNormalAnmation=function(){
+			var texture=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.onSkeletonKoNormal,[factory]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkeletonKoNormal=function($factory){
+			this.swordmanKoNormal=$factory.buildArmature(0);
+			this.swordmanKoNormal.play("KO",false);
+			this.addChild(this.swordmanKoNormal);
+			this.swordmanKoNormal.pos(this.img_red.x,this.img_red.y)
+			this.swordmanKoNormal.on("stopped",this,this.onKoNormalAnimationFinish);
+		}
+
+		__proto.onKoNormalAnimationFinish=function(){
+			this.swordmanKoNormal.removeSelf();
+			this.img_red.visible=false;
+			this.win_2.visible=true;
+			this.showWin2View();
+			this.btn_goon.visible=true;
+			this.img_bg.visible=true;
+			this.img_bg1.visible=true;
+		}
+
+		__proto.koAddAnmation=function(){
+			var texture=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.onSkeletonKoAdd,[factory]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkeletonKoAdd=function($factory){
+			this.swordmanKoAdd=$factory.buildArmature(0);
+			this.swordmanKoAdd.play("KO",false);
+			this.swordmanKoAdd.blendMode="add";
+			this.addChild(this.swordmanKoAdd);
+			this.swordmanKoAdd.pos(this.img_red.x,this.img_red.y)
+			this.swordmanKoAdd.on("stopped",this,this.onKoAddAnimationFinish);
+		}
+
+		__proto.onKoAddAnimationFinish=function(){
+			this.swordmanKoAdd.removeSelf();
 		}
 
 		return AreanResultView;
@@ -56795,7 +57240,7 @@ window.Laya=(function(window,document){
 	})(MultyViewUI)
 
 
-	Laya.__init([EventDispatcher,Timer,ShaderCompile,View,ErisGamePropertyObserver,Browser,Render,WebGLContext,WebGLContext2D,LoaderManager,LocalStorage,WebGLFilter,AtlasGrid,RenderTargetMAX,DrawText,Dialog]);
+	Laya.__init([EventDispatcher,Dialog,Timer,ShaderCompile,View,ErisGamePropertyObserver,Browser,Render,WebGLContext,WebGLContext2D,LoaderManager,LocalStorage,WebGLFilter,AtlasGrid,RenderTargetMAX,DrawText]);
 	new Sanguo();
 
 })(window,document,Laya);
