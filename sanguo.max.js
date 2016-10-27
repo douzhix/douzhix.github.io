@@ -1236,6 +1236,9 @@ window.Laya=(function(window,document){
 		ArenaStatusEnum.FINISH_ATTACK_TARGET=605;
 		ArenaStatusEnum.FINISH_ATTACK=606;
 		ArenaStatusEnum.RESULT=8;
+		ArenaStatusEnum.READY_TO_SHOW_RESULT=801;
+		ArenaStatusEnum.SHOW_RESULT=802;
+		ArenaStatusEnum.SHOW_RESULT_COMPLETE=803;
 		return ArenaStatusEnum;
 	})()
 
@@ -1613,6 +1616,7 @@ window.Laya=(function(window,document){
 							if(this.arenaContext.data.battleVO.isManualMode()){
 								if(this.roleListLogic.defensePlayer.roleVO.isAllDie()){
 									this.firstStatus=8;
+									this.secondStatus=801;
 								}
 								else{
 									if(this.roleListLogic.attackPlayer.isMe){
@@ -1633,6 +1637,7 @@ window.Laya=(function(window,document){
 							else{
 								if(this.arenaContext.data.battleVO.isFinishBattle(this._round,this._playerIndex,2,this._attackActionIndex)){
 									this.firstStatus=8;
+									this.secondStatus=801;
 								}
 								else if(this.arenaContext.data.battleVO.isFinishSuperUniqueSkill(this._round,this._playerIndex,this._attackActionIndex)){
 									this.secondStatus=606;
@@ -1702,6 +1707,7 @@ window.Laya=(function(window,document){
 							if(this.arenaContext.data.battleVO.isManualMode()){
 								if(this.roleListLogic.defensePlayer.roleVO.isAllDie()){
 									this.firstStatus=8;
+									this.secondStatus=801;
 								}
 								else if(this.roleListLogic.attackPlayer.roleVO.attackRolePositionList.length==0){
 									this.secondStatus=606;
@@ -1719,6 +1725,7 @@ window.Laya=(function(window,document){
 							else{
 								if(this.arenaContext.data.battleVO.isFinishBattle(this._round,this._playerIndex,3,this._attackActionIndex)){
 									this.firstStatus=8;
+									this.secondStatus=801;
 								}
 								else if(this.arenaContext.data.battleVO.isFinishAttack(this._round,this._playerIndex,this._attackActionIndex)){
 									this.secondStatus=606;
@@ -1763,11 +1770,21 @@ window.Laya=(function(window,document){
 					}
 				break ;
 				case 8:
-				console.log("result!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				if(this.roleListLogic.attackPlayer.roleVO.canShowResult()){
-					this.roleListLogic.showResult();
-					this.arenaContext.gameView.timer.frameOnce(40,this,this.showResultView);
-				}
+				switch(this.secondStatus){
+					case 801:
+						console.log("result!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+						this.secondStatus=802;
+						break ;
+					case 802:
+						if(this.roleListLogic.attackPlayer.roleVO.canShowResult()){
+							this.roleListLogic.showResult();
+							this.arenaContext.gameView.timer.frameOnce(40,this,this.showResultView);
+							this.secondStatus=803;
+						}
+						break ;
+					case 803:
+						break ;
+					}
 				break ;
 				default :
 				console.log("error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -1862,6 +1879,10 @@ window.Laya=(function(window,document){
 
 		__proto.onFinishBattleStartHandler=function(){
 			this.secondStatus=1003;
+		}
+
+		__proto.showResultEffect=function(){
+			this.arenaContext.gameView.blinkRed();
 		}
 
 		__getset(0,__proto,'round',function(){
@@ -2373,7 +2394,7 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.hp=this.meta.hp;
 			this.hpMax=this.meta.hp;
-			this.mp=1000;
+			this.mp=0;
 			this.attack=this.meta.attack;
 			this.defense=this.meta.defense;
 			this.attackRate=this.meta.attackRate;
@@ -2381,7 +2402,6 @@ window.Laya=(function(window,document){
 			this.damageRate=this.meta.damageRate;
 			this.undamageRate=this.meta.undamageRate;
 			this.crit=this.meta.crit;
-			this.crit=100;
 			this.uncrit=this.meta.uncrit;
 			this.critDeepen=this.meta.critDeepen;
 			this.block=this.meta.block;
@@ -2563,10 +2583,36 @@ window.Laya=(function(window,document){
 						distanceY=targetView.y-this.view.y;
 						if(this.view.group==0){
 							distanceX-=130;
+							if(this.firstStatus==5){
+								if(this.actionRoleInfo.useSkillFlag==0){
+									if((this.actionRoleInfo.attackType==3)&& (this.roleInfo.meta.modelResMeta.attack3NeedDistance==1)){
+										distanceX+=130 *0.67;
+									}
+									if((this.actionRoleInfo.attackType==4)&& (this.roleInfo.meta.modelResMeta.attack4NeedDistance==1)){
+										distanceX+=130 *0.67;
+									}
+									if((this.actionRoleInfo.attackType==5)&& (this.roleInfo.meta.modelResMeta.attack5NeedDistance==1)){
+										distanceX+=130 *2 *0.67;
+									}
+								}
+							}
 							wayRadians=Math.atan2(distanceY,distanceX);
 						}
 						else{
 							distanceX+=130;
+							if(this.firstStatus==5){
+								if(this.actionRoleInfo.useSkillFlag==0){
+									if((this.actionRoleInfo.attackType==3)&& (this.roleInfo.meta.modelResMeta.attack3NeedDistance==1)){
+										distanceX-=130 *0.67;
+									}
+									if((this.actionRoleInfo.attackType==4)&& (this.roleInfo.meta.modelResMeta.attack4NeedDistance==1)){
+										distanceX-=130 *0.67;
+									}
+									if((this.actionRoleInfo.attackType==5)&& (this.roleInfo.meta.modelResMeta.attack5NeedDistance==1)){
+										distanceX-=130 *2 *0.67;
+									}
+								}
+							}
 							wayRadians=Math.atan2(distanceY,distanceX);
 						}
 						unitDistanceX=distanceX / 10;
@@ -2745,14 +2791,14 @@ window.Laya=(function(window,document){
 			};
 			var targetPoint=new Point(targetRoleView.x,targetRoleView.y);
 			if(targetRoleView.logic.group==0){
-				targetPoint.x=468;
+				targetPoint.x=518;
 				targetPoint.y=320;
 			}
 			else{
-				targetPoint.x=668;
+				targetPoint.x=618;
 				targetPoint.y=320;
 			}
-			GameContext.i.camera2D.operateCamera(targetPoint,1.2,10);
+			GameContext.i.camera2D.operateCamera(targetPoint,1.1,10-7);
 		}
 
 		__proto.doAttack=function($battleAttackRoleInfo){
@@ -25688,7 +25734,8 @@ window.Laya=(function(window,document){
 		__proto.loadingRes=function(){
 			var assets=[];
 			assets.push({url:"res/atlas/sanguo.json",type:"atlas"});
-			assets.push({url:"res/atlas/bmfont.json",type:"atlas"});
+			assets.push(
+			{url:"res/atlas/bmfont.json",type:"atlas"});
 			assets.push({url:"res/atlas/buff.json",type:"atlas"});
 			assets.push({url:"res/atlas/role.json",type:"atlas"});
 			assets.push({url:"res/atlas/combo.json",type:"atlas"});
@@ -26274,8 +26321,11 @@ window.Laya=(function(window,document){
 
 		__class(ArenaMediator,'com.gamepark.casino.game.arena.mediator.ArenaMediator',_super);
 		var __proto=ArenaMediator.prototype;
-		__proto.onInitialize=function(){}
-		//this.initButtonShow();
+		__proto.onInitialize=function(){
+			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
+			this.initButtonShow();
+		}
+
 		__proto.btnPauseClickHandler=function($evt){
 			if (this.pauseState==false){
 				this.pauseState=true;
@@ -26293,7 +26343,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.btnAutoClickHandler=function($evt){
-			if(this.playGameStatus !=2){
+			if(this.playGameStatus==2 || this.playGameStatus==5){
 				return;
 			}
 			if (this.gameContext.arenaContext.data.isAutoBattle==true){
@@ -26355,6 +26405,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.initUI=function(){
+			this.playGameStatus==5;
 			var i=0;
 			for(i=0;i < 6;i++){
 				this.arenaView.arenaFootView.roleListView["roleItemView"+(i+1)].hpView.imgHp.scaleX=1;
@@ -26375,6 +26426,7 @@ window.Laya=(function(window,document){
 			this.arenaView.arenaFootView.roleListView.scale(1.0,1.0);
 			this.gameContext.arenaContext.data.speed=1;
 			this.arenaView.arenaFootView.btnSpeed.skin="res/btn_quick_1.png"
+			this.addImageTouch()
 		}
 
 		__proto.refreshRound=function($value){
@@ -26431,19 +26483,21 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.uniqueSkillOrQteStage=function(){
-			this.arenaView.arenaFootView.btn_auto.visible=true;
-			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
-			this.initButtonShow();
 			if (this.gameContext.arenaContext.data.isAutoBattle==true){
-				this.qteJumpHandler();
+				this.qteSelectView=new QteSelectView();
+				this.arenaView.img_qte.visible=true;
+				this.arenaView.img_qte.addChild(this.qteSelectView);
 				this.qteSelectView.jumpQteToAuto();
+				this.qteJumpHandler();
 				this.playGameStatus=4;
+				return;
 			}
 			this.touchStartTime=0;
 			this.touchImageState=false;
 			this.gameContext.arenaContext.data.attackDefenceRolePosition=this.gameContext.arenaContext.manager.roleListLogic.defensePlayer.roleVO.getAutoAttackDefenceRolePosition();
 			this.qteTime=0;
 			this.addUniqueSkillOrQteStage();
+			this.initButtonShow();
 			this.arenaView.roleView.showFirstSelect();
 			this.roleViewTouch()
 			this.timer.loop(1000,this,this.addUniqueSkillOrQteStage);
@@ -26491,18 +26545,18 @@ window.Laya=(function(window,document){
 			this.arenaView.arenaFootView.img_clock_bg.visible=false;
 			this.gameContext.arenaContext.manager.onFinishBattleStartHandler();
 			this.initButtonShow();
-			this.addImageTouch();
 		}
 
 		__proto.jumpGo=function(){
+			console.log("jumpGo,jumpGojumpGojumpGo")
 			this.playGameStatus=4;
 			this.arenaView.arenaStarView.removeAllAnmation();
 			this.timer.clearAll(this);
 			this.qteTime=0;
 			this.touchStartTime=0;
 			this.gameContext.arenaContext.manager.onFinishBattleStartHandler();
+			console.log("ssssssssstart")
 			this.initButtonShow();
-			this.addImageTouch();
 		}
 
 		//大吉小吉
@@ -26606,9 +26660,9 @@ window.Laya=(function(window,document){
 				this.qteSelectView=new QteSelectView();
 				this.arenaView.img_qte.visible=true;
 				this.arenaView.img_qte.addChild(this.qteSelectView);
-				this.playGameStatus=1;
 				this.qteSelectView.mouseThrough=true;
 				this.qteSelectView.qteCountdownAnmation();
+				this.playGameStatus=1;
 			}
 			else if(this.qteTime==3){
 				this.playGameStatus=2;
@@ -26665,7 +26719,6 @@ window.Laya=(function(window,document){
 		__proto.qteEndHandler=function($qteResultList){
 			this.gameContext.arenaContext.data.qteComboEffectList=$qteResultList;
 			this.arenaView.img_qte.visible=false
-			console.log("qte____qteEnd")
 			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
 			this.initButtonShow();
 			this.refreshStateView();
@@ -26681,7 +26734,6 @@ window.Laya=(function(window,document){
 			this.gameContext.arenaContext.data.qteComboEffectList=$qteResultList;
 			this.arenaView.img_qte.visible=false
 			this.refreshStateView();
-			console.log("qte____qieEndAnd")
 			this.gameContext.arenaContext.manager.onFinishBattleOperation(this.gameContext.arenaContext.data.qteComboEffectList);
 			this.initButtonShow();
 			Tween.to(this.arenaView.arenaFootView.roleListView,{
@@ -26706,7 +26758,6 @@ window.Laya=(function(window,document){
 		//this.arenaView.roleView.hideAllSelect();
 		__proto.imgHeaderClickHandler=function($args,$roleInfo,$roleItemView,$evt){
 			this.imgTouchHandler();
-			console.log("$roleInfo.canSuperUniqueSkill():",$roleInfo.canSuperUniqueSkill())
 			if ($roleInfo.canSuperUniqueSkill()==false){
 				return;
 			};
@@ -28511,7 +28562,10 @@ window.Laya=(function(window,document){
 			this.attack2EffectWordType=0;
 			this.attack3EffectWordType=0;
 			this.attack4EffectWordType=0;
-			this.attack5EffectWordType
+			this.attack5EffectWordType=0;
+			this.attack3NeedDistance=0;
+			this.attack4NeedDistance=0;
+			this.attack5NeedDistance=0;
 			HeroResourceMeta.__super.call(this,$metaObj);
 			console.log("$metaObj : ",$metaObj);
 		}
@@ -32607,7 +32661,8 @@ window.Laya=(function(window,document){
 		CSSStyle.ADDLAYOUTED=0x200;
 		CSSStyle._NEWFONT=0x1000;
 		CSSStyle._HEIGHT_SET=0x2000;
-		CSSStyle._BACKGROUND_SET=0x4000;
+		CSSStyle._BACKGROUND_SET=0x4000
+		;
 		CSSStyle._FLOAT_RIGHT=0x8000;
 		CSSStyle._LINE_ELEMENT=0x10000;
 		CSSStyle._NOWARP=0x20000;
@@ -38429,7 +38484,8 @@ window.Laya=(function(window,document){
 		*@see #runCallLater()
 		*/
 		__proto.callLater=function(method,args){
-			Laya.timer.callLater(this,method,args);
+			Laya.timer.callLater(this
+			,method,args);
 		}
 
 		/**
@@ -39321,6 +39377,7 @@ window.Laya=(function(window,document){
 			this.swordmanAnmation=null;
 			this.swordmanSelectAnmation=null;
 			this.texiaoziSelectAnmation=null;
+			this.texiaoziNameArray=["SoundT_Bastu","SoundT_bon","SoundT_dgoon","SoundT_dkon","SoundT_don","SoundT_gan","SoundT_kon"]
 			RoleItemView.__super.call(this);
 			this.group=$group;
 			this.position=$position;
@@ -39628,13 +39685,14 @@ window.Laya=(function(window,document){
 					var changePropertyInfo;
 					var roleStatus=0;
 					var hasCritDamage=false;
+					var hasShowDyingAnimation=false;
 					for(i=0;i < this.logic.actionRoleInfo.targetRoleInfoList.length;i++){
 						battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[i];
+						if((this.roleInfo.actionInfo.animationIndex==0)&& (this.logic.actionRoleInfo.useSkillFlag==0)&& (this.logic.firstStatus==5)){
+							battleTargetRoleInfo.logic.view.playTexiaoZi(this.logic.actionRoleInfo.attackType);
+						}
 						if(battleTargetRoleInfo.damageType==2){
 							hasCritDamage=true;
-						}
-						if((this.roleInfo.actionInfo.animationIndex==0)&& (this.logic.actionRoleInfo.useSkillFlag==0)&& (this.logic.firstStatus==5)){
-							battleTargetRoleInfo.logic.view.playTexiaoZi(battleTargetRoleInfo.attackType);
 						}
 						if(battleTargetRoleInfo.logic.roleStatus==4){
 							if(this.roleInfo.actionInfo.animationIndex >=(keyFrameList.length-1)){
@@ -39659,6 +39717,12 @@ window.Laya=(function(window,document){
 								}
 								else{
 									GameContext.i.arenaContext.manager.onMyRoleDie(battleTargetRoleInfo.logic);
+								}
+								if(battleTargetRoleInfo.logic.roleInfo.roleVO.isAllDie()){
+									if(!hasShowDyingAnimation){
+										GameContext.i.arenaContext.manager.showResultEffect();
+										hasShowDyingAnimation=true;
+									}
 								}
 							}
 							else{
@@ -39785,7 +39849,6 @@ window.Laya=(function(window,document){
 			}
 			else if(this.logic.secondStatus==608){
 				moveDistanceX=130 *2 *0.67 / this._roleAni.total *(this._roleAni.player.currentKeyframeIndex-10);
-				console.log(51,"FULL_FALLING moveDistanceX : ",moveDistanceX);
 				if(this.group==0){
 					this.aniContainer.x=0-moveDistanceX;
 				}
@@ -40413,23 +40476,30 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.playTexiaoZi=function($args){
+			var playIndex=this.roleInfo.meta.modelResMeta["attack"+$args+"EffectWordType"];
 			var texture=Loader.getRes("res/skeleton/qteORfight/SoundT/SoundT.png");
 			var data=Loader.getRes("res/skeleton/qteORfight/SoundT/SoundT.sk");
 			var factory=new Templet();
-			factory.on("complete",this,this.texiaoziBeginAnmation,[factory,$args]);
+			factory.on("complete",this,this.texiaoziBeginAnmation,[factory,playIndex]);
 			factory.parseData(texture,data,24);
 		}
 
 		__proto.texiaoziBeginAnmation=function($factory,$args){
-			this.texiaoziSelectAnmation=$factory.buildArmature(0);
-			this.texiaoziSelectAnmation.play(($args-1),false);
-			this.aniContainer.addChild(this.texiaoziSelectAnmation);
-			this.texiaoziSelectAnmation.pos(0,-170);
-			this.texiaoziSelectAnmation.on("stopped",this,this.texiaoziEndAnmation,[$args]);
+			var texiaoSkeleton=$factory.buildArmature(0);
+			texiaoSkeleton.play(this.texiaoziNameArray[$args-1],false);
+			this.aniContainer.addChild(texiaoSkeleton);
+			texiaoSkeleton.pos(0,-190);
+			texiaoSkeleton.on("stopped",this,this.texiaoziEndAnmation,[texiaoSkeleton,$args]);
 		}
 
-		__proto.texiaoziEndAnmation=function(){
-			this.texiaoziSelectAnmation.removeSelf();
+		__proto.texiaoziEndAnmation=function($texiaoSkeleton,$args){
+			$texiaoSkeleton.parent.removeChild($texiaoSkeleton);
+		}
+
+		__proto.cleaerAll=function(){
+			if (this.texiaoziSelectAnmation !=null){
+				this.texiaoziSelectAnmation.removeSelf();
+			}
 		}
 
 		return RoleItemView;
@@ -41662,7 +41732,8 @@ window.Laya=(function(window,document){
 			WebGLContext.setBlend(gl,true);
 			WebGLContext.setBlendFunc(gl,0x0302,0x0303);
 			WebGLContext.setDepthTest(gl,false);
-			WebGLContext.setCullFace(gl,false);
+			WebGLContext.setCullFace(gl
+			,false);
 			WebGLContext.setDepthMask(gl,1);
 			WebGLContext.setFrontFaceCCW(gl,0x0901);
 			gl.viewport(0,0,RenderState2D.width,RenderState2D.height);
@@ -43827,8 +43898,17 @@ window.Laya=(function(window,document){
 			Render.isFlash && this.repaint();
 			this._renderCount++;
 			var frameMode=this.frameRate==="mouse" ? (((Browser.now()-this._mouseMoveTime)< 2000)? "fast" :"slow"):this.frameRate;
-			var isFastMode=(frameMode!=="slow");
+			if(frameMode=="slow"){
+				if(this.frameRate=="slow"){
+					frameMode="slow";
+				}
+				else{
+					frameMode="frameTen";
+				}
+			};
+			var isFastMode=((frameMode!=="slow")&& (frameMode!=="frameTen"));
 			var isDoubleLoop=(this._renderCount % 2===0);
+			var isSixthLoop=(this._renderCount % 6===0);
 			var ctx=context;
 			Stat.renderSlow=!isFastMode;
 			if (isFastMode || isDoubleLoop){
@@ -43848,11 +43928,27 @@ window.Laya=(function(window,document){
 				}
 			}
 			if (Render.isConchNode)return;
-			if (this.renderingEnabled && (isFastMode || !isDoubleLoop)){
-				Render.isWebGL && RunDriver.clear(this._bgColor);
-				RunDriver.beginFlush();
-				context.flush();
-				RunDriver.endFinish();
+			if (this.renderingEnabled){
+				if(isFastMode){
+					Render.isWebGL && RunDriver.clear(this._bgColor);
+					RunDriver.beginFlush();
+					context.flush();
+					RunDriver.endFinish();
+				}
+				else{
+					if(frameMode=="frameTen"){
+						Render.isWebGL && RunDriver.clear(this._bgColor);
+						RunDriver.beginFlush();
+						context.flush();
+						RunDriver.endFinish();
+					}
+					else if(!isDoubleLoop){
+						Render.isWebGL && RunDriver.clear(this._bgColor);
+						RunDriver.beginFlush();
+						context.flush();
+						RunDriver.endFinish();
+					}
+				}
 			}
 			VectorGraphManager.instance && VectorGraphManager.getInstance().endDispose();
 		}
@@ -44038,6 +44134,7 @@ window.Laya=(function(window,document){
 		Stage.FRAME_FAST="fast";
 		Stage.FRAME_SLOW="slow";
 		Stage.FRAME_MOUSE="mouse";
+		Stage.FRAME_TEN="frameTen";
 		return Stage;
 	})(Sprite)
 
@@ -54917,8 +55014,7 @@ window.Laya=(function(window,document){
 		__class(ArenaJixing3ViewUI,'ui.game.ArenaJixing3ViewUI',_super);
 		var __proto=ArenaJixing3ViewUI.prototype;
 		__proto.createChildren=function(){
-			laya.ui.Component.prototype.createChildren.call(this)
-			;
+			laya.ui.Component.prototype.createChildren.call(this);
 			this.createView(ArenaJixing3ViewUI.uiView);
 		}
 
@@ -55652,7 +55748,6 @@ window.Laya=(function(window,document){
 			this.img_clock_bg.visible=false;
 			this.lab_time.visible=false;
 			this.btnSpeed.visible=false;
-			this.btn_auto.visible=false;
 			this.btn_pause.visible=false;
 		}
 
@@ -55929,6 +56024,10 @@ window.Laya=(function(window,document){
 			while(this.starList.length >0){
 				this.starList.pop().removeSelf();
 			}
+			for (var i=1;i < 7;i++){
+				this.roleListView["roleItemView"+i].refreshView(0,0);
+				this.roleListView["roleItemView"+i].removeAllAnmation();
+			}
 		}
 
 		return AreanFootView;
@@ -55974,11 +56073,11 @@ window.Laya=(function(window,document){
 		__proto.showResultView=function(){
 			this.win_1.visible=false;
 			this.win_2.visible=false;
-			this.img_bg.visible=false;
-			this.img_bg1.visible=false;
+			this.img_bg.visible=true;
+			this.img_bg1.visible=true;
 			this.btn_goon.visible=false;
-			this.img_red.visible=true;
-			this.timer.frameLoop(1,this,this.updateAnmation);
+			this.img_red.visible=false;
+			this.showWin2View()
 		}
 
 		//this.win_1.visible=true;
@@ -55991,6 +56090,7 @@ window.Laya=(function(window,document){
 
 		__proto.updateAnmation=function(){
 			this.updateNumber++;
+			this.img_red.alpha=0.5;
 			if (this.updateNumber < 10){
 				this.img_red.alpha=this.updateNumber *0.1
 			}
@@ -56005,8 +56105,6 @@ window.Laya=(function(window,document){
 			}
 			else if(this.updateNumber==40){
 				this.timer.clearAll(this);
-				this.koNormalAnmation();
-				this.koAddAnmation();
 			}
 		}
 
@@ -56020,53 +56118,6 @@ window.Laya=(function(window,document){
 		__proto.goonClickButtonHandler=function($e){
 			GameContext.i.arenaContext.gameMediator.restartGame();
 			GameContext.i.uiService.removePopup(this);
-		}
-
-		__proto.koNormalAnmation=function(){
-			var texture=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.png");
-			var data=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.sk");
-			var factory=new Templet();
-			factory.on("complete",this,this.onSkeletonKoNormal,[factory]);
-			factory.parseData(texture,data,24);
-		}
-
-		__proto.onSkeletonKoNormal=function($factory){
-			this.swordmanKoNormal=$factory.buildArmature(0);
-			this.swordmanKoNormal.play("KO",false);
-			this.addChild(this.swordmanKoNormal);
-			this.swordmanKoNormal.pos(this.img_red.x,this.img_red.y)
-			this.swordmanKoNormal.on("stopped",this,this.onKoNormalAnimationFinish);
-		}
-
-		__proto.onKoNormalAnimationFinish=function(){
-			this.swordmanKoNormal.removeSelf();
-			this.img_red.visible=false;
-			this.win_2.visible=true;
-			this.showWin2View();
-			this.btn_goon.visible=true;
-			this.img_bg.visible=true;
-			this.img_bg1.visible=true;
-		}
-
-		__proto.koAddAnmation=function(){
-			var texture=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.png");
-			var data=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.sk");
-			var factory=new Templet();
-			factory.on("complete",this,this.onSkeletonKoAdd,[factory]);
-			factory.parseData(texture,data,24);
-		}
-
-		__proto.onSkeletonKoAdd=function($factory){
-			this.swordmanKoAdd=$factory.buildArmature(0);
-			this.swordmanKoAdd.play("KO",false);
-			this.swordmanKoAdd.blendMode="add";
-			this.addChild(this.swordmanKoAdd);
-			this.swordmanKoAdd.pos(this.img_red.x,this.img_red.y)
-			this.swordmanKoAdd.on("stopped",this,this.onKoAddAnimationFinish);
-		}
-
-		__proto.onKoAddAnimationFinish=function(){
-			this.swordmanKoAdd.removeSelf();
 		}
 
 		return AreanResultView;
@@ -56443,6 +56494,10 @@ window.Laya=(function(window,document){
 			this.rightZhezhao2Sprite=null;
 			this.img_qte=null;
 			this.arenaStarView=null;
+			this.imgRed=null;
+			this.updateNumber=0;
+			this.swordmanKoNormal=null;
+			this.swordmanKoAdd=null;
 			ArenaView.__super.call(this);
 			this.img_touch_bg.mouseThrough=true;
 			this.img_scene_bg.skin="res/img_kofBg"+Math.ceil(Math.random()*1000 % 4)+".png";
@@ -56501,6 +56556,12 @@ window.Laya=(function(window,document){
 			this.arenaStarView=new AreanStarView();
 			this.arenaStarView.mouseThrough=true;
 			this.addChild(this.arenaStarView);
+			this.imgRed=new Image();
+			this.imgRed.skin="res/img_redbg.png";
+			this.imgRed.width=1136;
+			this.imgRed.height=640;
+			this.imgRed.visible=false;
+			this.addChild(this.imgRed);
 		}
 
 		__class(ArenaView,'com.gamepark.casino.game.arena.view.ArenaView',_super);
@@ -56513,6 +56574,87 @@ window.Laya=(function(window,document){
 		*/
 		__proto.getTargetViewByBattleTargetRoleInfo=function($targetRoleInfo){
 			return this.roleView.getTargetViewByBattleTargetRoleInfo($targetRoleInfo);
+		}
+
+		__proto.blinkRed=function(){
+			console.log("hong ping")
+			this.imgRed.visible=true;
+			this.imgRed.alpha=0.5;
+			this.updateNumber=0;
+			this.timer.frameLoop(1,this,this.updateAnmation);
+			GameContext.i.arenaContext.manager.pause();
+			this.updateAnmation();
+		}
+
+		__proto.updateAnmation=function(){
+			console.log("this.updateNumber::::",this.updateNumber);
+			this.updateNumber++;
+			if (this.updateNumber < 6){
+				this.imgRed.alpha-=this.updateNumber *0.1;
+			}
+			else if(this.updateNumber==6){
+				this.imgRed.alpha=0.5
+			}
+			else if(this.updateNumber > 7 && this.updateNumber < 13){
+				this.imgRed.alpha-=(this.updateNumber-7)*0.1
+				console.log("this.imgRed.alpha::",this.imgRed.alpha);
+			}
+			else if (this.updateNumber==13){
+				this.imgRed.alpha=0.5
+				console.log("this.imgRed.alpha::",this.imgRed.alpha);
+			}
+			else if(this.updateNumber > 14 && this.updateNumber < 20){
+				this.imgRed.alpha-=(this.updateNumber-14)*0.1
+			}
+			else if(this.updateNumber==20){
+				this.imgRed.visible=false;
+				this.timer.clearAll(this);
+				this.koNormalAnmation();
+				this.koAddAnmation();
+			}
+		}
+
+		//this.imgRed.alpha=((this.updateNumber % 2)==0)? 1 :0.5;
+		__proto.koNormalAnmation=function(){
+			var texture=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/KO_normal/KO_normal.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.onSkeletonKoNormal,[factory]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkeletonKoNormal=function($factory){
+			this.swordmanKoNormal=$factory.buildArmature(0);
+			this.swordmanKoNormal.play("KO",false);
+			this.addChild(this.swordmanKoNormal);
+			this.swordmanKoNormal.pos(568,320)
+			this.swordmanKoNormal.on("stopped",this,this.onKoNormalAnimationFinish);
+		}
+
+		__proto.onKoNormalAnimationFinish=function(){
+			this.swordmanKoNormal.removeSelf();
+			GameContext.i.arenaContext.manager.resume();
+		}
+
+		__proto.koAddAnmation=function(){
+			var texture=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.png");
+			var data=Loader.getRes("res/skeleton/qteORfight/KO_add/KO_add.sk");
+			var factory=new Templet();
+			factory.on("complete",this,this.onSkeletonKoAdd,[factory]);
+			factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkeletonKoAdd=function($factory){
+			this.swordmanKoAdd=$factory.buildArmature(0);
+			this.swordmanKoAdd.play("KO",false);
+			this.swordmanKoAdd.blendMode="add";
+			this.addChild(this.swordmanKoAdd);
+			this.swordmanKoAdd.pos(568,320)
+			this.swordmanKoAdd.on("stopped",this,this.onKoAddAnimationFinish);
+		}
+
+		__proto.onKoAddAnimationFinish=function(){
+			this.swordmanKoAdd.removeSelf();
 		}
 
 		return ArenaView;
