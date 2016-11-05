@@ -177,31 +177,29 @@ window.Laya=(function(window,document){
 
 (function(window,document,Laya){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
-	Laya.interface('laya.ui.IItem');
-	Laya.interface('laya.d3.core.render.IRenderable');
-	Laya.interface('laya.runtime.IConchNode');
-	Laya.interface('laya.resource.IDispose');
-	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
-	Laya.interface('laya.webgl.submit.ISubmit');
-	Laya.interface('laya.d3.core.render.IRender');
-	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
-	Laya.interface('laya.runtime.IMarket');
-	Laya.interface('laya.webgl.text.ICharSegment');
 	Laya.interface('laya.runtime.ICPlatformClass');
-	Laya.interface('laya.filters.IFilterAction');
-	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
-	Laya.interface('laya.d3.graphics.IVertex');
-	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
-	Laya.interface('laya.webgl.canvas.save.ISaveData');
-	Laya.interface('laya.ui.ISelect');
-	Laya.interface('laya.display.ILayout');
+	Laya.interface('laya.runtime.IMarket');
 	Laya.interface('laya.filters.IFilter');
+	Laya.interface('com.gamepark.casino.model.IRelationChangedObserver');
+	Laya.interface('laya.ui.IItem');
+	Laya.interface('com.gamepark.casino.handler.IServerMessageHandler');
+	Laya.interface('laya.webgl.canvas.save.ISaveData');
+	Laya.interface('laya.display.ILayout');
+	Laya.interface('laya.d3.graphics.IVertex');
+	Laya.interface('laya.d3.core.render.IRender');
+	Laya.interface('laya.filters.IFilterAction');
+	Laya.interface('laya.webgl.resource.IMergeAtlasBitmap');
+	Laya.interface('laya.ui.ISelect');
+	Laya.interface('laya.runtime.IConchNode');
 	Laya.interface('laya.webgl.shapes.IShape');
+	Laya.interface('com.gamepark.casino.delegate.IPlatformDelegate');
+	Laya.interface('laya.webgl.submit.ISubmit');
+	Laya.interface('laya.webgl.text.ICharSegment');
+	Laya.interface('laya.resource.IDispose');
+	Laya.interface('laya.d3.core.render.IRenderable');
 	Laya.interface('laya.filters.IFilterActionGL','laya.filters.IFilterAction');
-	var await=Laya.await=function(caller,fn,nextLine){
-		Asyn._caller_=caller;
-		Asyn._callback_=fn;
-		Asyn._nextLine_=nextLine;
+	var wait=Laya.wait=function(conditions){
+		return Asyn.wait(conditions);
 	}
 
 
@@ -210,8 +208,10 @@ window.Laya=(function(window,document){
 	}
 
 
-	var wait=Laya.wait=function(conditions){
-		return Asyn.wait(conditions);
+	var await=Laya.await=function(caller,fn,nextLine){
+		Asyn._caller_=caller;
+		Asyn._callback_=fn;
+		Asyn._nextLine_=nextLine;
 	}
 
 
@@ -377,8 +377,8 @@ window.Laya=(function(window,document){
 			var location=Browser.window.location;
 			var pathName=location.pathname;
 			pathName=pathName.charAt(2)==':' ? pathName.substring(1):pathName;
-			URL.rootPath=URL.basePath=URL.getPath(location.protocol=="file:" ? pathName :location.href);
-			Laya.render=new Render(50,50);
+			URL.rootPath=URL.basePath=URL.getPath(location.protocol=="file:" ? pathName :location.protocol+"//"+location.host+location.pathname);
+			Laya.render=new Render(0,0);
 			Laya.stage.size(width,height);
 			RenderSprite.__init__();
 			KeyBoardManager.__init__();
@@ -393,7 +393,7 @@ window.Laya=(function(window,document){
 		Laya.timer=null;
 		Laya.loader=null;
 		Laya.render=null
-		Laya.version="1.4.0";
+		Laya.version="1.5.2";
 		Laya.stageBox=null
 		__static(Laya,
 		['conchMarket',function(){return this.conchMarket=window.conch?conchMarket:null;},'PlatformClass',function(){return this.PlatformClass=window.PlatformClass;}
@@ -503,7 +503,7 @@ window.Laya=(function(window,document){
 			this.width=0;
 			this.height=0;
 			this.focus=null;
-			this.snapView=null;
+			this.snapViewList=null;
 			this._sourcePoint=null;
 			this._targetPoint=null;
 			this._sourceScale=NaN;
@@ -520,6 +520,8 @@ window.Laya=(function(window,document){
 		__class(Camera2D,'com.gamepark.casino.camara.Camera2D');
 		var __proto=Camera2D.prototype;
 		__proto.enterFrameHandler=function(){
+			var i=0;
+			var snapView;
 			switch(this.status){
 				case 1:
 					break ;
@@ -530,42 +532,45 @@ window.Laya=(function(window,document){
 					var unitScale=(this._targetScale-this._sourceScale)/ this._totalFrame;
 					console.log(78,"unitX : ",unitX);
 					console.log(78,"unitY : ",unitY);
-					this.snapView.x-=unitX;
-					this.snapView.y-=unitY;
-					this.snapView.scaleX+=unitScale;
-					this.snapView.scaleY+=unitScale;
+					for(i=0;i < this.snapViewList.length;i++){
+						snapView=this.snapViewList[i];
+						snapView.x-=unitX;
+						snapView.y-=unitY;
+						snapView.scaleX+=unitScale;
+						snapView.scaleY+=unitScale;
+					}
 					if(this._counter==this._totalFrame){
-						console.log(98,"this.target.x : ",this.snapView.x);
-						console.log(98,"this.target.y : ",this.snapView.y);
-						console.log(98,"this.target.scaleX : ",this.snapView.scaleX);
-						console.log(98,"this.target.scaleY : ",this.snapView.scaleY);
 						this.status=1;
 					}
 					break ;
 				case 3:
 					this._counter++;
-				switch(this._counter){
-					case 1:
-						this.snapView.x=this._shakeInitPoint.x-3;
-						this.snapView.y=this._shakeInitPoint.y+1;
-						break ;
-					case 3:
-						this.snapView.x=this._shakeInitPoint.x+3;
-						this.snapView.y=this._shakeInitPoint.y+2;
-						break ;
-					case 5:
-						this.snapView.x=this._shakeInitPoint.x-1;
-						this.snapView.y=this._shakeInitPoint.y+3;
-						break ;
-					case 7:
-						this.snapView.x=this._shakeInitPoint.x+3;
-						this.snapView.y=this._shakeInitPoint.y-2;
-						break ;
-					case 9:
-						this.snapView.x=this._shakeInitPoint.x;
-						this.snapView.y=this._shakeInitPoint.y;
-						break ;
-					}
+					console.log("camera counter : ",this._counter);
+					for(i=0;i < this.snapViewList.length;i++){
+						snapView=this.snapViewList[i];
+					switch(this._counter){
+						case 1:
+							snapView.x=this._shakeInitPoint.x-3;
+							snapView.y=this._shakeInitPoint.y+1;
+							break ;
+						case 3:
+							snapView.x=this._shakeInitPoint.x+3;
+							snapView.y=this._shakeInitPoint.y+2;
+							break ;
+						case 5:
+							snapView.x=this._shakeInitPoint.x-1;
+							snapView.y=this._shakeInitPoint.y+3;
+							break ;
+						case 7:
+							snapView.x=this._shakeInitPoint.x+3;
+							snapView.y=this._shakeInitPoint.y-2;
+							break ;
+						case 9:
+							snapView.x=this._shakeInitPoint.x;
+							snapView.y=this._shakeInitPoint.y;
+							break ;
+						}
+				}
 				if((this._counter==9)){
 					if(this._needStopShake){
 						this.doNormal();
@@ -578,11 +583,16 @@ window.Laya=(function(window,document){
 			}
 		}
 
-		__proto.focusOnView=function($snapView,$focus){
-			this.snapView=$snapView;
+		__proto.focusOnViewList=function($snapViewList,$focus){
+			this.snapViewList=$snapViewList;
 			this.focus=$focus;
-			this.snapView.x=this.focus.x;
-			this.snapView.y=this.focus.y;
+			var snapView;
+			var i=0;
+			for(i=0;i < this.snapViewList.length;i++){
+				snapView=this.snapViewList[i];
+				snapView.x=this.focus.x;
+				snapView.y=this.focus.y;
+			}
 		}
 
 		// this._sourcePoint=new Point(this.snapView.x,this.snapView.y);
@@ -592,9 +602,9 @@ window.Laya=(function(window,document){
 			console.log(88,"$totalFrame : ",$totalFrame);
 			this._targetPoint=$targetPoint;
 			this._totalFrame=$totalFrame;
-			this._sourceScale=this.snapView.scaleX;
+			this._sourceScale=this.snapViewList[0].scaleX;
 			this._targetScale=$scale;
-			this._sourcePoint=new Point((1136-this.snapView.x),(640-this.snapView.y));
+			this._sourcePoint=new Point((1136-this.snapViewList[0].x),(640-this.snapViewList[0].y));
 			this._counter=0;
 			this.status=2;
 			console.log(88,"this._sourceScale : ",this._sourceScale);
@@ -612,12 +622,20 @@ window.Laya=(function(window,document){
 		__proto.shake=function(){
 			this.status=3;
 			this._counter=0;
-			this._shakeInitPoint=new Point(this.snapView.x,this.snapView.y);
+			this._shakeInitPoint=new Point(this.snapViewList[0].x,this.snapViewList[0].y);
 			this._needStopShake=false;
 		}
 
 		__proto.stopShake=function(){
 			this._needStopShake=true;
+		}
+
+		__proto.pause=function(){
+			Laya.timer.clearAll(this);
+		}
+
+		__proto.resume=function(){
+			Laya.timer.frameLoop(1,this,this.enterFrameHandler);
 		}
 
 		__getset(1,Camera2D,'i',function(){
@@ -1231,10 +1249,12 @@ window.Laya=(function(window,document){
 		ArenaStatusEnum.ATTACK=7;
 		ArenaStatusEnum.READY_TO_ATTACK=601;
 		ArenaStatusEnum.GET_ATTACK_TARGET=602;
-		ArenaStatusEnum.RUN_TO_ATTACK=603;
-		ArenaStatusEnum.ATTACKING_TARGET=604;
-		ArenaStatusEnum.FINISH_ATTACK_TARGET=605;
-		ArenaStatusEnum.FINISH_ATTACK=606;
+		ArenaStatusEnum.PLAY_CUT_IN=603;
+		ArenaStatusEnum.PLAY_CUT_IN_FINISH=604;
+		ArenaStatusEnum.RUN_TO_ATTACK=605;
+		ArenaStatusEnum.ATTACKING_TARGET=606;
+		ArenaStatusEnum.FINISH_ATTACK_TARGET=607;
+		ArenaStatusEnum.FINISH_ATTACK=608;
 		ArenaStatusEnum.RESULT=8;
 		ArenaStatusEnum.READY_TO_SHOW_RESULT=801;
 		ArenaStatusEnum.SHOW_RESULT=802;
@@ -1393,6 +1413,7 @@ window.Laya=(function(window,document){
 			this._attackActionIndex=0;
 			this._battleAttackRoleInfo=null;
 			this._needPlayNext=false;
+			this._cutinView=null;
 			this.arenaContext=ArenaContext.i;
 			this.roleListLogic=new RoleListLogic(this.arenaContext.gameView.roleView);
 		}
@@ -1566,8 +1587,7 @@ window.Laya=(function(window,document){
 								this.secondStatus=602;
 							}
 							else{
-								this.firstStatus=7;
-								this.secondStatus=601;
+								this.secondStatus=608;
 							}
 						}
 						else{
@@ -1585,20 +1605,30 @@ window.Laya=(function(window,document){
 							if(this.roleListLogic.attackPlayer.roleVO.isMe){
 								this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=GameContext.i.arenaContext.data.attackDefenceRolePosition;
 							}
+							else{
+								this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=ArenaUtil.getAutoSuperUniqueSkillAttackDefenceRolePosition(this.roleListLogic.defensePlayer.roleVO);
+							}
 							this._battleAttackRoleInfo=this.roleListLogic.attackPlayer.roleVO.calcSuperUniqueSkillAttacker();
 						}
 						else{
 							this._battleAttackRoleInfo=this.arenaContext.data.battleVO.getSuperUniqueSkillAttackerByIndex(this._round,this._playerIndex,this._attackActionIndex);
 						}
-						this._battleAttackRoleInfo.logic.doSuperUniqueSkill(this._battleAttackRoleInfo);
-						this.secondStatus=603;
-						if(this.arenaContext.data.battleVO.isManualMode()){
-							if(this.roleListLogic.attackPlayer.roleVO.isMe){
-								this.onMyRoleSuperUniqueSkill(this._battleAttackRoleInfo.logic);
-							}
+						if(this.roleListLogic.attackPlayer.roleVO.isMe){
+							this.secondStatus=603;
+							this.onRoleSuperUniqueSkill(this._battleAttackRoleInfo.logic);
+						}
+						else{
+							this._battleAttackRoleInfo.logic.doSuperUniqueSkill(this._battleAttackRoleInfo);
+							this.secondStatus=605;
 						}
 						break ;
 					case 603:
+						break ;
+					case 604:
+						this._battleAttackRoleInfo.logic.doSuperUniqueSkill(this._battleAttackRoleInfo);
+						this.secondStatus=605;
+						break ;
+					case 605:
 						console.log(1,"mediator do run to attack");
 						if(this._battleAttackRoleInfo.logic.roleInfo.meta.modelResMeta.superUniqueSkillType==1){
 							console.log(2,"doRunToAttack");
@@ -1608,9 +1638,9 @@ window.Laya=(function(window,document){
 							console.log(3,"doAttacking");
 							this._battleAttackRoleInfo.logic.doAttacking();
 						}
-						this.secondStatus=604;
+						this.secondStatus=606;
 						break ;
-					case 604:
+					case 606:
 						if(this._battleAttackRoleInfo.logic.isFinishSuperUniqueSkill()&& (GameContext.i.camera2D.isNormal())){
 							console.log("GameContext.i.camera2D.status : ",GameContext.i.camera2D.status);
 							if(this.arenaContext.data.battleVO.isManualMode()){
@@ -1626,7 +1656,7 @@ window.Laya=(function(window,document){
 										this.roleListLogic.attackPlayer.roleVO.superUniquePositionList=this.roleListLogic.attackPlayer.roleVO.getSuperUniqueSkillRolePositionList();
 									}
 									if(this.roleListLogic.attackPlayer.roleVO.superUniquePositionList.length==0){
-										this.secondStatus=606;
+										this.secondStatus=608;
 									}
 									else{
 										this.secondStatus=602;
@@ -1640,7 +1670,7 @@ window.Laya=(function(window,document){
 									this.secondStatus=801;
 								}
 								else if(this.arenaContext.data.battleVO.isFinishSuperUniqueSkill(this._round,this._playerIndex,this._attackActionIndex)){
-									this.secondStatus=606;
+									this.secondStatus=608;
 								}
 								else{
 									this.secondStatus=602;
@@ -1649,10 +1679,23 @@ window.Laya=(function(window,document){
 							}
 						}
 						break ;
-					case 606:
+					case 608:
 						if(this.roleListLogic.attackPlayer.roleVO.isFinishAllAction()&& this.roleListLogic.defensePlayer.roleVO.isFinishAllAction()){
-							this.firstStatus=7;
-							this.secondStatus=601;
+							if(this._playerIndex==0){
+								this._playerIndex=1;
+								this.firstStatus=6;
+								this.secondStatus=601;
+							}
+							else{
+								this._playerIndex=0;
+								this.firstStatus=7;
+								this.secondStatus=601;
+							};
+							var tempPlayer=this.roleListLogic.attackPlayer;
+							this.roleListLogic.attackPlayer=this.roleListLogic.defensePlayer;
+							this.roleListLogic.defensePlayer=tempPlayer;
+							this.roleListLogic.attackPlayer.status=1;
+							this.roleListLogic.defensePlayer.status=2;
 						}
 						break ;
 					}
@@ -1662,12 +1705,20 @@ window.Laya=(function(window,document){
 					case 601:
 						this.roleListLogic.preAttack();
 						this._attackActionIndex=0;
+						this.roleListLogic.attackPlayer.roleVO.clearAllAttackInfo();
+						this.roleListLogic.defensePlayer.roleVO.clearAllAttackAmount();
+						this.roleListLogic.defensePlayer.roleVO.clearAllHit();
 						if(this.arenaContext.data.battleVO.isManualMode()){
 							if(this.roleListLogic.attackPlayer.roleVO.getAttackRoleAmount()> 0){
 								this.secondStatus=602;
+								if(this.roleListLogic.attackPlayer.roleVO.isMe){
+								}
+								else{
+									this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=ArenaUtil.getAutoAttackAttackDefenceRolePosition(this.roleListLogic.defensePlayer.roleVO,this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition);
+								}
 							}
 							else{
-								this.secondStatus=606;
+								this.secondStatus=608;
 							}
 						}
 						else{
@@ -1675,7 +1726,7 @@ window.Laya=(function(window,document){
 								this.secondStatus=602;
 							}
 							else{
-								this.secondStatus=606;
+								this.secondStatus=608;
 							}
 						}
 						break ;
@@ -1686,23 +1737,29 @@ window.Laya=(function(window,document){
 								this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=GameContext.i.arenaContext.data.attackDefenceRolePosition;
 							}
 							this._battleAttackRoleInfo=this.roleListLogic.attackPlayer.roleVO.calcAttackAttacker();
+							this.roleListLogic.attackPlayer.roleVO.battleAttackRoleInfoList.push(this._battleAttackRoleInfo);
+							var targetRoleInfo=this._battleAttackRoleInfo.targetRoleInfoList[0];
+							targetRoleInfo.logic.beAttackAmount++;
 						}
 						else{
 							this._battleAttackRoleInfo=this.arenaContext.data.battleVO.getAttackAttackerByIndex(this._round,this._playerIndex,this._attackActionIndex);
 						}
 						this._battleAttackRoleInfo.logic.doAttack(this._battleAttackRoleInfo);
-						this.secondStatus=603;
+						this.secondStatus=605;
 						if(this.arenaContext.data.battleVO.isManualMode()){
 							if(this.roleListLogic.attackPlayer.roleVO.isMe){
 								this.onMyRoleAttack(this._battleAttackRoleInfo.logic);
 							}
+							else{
+								this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=ArenaUtil.getAutoAttackAttackDefenceRolePosition(this.roleListLogic.defensePlayer.roleVO,this.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition);
+							}
 						}
 						break ;
-					case 603:
+					case 605:
 						this._battleAttackRoleInfo.logic.doRunToAttack();
-						this.secondStatus=604;
+						this.secondStatus=606;
 						break ;
-					case 604:
+					case 606:
 						if(this._battleAttackRoleInfo.logic.isFinishAttacking()){
 							if(this.arenaContext.data.battleVO.isManualMode()){
 								if(this.roleListLogic.defensePlayer.roleVO.isAllDie()){
@@ -1710,7 +1767,7 @@ window.Laya=(function(window,document){
 									this.secondStatus=801;
 								}
 								else if(this.roleListLogic.attackPlayer.roleVO.attackRolePositionList.length==0){
-									this.secondStatus=606;
+									this.secondStatus=608;
 								}
 								else{
 									if(this._needPlayNext){
@@ -1728,7 +1785,7 @@ window.Laya=(function(window,document){
 									this.secondStatus=801;
 								}
 								else if(this.arenaContext.data.battleVO.isFinishAttack(this._round,this._playerIndex,this._attackActionIndex)){
-									this.secondStatus=606;
+									this.secondStatus=608;
 								}
 								else{
 									if(this._needPlayNext){
@@ -1742,7 +1799,7 @@ window.Laya=(function(window,document){
 							}
 						}
 						break ;
-					case 606:
+					case 608:
 						if(this.roleListLogic.attackPlayer.roleVO.isFinishAllAction()&& this.roleListLogic.defensePlayer.roleVO.isFinishAllAction()){
 							if(this._battleAttackRoleInfo.roleInfo.playerInfo.isMe){
 								var effectInfo=new EffectItemInfo();
@@ -1753,18 +1810,20 @@ window.Laya=(function(window,document){
 							}
 							if(this._playerIndex==0){
 								this._playerIndex=1;
+								this.firstStatus=7;
+								this.secondStatus=601;
 							}
 							else{
 								this._playerIndex=0;
 								this.round=this.round+1;
+								this.firstStatus=9;
+								this.secondStatus=901;
 							};
 							var tempPlayer=this.roleListLogic.attackPlayer;
 							this.roleListLogic.attackPlayer=this.roleListLogic.defensePlayer;
 							this.roleListLogic.defensePlayer=tempPlayer;
 							this.roleListLogic.attackPlayer.status=1;
 							this.roleListLogic.defensePlayer.status=2;
-							this.firstStatus=9;
-							this.secondStatus=901;
 						}
 						break ;
 					}
@@ -1811,7 +1870,6 @@ window.Laya=(function(window,document){
 
 		__proto.showResultView=function(){
 			this.arenaContext.gameView.timer.clearAll(this);
-			this.arenaContext.gameMediator.clearAllView();
 			var showResulitView=new AreanResultView();
 			GameContext.i.uiService.addPopup(showResulitView);
 		}
@@ -1819,11 +1877,13 @@ window.Laya=(function(window,document){
 		__proto.pause=function(){
 			this.roleListLogic.pause();
 			this.arenaContext.gameView.timer.clearAll(this);
+			GameContext.i.camera2D.pause();
 		}
 
 		__proto.resume=function(){
 			this.roleListLogic.resume();
 			this.arenaContext.gameView.timer.frameLoop(1,this,this.enterFrameHandler);
+			GameContext.i.camera2D.resume();
 		}
 
 		__proto.isBattleOperation=function(){
@@ -1862,6 +1922,22 @@ window.Laya=(function(window,document){
 			this.arenaContext.gameMediator.changeSelectPostion($position);
 		}
 
+		__proto.onRoleSuperUniqueSkill=function($roleItemLogic){
+			this._cutinView=new SuperCutinUI();
+			this.arenaContext.gameView.addForeground(this._cutinView);
+			this._cutinView.imgLihui.skin="res/img/"+$roleItemLogic.roleInfo.meta.modelResMeta.name+"_lihui_cutin.png";
+			this._cutinView.imgSkill.skin="res/img/"+$roleItemLogic.roleInfo.meta.modelResMeta.name+"_skill_cutin.png";
+			this._cutinView.ani1.on("complete",this,this.cutinViewCompleteHandler);
+			this._cutinView.ani1.play(0,false);
+		}
+
+		__proto.cutinViewCompleteHandler=function($evt){
+			this._cutinView.ani1.offAll();
+			this.arenaContext.gameView.removeForeground(this._cutinView);
+			this._cutinView.destroy();
+			this.secondStatus=604;
+		}
+
 		__proto.onMyRoleSuperUniqueSkill=function($roleItemLogic){}
 		__proto.onMyRoleAttack=function($roleItemLogic){}
 		// this.arenaContext.gameMediator.hideRoleItemLable($roleItemLogic)
@@ -1881,8 +1957,13 @@ window.Laya=(function(window,document){
 			this.secondStatus=1003;
 		}
 
-		__proto.showResultEffect=function(){
-			this.arenaContext.gameView.blinkRed();
+		__proto.showResultEffect=function($roleItemLogic){
+			if($roleItemLogic.firstStatus==4){
+				this.arenaContext.gameView.explosiveVests($roleItemLogic.actionRoleInfo.targetRoleInfoList);
+			}
+			else{
+				this.arenaContext.gameView.blinkRed();
+			}
 		}
 
 		__getset(0,__proto,'round',function(){
@@ -2344,6 +2425,7 @@ window.Laya=(function(window,document){
 			this.type=0;
 			this.sourceRoleLogic=null;
 			this.targetRoleLogic=null;
+			this.roleHp=0;
 		}
 
 		__class(EffectItemInfo,'com.gamepark.casino.game.arena.model.EffectItemInfo');
@@ -2394,7 +2476,7 @@ window.Laya=(function(window,document){
 		__proto.initialize=function(){
 			this.hp=this.meta.hp;
 			this.hpMax=this.meta.hp;
-			this.mp=0;
+			this.mp=500;
 			this.attack=this.meta.attack;
 			this.defense=this.meta.defense;
 			this.attackRate=this.meta.attackRate;
@@ -2509,6 +2591,9 @@ window.Laya=(function(window,document){
 			this.checkNextAttackFrameIndex=-1;
 			this.lucky=0;
 			this.luckyEffect=0.0;
+			this.needCheckAllDie=true;
+			this.beAttackAmount=0;
+			this.hit=0;
 			this.view=$view;
 			this.view.logic=this;
 			this.group=this.view.group;
@@ -2520,6 +2605,10 @@ window.Laya=(function(window,document){
 			this.roleHp=this.roleInfo.hp;
 			this.roleMp=this.roleInfo.mp;
 			this.roleStatus=1;
+			this.needCheckAllDie=false;
+			this.beAttackAmount=0;
+			this.hit=0;
+			this.view.initialize();
 		}
 
 		__proto.startGame=function(){
@@ -2595,6 +2684,21 @@ window.Laya=(function(window,document){
 										distanceX+=130 *2 *0.67;
 									}
 								}
+								else{
+									if(this.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+										distanceX+=130;
+										if((this.actionRoleInfo.attackType==3)){
+											distanceX+=130 *0.67;
+										}
+										if((this.actionRoleInfo.attackType==4)){
+											distanceX+=130 *0.67;
+										}
+										if((this.actionRoleInfo.attackType==5)){
+											distanceX+=130 *2 *0.67;
+										}
+										distanceX-=this.roleInfo.meta.modelResMeta.skillTargetBgEffectDistance *0.67;
+									}
+								}
 							}
 							wayRadians=Math.atan2(distanceY,distanceX);
 						}
@@ -2612,6 +2716,21 @@ window.Laya=(function(window,document){
 										distanceX-=130 *2 *0.67;
 									}
 								}
+								else{
+									if(this.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+										distanceX-=130;
+										if((this.actionRoleInfo.attackType==3)){
+											distanceX-=130 *0.67;
+										}
+										if((this.actionRoleInfo.attackType==4)){
+											distanceX-=130 *0.67;
+										}
+										if((this.actionRoleInfo.attackType==5)){
+											distanceX-=130 *2 *0.67;
+										}
+										distanceX+=this.roleInfo.meta.modelResMeta.skillTargetBgEffectDistance *0.67;
+									}
+								}
 							}
 							wayRadians=Math.atan2(distanceY,distanceX);
 						}
@@ -2627,6 +2746,7 @@ window.Laya=(function(window,document){
 								this.view.aniContainer.y=distanceY;
 								this.secondStatus=507;
 								this.doAttacking();
+								console.log("finish distanceX : ",distanceX);
 							}
 						}
 						else{
@@ -2637,6 +2757,7 @@ window.Laya=(function(window,document){
 								this.view.aniContainer.y=distanceY;
 								this.secondStatus=507;
 								this.doAttacking();
+								console.log("finish distanceX : ",distanceX);
 							}
 						}
 						break ;
@@ -2779,6 +2900,7 @@ window.Laya=(function(window,document){
 		__proto.doSuperUniqueSkill=function($battleAttackRoleInfo){
 			this.actionRoleInfo=$battleAttackRoleInfo;
 			this.firstStatus=4;
+			this.needCheckAllDie=true;
 			this.updateActionInfo($battleAttackRoleInfo);
 			var targetRoleView;
 			var battleTargetRoleInfo;
@@ -2804,6 +2926,7 @@ window.Laya=(function(window,document){
 		__proto.doAttack=function($battleAttackRoleInfo){
 			this.actionRoleInfo=$battleAttackRoleInfo;
 			this.firstStatus=5;
+			this.needCheckAllDie=true;
 			this.updateActionInfo($battleAttackRoleInfo);
 		}
 
@@ -2888,6 +3011,7 @@ window.Laya=(function(window,document){
 					if(nextAttackActionFrame < 0){
 						this.checkNextAttackStatus=1;
 						this.checkNextAttackFrameIndex=10+nextAttackActionFrame;
+						this.needCheckAllDie=false;
 						if(this.checkNextAttackFrameIndex < 0){
 							this.checkNextAttackFrameIndex=0;
 						}
@@ -2895,13 +3019,16 @@ window.Laya=(function(window,document){
 					else{
 						this.checkNextAttackStatus=2;
 						this.checkNextAttackFrameIndex=nextAttackActionFrame;
+						this.needCheckAllDie=false;
 					}
 					console.log(10,"checkNextAttackFrameIndex : ",this.checkNextAttackFrameIndex);
 				}
 				else{
 					this.checkNextAttackStatus=0;
 				}
-			}
+			};
+			var targetRoleInfo=this.actionRoleInfo.targetRoleInfoList[0];
+			this.view.changeViewIndexToAttack(targetRoleInfo.logic.view);
 		}
 
 		// trace(1,"role item view secondStatus : ",this.secondStatus);
@@ -2909,9 +3036,11 @@ window.Laya=(function(window,document){
 			this.counter=0;
 			this.secondStatus=507;
 			this.view.playAttack();
-			this.view.parent.setChildIndex(this.view,this.view.parent.numChildren-1);
+			var targetRoleInfo=this.actionRoleInfo.targetRoleInfoList[0];
+			this.view.changeViewIndexToAttack(targetRoleInfo.logic.view);
 		}
 
+		// }
 		__proto.doRunBackAttack=function(){
 			this.counter=0;
 			this.secondStatus=509;
@@ -3023,13 +3152,9 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.onCheckNextAttackStatusHandler=function($currentKeyframeIndex){
-			console.log(21,"this._roleAni.player.currentKeyframeIndex : ",$currentKeyframeIndex);
-			console.log(22,"this.logic.checkNextAttackFrameIndex : ",this.checkNextAttackFrameIndex);
 			if($currentKeyframeIndex >=this.checkNextAttackFrameIndex){
-				console.log(30,"ready to checkNextAttackFrameIndex");
 				var battleTargetRoleInfo=this.actionRoleInfo.targetRoleInfoList[0];
 				if(this.roleInfo.roleVO.isNextSameTarget(battleTargetRoleInfo)){
-					console.log(31,"isNextSameTarget");
 					GameContext.i.arenaContext.manager.doNextAttackImmediately();
 				}
 				this.checkNextAttackStatus=0;
@@ -3275,6 +3400,7 @@ window.Laya=(function(window,document){
 			this._nextBattleAttackRoleInfo=null;
 			this._attackDefenceRolePosition=0;
 			this._superUniquePositionList=[];
+			this.battleAttackRoleInfoList=[];
 		}
 
 		__class(RoleVO,'com.gamepark.casino.game.arena.model.RoleVO');
@@ -3528,6 +3654,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.generateAttackTypeList=function(){
+			console.log("enter function generateAttackTypeList");
 			this.attackTypeList=[];
 			var metaFightAttackTypeList=GameContext.i.data.metaData.getFightAttackTypeList();
 			var attackType=0;
@@ -3570,7 +3697,7 @@ window.Laya=(function(window,document){
 			}
 		}
 
-		// skillFlagList=[0,0,0,0,0,0];
+		// skillFlagList=[1,1,1,1,1,1];
 		__proto.isFinishAttack=function(){
 			var isFinishAttack=false;
 			if(GameContext.i.arenaContext.data.battleVO.isManualMode()){
@@ -3628,17 +3755,45 @@ window.Laya=(function(window,document){
 		__proto.hasNextAttackerByTarget=function($targetRoleInfo){
 			var hasNextAttackerByTarget=false;
 			var defencePosition=0;
-			if(this.isMe){
-				defencePosition=GameContext.i.arenaContext.data.attackDefenceRolePosition;
+			var nextBattleAttackRoleInfo;
+			var battleAttackRoleInfo;
+			var i=0;
+			for(i=0;i < this.battleAttackRoleInfoList.length;i++){
+				battleAttackRoleInfo=this.battleAttackRoleInfoList[i];
+				if(battleAttackRoleInfo.roleId==$targetRoleInfo.roleItemLogic.attackerRoleInfo.roleId){
+					if(i < (this.battleAttackRoleInfoList.length-1)){
+						nextBattleAttackRoleInfo=this.battleAttackRoleInfoList[i+1];
+						break ;
+					}
+				}
+			}
+			if(nextBattleAttackRoleInfo !=null){
+				var nextBattleTargetRoleInfo=nextBattleAttackRoleInfo.targetRoleInfoList[0];
+				defencePosition=nextBattleTargetRoleInfo.logic.roleInfo.position;
+				if((defencePosition !=$targetRoleInfo.position)|| ($targetRoleInfo.roleItemLogic.isDie())){
+					hasNextAttackerByTarget=false;
+				}
+				else{
+					hasNextAttackerByTarget=true;
+				}
 			}
 			else{
-				defencePosition=this.attackDefenceRolePosition;
-			}
-			if((this.attackRolePositionList.length==0)|| (defencePosition !=$targetRoleInfo.position)|| ($targetRoleInfo.roleItemLogic.isDie())){
-				hasNextAttackerByTarget=false;
-			}
-			else{
-				hasNextAttackerByTarget=true;
+				if(this.isMe){
+					defencePosition=GameContext.i.arenaContext.data.attackDefenceRolePosition;
+				}
+				else{
+					defencePosition=this.attackDefenceRolePosition;
+				}
+				console.log("this.attackRolePositionList.length : ",this.attackRolePositionList.length);
+				console.log("defencePosition : ",defencePosition);
+				console.log("$targetRoleInfo.position : ",$targetRoleInfo.position);
+				console.log("$targetRoleInfo.roleItemLogic.isDie() : ",$targetRoleInfo.roleItemLogic.isDie());
+				if((this.attackRolePositionList.length==0)|| (defencePosition !=$targetRoleInfo.position)|| ($targetRoleInfo.roleItemLogic.isDie())){
+					hasNextAttackerByTarget=false;
+				}
+				else{
+					hasNextAttackerByTarget=true;
+				}
 			}
 			return hasNextAttackerByTarget;
 		}
@@ -3670,10 +3825,37 @@ window.Laya=(function(window,document){
 			return isFinishAttackAction;
 		}
 
+		// }
+		__proto.clearAllAttackAmount=function(){
+			var roleInfo;
+			var i=0;
+			for(i=0;i < this.roleInfoList.length;i++){
+				roleInfo=this.roleInfoList[i];
+				roleInfo.roleItemLogic.beAttackAmount=0;
+			}
+		}
+
+		__proto.clearAllHit=function(){
+			var roleInfo;
+			var i=0;
+			for(i=0;i < this.roleInfoList.length;i++){
+				roleInfo=this.roleInfoList[i];
+				roleInfo.roleItemLogic.hit=0;
+			}
+		}
+
+		__proto.clearAllAttackInfo=function(){
+			this.battleAttackRoleInfoList=[];
+		}
+
 		__getset(0,__proto,'attackDefenceRolePosition',function(){
 			return this._attackDefenceRolePosition;
 			},function(value){
+			var oldValue=this._attackDefenceRolePosition;
 			this._attackDefenceRolePosition=value;
+			if(oldValue !=this._attackDefenceRolePosition){
+				this.generateAttackTypeList();
+			}
 		});
 
 		__getset(0,__proto,'superUniquePositionList',function(){
@@ -3964,14 +4146,20 @@ window.Laya=(function(window,document){
 		ArenaUtil.calcNextAttackDefenceRole=function(){
 			var arenaContext=ArenaContext.i;
 			var targetRoleInfo=arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition];
-			if(targetRoleInfo.isDie()){
-				var i=0;
-				for(i=0;i < arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList.length;i++){
-					targetRoleInfo=arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[i];
-					if(!targetRoleInfo.isDie()){
-						arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=i;
-						break ;
+			var i=0;
+			if(arenaContext.manager.roleListLogic.attackPlayer.isMe){
+				if(targetRoleInfo.isDie()){
+					for(i=0;i < arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList.length;i++){
+						targetRoleInfo=arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[i];
+						if(!targetRoleInfo.isDie()){
+							arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=i;
+							break ;
+						}
 					}
+				}
+			}
+			else{
+				if(targetRoleInfo.isDie()){
 				}
 			}
 		}
@@ -4262,19 +4450,122 @@ window.Laya=(function(window,document){
 			return attackRoleInfo;
 		}
 
-		ArenaUtil.calcNextAttackDefenceRoleManual=function(){
-			var arenaContext=ArenaContext.i;
-			var targetRoleInfo=arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition];
-			if(targetRoleInfo.isDie()){
-				var i=0;
-				for(i=0;i < arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList.length;i++){
-					targetRoleInfo=arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[i];
-					if(!targetRoleInfo.roleItemLogic.isDie()){
-						arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition=i;
-						break ;
+		ArenaUtil.getAutoSuperUniqueSkillAttackDefenceRolePosition=function($defenseRoleVO){
+			var hasFront=false;
+			var targetRoleInfo;
+			var targetRolePositionList=[];
+			var targetRolePosition=0;
+			var i=0;
+			var roleInfo;
+			for(i=0;i < $defenseRoleVO.roleInfoList.length;i++){
+				roleInfo=$defenseRoleVO.roleInfoList[i];
+				if(!roleInfo.isDie()){
+					targetRolePositionList.push(i);
+					if(i < 3){
+						hasFront=true;
+					}
+				}
+				if(i==2){
+					break ;
+				}
+			}
+			if(!hasFront){
+				for(i=0;i < $defenseRoleVO.roleInfoList.length;i++){
+					if(i <=2){
+						continue ;
+					}
+					roleInfo=$defenseRoleVO.roleInfoList[i];
+					if(roleInfo.roleItemLogic.canBeAttack()){
+						targetRolePositionList.push(i);
 					}
 				}
 			}
+			targetRolePosition=targetRolePositionList[Math.floor(Math.random()*targetRolePositionList.length)];
+			return targetRolePosition;
+		}
+
+		ArenaUtil.getAutoAttackAttackDefenceRolePosition=function($defenseRoleVO,$attackDefenceRolePosition){
+			var targetRoleInfo=$defenseRoleVO.roleInfoList[$attackDefenceRolePosition];
+			var beAttackPositionList=[];
+			var targetRolePosition=0;
+			var needExcludeTarget=false;
+			var isSameTarget=false;
+			var i=0;
+			var targetRolePositionList=[];
+			var hasFront=false;
+			var sameTargetPercentList=[0,0.8,0.7,0.6,0.5,0.4];
+			var roleInfo;
+			var position=0;
+			if((targetRoleInfo.roleItemLogic.beAttackAmount==0)|| (targetRoleInfo.isDie())){
+				$defenseRoleVO.clearAllAttackAmount();
+				needExcludeTarget=false;
+				isSameTarget=false;
+			}
+			else{
+				var percent=Math.random();
+				if(percent < sameTargetPercentList[targetRoleInfo.roleItemLogic.beAttackAmount]){
+					isSameTarget=true;
+				}
+				else{
+					isSameTarget=false;
+					needExcludeTarget=true;
+				}
+			}
+			if(isSameTarget){
+				targetRolePosition=$attackDefenceRolePosition;
+			}
+			else{
+				$defenseRoleVO.clearAllAttackAmount();
+				for(i=0;i < $defenseRoleVO.roleInfoList.length;i++){
+					roleInfo=$defenseRoleVO.roleInfoList[i];
+					if(roleInfo.roleItemLogic.canBeAttack()){
+						targetRolePositionList.push(i);
+						if(i < 3){
+							hasFront=true;
+						}
+					}
+					if(i==2){
+						break ;
+					}
+				}
+				if(!hasFront){
+					for(i=0;i < $defenseRoleVO.roleInfoList.length;i++){
+						if(i <=2){
+							continue ;
+						}
+						roleInfo=$defenseRoleVO.roleInfoList[i];
+						if(roleInfo.roleItemLogic.canBeAttack()){
+							targetRolePositionList.push(i);
+						}
+					}
+					if(needExcludeTarget){
+						if(targetRolePositionList.length > 1){
+							for(i=0;i < targetRolePositionList.length;i++){
+								position=targetRolePositionList[i];
+								if(position==$attackDefenceRolePosition){
+									targetRolePositionList.splice(i,1);
+									break ;
+								}
+							}
+						}
+					}
+				}
+				else{
+					if(needExcludeTarget){
+						if(targetRolePositionList.length > 1){
+							for(i=0;i < targetRolePositionList.length;i++){
+								position=targetRolePositionList[i];
+								if(position==$attackDefenceRolePosition){
+									targetRolePositionList.splice(i,1);
+									break ;
+								}
+							}
+						}
+					}
+				}
+				targetRolePosition=targetRolePositionList[Math.floor(Math.random()*targetRolePositionList.length)];
+			}
+			return targetRolePosition;
 		}
 
 		return ArenaUtil;
@@ -4425,6 +4716,7 @@ window.Laya=(function(window,document){
 				heroBaseMeta=new HeroBaseMeta(metaObj);
 				this.heroBaseMetaList.push(heroBaseMeta);
 				this.heroBaseMetaDict.set(heroBaseMeta.id,heroBaseMeta);
+				console.log("i : ",i," heroBaseMeta : ",heroBaseMeta);
 			}
 			metaObjList=$metaData["HeroResource"];
 			this.heroResourceMetaList=[];
@@ -4434,6 +4726,7 @@ window.Laya=(function(window,document){
 				heroResourceMeta=new HeroResourceMeta(metaObj);
 				this.heroResourceMetaList.push(heroResourceMeta);
 				this.heroResourceMetaDict.set(heroResourceMeta.id,heroResourceMeta);
+				console.log("i : ",i," heroResourceMeta : ",heroResourceMeta.hasSkillTargetBgEffect);
 			}
 			metaObjList=$metaData["FightingSkill_demo"];
 			this.fightSkillMetaList=[];
@@ -5246,7 +5539,7 @@ window.Laya=(function(window,document){
 		Config.showCanvasMark=false;
 		Config.CPUMemoryLimit=120 *1024 *1024;
 		Config.GPUMemoryLimit=160 *1024 *1024;
-		Config.animationInterval=30;
+		Config.animationInterval=50;
 		Config.isAntialias=false;
 		return Config;
 	})()
@@ -5273,21 +5566,33 @@ window.Laya=(function(window,document){
 	var Bone=(function(){
 		function Bone(){
 			this.name=null;
-			this._parent=null;
+			this.root=null;
+			this.parentBone=null;
 			this.length=10;
 			this.transform=null;
-			this.sprite=null;
 			this.inheritScale=true;
 			this.inheritRotation=true;
 			this.rotation=NaN;
 			this.resultRotation=NaN;
-			this._children=[];
+			this._tempMatrix=null;
+			this._sprite=null;
 			this.resultTransform=new Transform();
 			this.resultMatrix=new Matrix();
+			this._children=[];
 		}
 
 		__class(Bone,'laya.ani.bone.Bone');
 		var __proto=Bone.prototype;
+		__proto.setTempMatrix=function(matrix){
+			this._tempMatrix=matrix;
+			var i=0,n=0;
+			var tBone;
+			for (i=0,n=this._children.length;i < n;i++){
+				tBone=this._children[i];
+				tBone.setTempMatrix(this._tempMatrix);
+			}
+		}
+
 		__proto.update=function(pMatrix){
 			this.rotation=this.transform.skX;
 			var tResultMatrix;
@@ -5296,31 +5601,26 @@ window.Laya=(function(window,document){
 				Matrix.mul(tResultMatrix,pMatrix,this.resultMatrix);
 				this.resultRotation=this.rotation;
 				}else {
-				this.resultRotation=this.rotation+this._parent.resultRotation;
-				if (this._parent){
+				this.resultRotation=this.rotation+this.parentBone.resultRotation;
+				if (this.parentBone){
 					if (this.inheritRotation && this.inheritScale){
 						tResultMatrix=this.resultTransform.getMatrix();
-						Matrix.mul(tResultMatrix,this._parent.resultMatrix,this.resultMatrix);
+						Matrix.mul(tResultMatrix,this.parentBone.resultMatrix,this.resultMatrix);
 						}else {
-						var la=this.transform.getMatrix().a;
-						var lb=this.transform.getMatrix().b;
-						var lc=this.transform.getMatrix().c;
-						var ld=this.transform.getMatrix().d;
 						var temp=0;
-						var parent=this._parent;
+						var parent=this.parentBone;
 						var tAngle=NaN;
 						var cos=NaN;
 						var sin=NaN;
-						var tParentMatrix=this._parent.resultMatrix;
-						var worldX=tParentMatrix.a *this.transform.x+tParentMatrix.b *this.transform.y+tParentMatrix.tx;
-						var worldY=tParentMatrix.c *this.transform.x+tParentMatrix.d *this.transform.y+tParentMatrix.ty;
+						var tParentMatrix=this.parentBone.resultMatrix;
+						var worldX=tParentMatrix.a *this.transform.x+tParentMatrix.c *this.transform.y+tParentMatrix.tx;
+						var worldY=tParentMatrix.b *this.transform.x+tParentMatrix.d *this.transform.y+tParentMatrix.ty;
 						var tTestMatrix=new Matrix();
 						if (this.inheritRotation){
-							tAngle=Math.atan2(parent.resultMatrix.c,parent.resultMatrix.a);
+							tAngle=Math.atan2(parent.resultMatrix.b,parent.resultMatrix.a);
 							cos=Math.cos(tAngle),sin=Math.sin(tAngle);
 							tTestMatrix.setTo(cos,sin,-sin,cos,0,0);
-							var tTestYMatrix=new Matrix(1,0,0,-1);
-							Matrix.mul(tTestYMatrix,tTestMatrix,Matrix.TEMP);
+							Matrix.mul(this._tempMatrix,tTestMatrix,Matrix.TEMP);
 							Matrix.TEMP.copyTo(tTestMatrix);
 							tResultMatrix=this.resultTransform.getMatrix();
 							Matrix.mul(tResultMatrix,tTestMatrix,this.resultMatrix);
@@ -5365,16 +5665,16 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.updateDraw=function(x,y){
-			if (this.sprite){
-				this.sprite.x=x+this.resultMatrix.tx;
-				this.sprite.y=y+this.resultMatrix.ty;
+			if (this._sprite){
+				this._sprite.x=x+this.resultMatrix.tx;
+				this._sprite.y=y+this.resultMatrix.ty;
 				}else {
-				this.sprite=new Sprite();
-				this.sprite.graphics.drawCircle(0,0,5,"#ff0000");
-				this.sprite.graphics.fillText(this.name,0,0,"20px Arial","#00ff00","center");
-				Laya.stage.addChild(this.sprite);
-				this.sprite.x=x+this.resultMatrix.tx;
-				this.sprite.y=y+this.resultMatrix.ty;
+				this._sprite=new Sprite();
+				this._sprite.graphics.drawCircle(0,0,5,"#ff0000");
+				this._sprite.graphics.fillText(this.name,0,0,"20px Arial","#00ff00","center");
+				Laya.stage.addChild(this._sprite);
+				this._sprite.x=x+this.resultMatrix.tx;
+				this._sprite.y=y+this.resultMatrix.ty;
 			};
 			var i=0,n=0;
 			var tBone;
@@ -5386,7 +5686,7 @@ window.Laya=(function(window,document){
 
 		__proto.addChild=function(bone){
 			this._children.push(bone);
-			bone._parent=this;
+			bone.parentBone=this;
 		}
 
 		__proto.findBone=function(boneName){
@@ -5460,7 +5760,9 @@ window.Laya=(function(window,document){
 		*@param name
 		*/
 		__proto.showDisplayByName=function(name){
-			this.showDisplayByIndex(this.currSlotData.getDisplayByName(name));
+			if (this.currSlotData){
+				this.showDisplayByIndex(this.currSlotData.getDisplayByName(name));
+			}
 		}
 
 		/**
@@ -5532,7 +5834,7 @@ window.Laya=(function(window,document){
 									}else {
 									tResultMatrix=new Matrix();
 								}
-								if (!Render.isWebGL && this.currDisplayData.uvs){
+								if ((!Render.isWebGL && this.currDisplayData.uvs)|| (Render.isWebGL && this._diyTexture)){
 									var tTestMatrix=new Matrix(1,0,0,1);
 									if (this.currDisplayData.uvs[1] > this.currDisplayData.uvs[5]){
 										tTestMatrix.d=-1;
@@ -5566,8 +5868,7 @@ window.Laya=(function(window,document){
 					}
 					if (tSkinSprite==null){
 						return;
-					}
-					graphics.drawSkin(tSkinSprite);
+					};
 					var tVBArray=[];
 					var tIBArray=[];
 					var tRed=1;
@@ -5609,6 +5910,7 @@ window.Laya=(function(window,document){
 						}else {
 						this.skinMesh(boneMatrixArray,tSkinSprite,alpha);
 					}
+					graphics.drawSkin(tSkinSprite);
 					break ;
 				case 2:
 					if (noUseSave){
@@ -5622,8 +5924,8 @@ window.Laya=(function(window,document){
 					if (tSkinSprite==null){
 						return;
 					}
-					graphics.drawSkin(tSkinSprite);
 					this.skinMesh(boneMatrixArray,tSkinSprite,alpha);
+					graphics.drawSkin(tSkinSprite);
 					break ;
 				case 3:
 					break ;
@@ -5654,7 +5956,7 @@ window.Laya=(function(window,document){
 			var tRed=1;
 			var tGreed=1;
 			var tBlue=1;
-			var tAlpha=alpha
+			var tAlpha=alpha;
 			if (this.deformData && this.deformData.length > 0){
 				var f=0;
 				for (i=0,n=tBones.length;i < n;){
@@ -5936,12 +6238,12 @@ window.Laya=(function(window,document){
 		}
 
 		__proto._applyIk1=function(bone,targetX,targetY,alpha){
-			var pp=bone._parent;
+			var pp=bone.parentBone;
 			var id=1 / (pp.resultMatrix.a *pp.resultMatrix.d-pp.resultMatrix.b *pp.resultMatrix.c);
 			var x=targetX-pp.resultMatrix.tx;
 			var y=targetY-pp.resultMatrix.ty;
-			var tx=(x *pp.resultMatrix.d-y *pp.resultMatrix.b)*id-bone.transform.x;
-			var ty=(y *pp.resultMatrix.a-x *pp.resultMatrix.c)*id-bone.transform.y;
+			var tx=(x *pp.resultMatrix.d-y *pp.resultMatrix.c)*id-bone.transform.x;
+			var ty=(y *pp.resultMatrix.a-x *pp.resultMatrix.b)*id-bone.transform.y;
 			var rotationIK=Math.atan2(ty,tx)*IkConstraint.radDeg-0-bone.transform.skX;
 			if (bone.transform.scX < 0)rotationIK+=180;
 			if (rotationIK > 180)
@@ -5990,7 +6292,7 @@ window.Laya=(function(window,document){
 				cwx=a *cx+b *cy+parent.resultMatrix.tx;
 				cwy=c *cx+d *cy+parent.resultMatrix.ty;
 			};
-			var pp=parent._parent;
+			var pp=parent.parentBone;
 			a=pp.resultMatrix.a;
 			b=pp.resultMatrix.c;
 			c=pp.resultMatrix.b;
@@ -7141,9 +7443,10 @@ window.Laya=(function(window,document){
 		*@param height 高度。
 		*@param m 矩阵信息。
 		*/
-		__proto.drawTexture=function(tex,x,y,width,height,m){
+		__proto.drawTexture=function(tex,x,y,width,height,m,alpha){
 			(width===void 0)&& (width=0);
 			(height===void 0)&& (height=0);
+			(alpha===void 0)&& (alpha=1);
 			if (!tex)return;
 			if (!width)width=tex.sourceWidth;
 			if (!height)height=tex.sourceHeight;
@@ -7153,9 +7456,9 @@ window.Laya=(function(window,document){
 			x+=tex.offsetX;
 			y+=tex.offsetY;
 			this._sp && (this._sp._renderType |=0x100);
-			var args=[tex,x,y,width,height,m];
-			args.callee=m ? Render._context._drawTextureWithTransform :Render._context._drawTexture;
-			if (this._one==null && !m){
+			var args=[tex,x,y,width,height,m,alpha];
+			args.callee=(m || alpha!=1)? Render._context._drawTextureWithTransform :Render._context._drawTexture;
+			if (this._one==null && !m && alpha==1){
 				this._one=args;
 				this._render=this._renderOneImg;
 				}else {
@@ -7165,6 +7468,16 @@ window.Laya=(function(window,document){
 				tex.once("loaded",this,this._textureLoaded,[tex,args]);
 			}
 			this._repaint();
+		}
+
+		/**
+		*批量绘制同样纹理。
+		*@param tex 纹理。
+		*@param pos 绘制次数和坐标。
+		*/
+		__proto.drawTextures=function(tex,pos){
+			if (!tex)return;
+			this._saveToCmd(Render._context._drawTextures,[tex,pos]);
 		}
 
 		/**
@@ -8242,13 +8555,14 @@ window.Laya=(function(window,document){
 
 	/**
 	*@private
-	*<code>RenderObject</code> 类用于实现渲染物体。
+	*<code>RenderElement</code> 类用于实现渲染物体。
 	*/
 	//class laya.d3.core.render.RenderElement
 	var RenderElement=(function(){
 		function RenderElement(){
 			this._type=0;
 			this._mainSortID=0;
+			this._renderObject=null;
 			this._sprite3D=null;
 			this._material=null;
 			this._renderObj=null;
@@ -8264,11 +8578,11 @@ window.Laya=(function(window,document){
 		*/
 		__proto.getStaticBatchBakedVertexs=function(index){
 			var byteSizeInFloat=4;
-			var vb=this._renderObj.getVertexBuffer(index);
+			var vb=this._renderObj._getVertexBuffer(index);
 			var bakedVertexes=vb.getData().slice();
 			var vertexDeclaration=vb.vertexDeclaration;
-			var positionOffset=vertexDeclaration.shaderAttribute["POSITION"][4] / byteSizeInFloat;
-			var normalOffset=vertexDeclaration.shaderAttribute["NORMAL"][4] / byteSizeInFloat;
+			var positionOffset=vertexDeclaration.getVertexElementByUsage("POSITION").offset / byteSizeInFloat;
+			var normalOffset=vertexDeclaration.getVertexElementByUsage("NORMAL").offset / byteSizeInFloat;
 			var rootTransform=this._staticBatch._rootSprite.transform.worldMatrix;
 			var transform=this._sprite3D.transform.worldMatrix;
 			var rootInvertMat=RenderElement._tempMatrix4x40;
@@ -8292,11 +8606,11 @@ window.Laya=(function(window,document){
 		*/
 		__proto.getDynamicBatchBakedVertexs=function(index){
 			var byteSizeInFloat=4;
-			var vb=this._renderObj.getVertexBuffer(index);
+			var vb=this._renderObj._getVertexBuffer(index);
 			var bakedVertexes=vb.getData().slice();
 			var vertexDeclaration=vb.vertexDeclaration;
-			var positionOffset=vertexDeclaration.shaderAttribute["POSITION"][4] / byteSizeInFloat;
-			var normalOffset=vertexDeclaration.shaderAttribute["NORMAL"][4] / byteSizeInFloat;
+			var positionOffset=vertexDeclaration.getVertexElementByUsage("POSITION").offset / byteSizeInFloat;
+			var normalOffset=vertexDeclaration.getVertexElementByUsage("NORMAL").offset / byteSizeInFloat;
 			var transform=this._sprite3D.transform;
 			var worldMatrix=transform.worldMatrix;
 			var rotation=transform.rotation;
@@ -8314,7 +8628,7 @@ window.Laya=(function(window,document){
 		*@private
 		*/
 		__proto.getBakedIndices=function(){
-			return this._renderObj.getIndexBuffer().getData();
+			return this._renderObj._getIndexBuffer().getData();
 		}
 
 		__getset(0,__proto,'renderObj',function(){
@@ -8565,6 +8879,7 @@ window.Laya=(function(window,document){
 
 
 	/**
+	*@private
 	*<code>RenderQuene</code> 类用于实现渲染队列。
 	*/
 	//class laya.d3.core.render.RenderQueue
@@ -8593,6 +8908,32 @@ window.Laya=(function(window,document){
 
 		__class(RenderQueue,'laya.d3.core.render.RenderQueue');
 		var __proto=RenderQueue.prototype;
+		__proto._sortAlphaFunc=function(a,b){
+			if (a._renderObject && b._renderObject)
+				return Vector3.distance(b._renderObject._boundingSphere.center,RenderQueue._cameraPosition)-Vector3.distance(a._renderObject._boundingSphere.center,RenderQueue._cameraPosition);
+			else
+			return 0;
+		}
+
+		/**
+		*@private
+		*/
+		__proto._begainRenderElement=function(state,renderObj,material){
+			if (renderObj._beforeRender(state)){
+				state.shaderValue.pushArray(renderObj._getVertexBuffer(0).vertexDeclaration.shaderValues);
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		*@private
+		*/
+		__proto._endRenderElement=function(state,renderObj,material){
+			material._upload(state,renderObj._getVertexBuffer(0).vertexDeclaration,null);
+			renderObj._render(state);
+		}
+
 		/**
 		*@private
 		*更新组件preRenderUpdate函数
@@ -8621,15 +8962,26 @@ window.Laya=(function(window,document){
 
 		/**
 		*@private
+		*/
+		__proto._sortAlpha=function(cameraPos){
+			RenderQueue._cameraPosition=cameraPos;
+			this._finalElements.sort(this._sortAlphaFunc);
+		}
+
+		/**
+		*@private
 		*应用渲染状态到显卡。
 		*@param gl WebGL上下文。
 		*/
-		__proto._setState=function(gl){
+		__proto._setState=function(gl,state){
 			WebGLContext.setDepthTest(gl,this._renderConfig.depthTest);
 			WebGLContext.setDepthMask(gl,this._renderConfig.depthMask);
 			WebGLContext.setBlend(gl,this._renderConfig.blend);
 			WebGLContext.setBlendFunc(gl,this._renderConfig.sFactor,this._renderConfig.dFactor);
 			WebGLContext.setCullFace(gl,this._renderConfig.cullFace);
+			if (state.camera.renderTarget)
+				WebGLContext.setFrontFaceCCW(gl,this._renderConfig.frontFace===0x0900 ? 0x0901 :0x0900);
+			else
 			WebGLContext.setFrontFaceCCW(gl,this._renderConfig.frontFace);
 		}
 
@@ -8652,38 +9004,45 @@ window.Laya=(function(window,document){
 		*/
 		__proto._render=function(state){
 			var preShaderValue=state.shaderValue.length;
-			var renderElement;
+			var preShadeDef=state.shaderDefs.getValue();
 			for (var i=0,n=this._finalElements.length;i < n;i++){
-				renderElement=this._finalElements[i];
-				var preShadeDef=0;
+				var renderElement=this._finalElements[i];
+				var renderObj,material;
 				if (renderElement._type===0){
 					var owner=renderElement._sprite3D;
 					state.owner=owner;
 					state.renderElement=renderElement;
-					preShadeDef=state.shaderDefs.getValue();
 					this._preRenderUpdateComponents(owner,state);
-					renderElement.renderObj._render(state);
+					renderObj=renderElement.renderObj,material=renderElement._material;
+					if (this._begainRenderElement(state,renderObj,material)){
+						material._setLoopShaderParams(state,state.projectionViewMatrix,owner.transform.worldMatrix,renderElement.renderObj,material);
+						this._endRenderElement(state,renderObj,material);
+					}
 					this._postRenderUpdateComponents(owner,state);
-					state.shaderDefs.setValue(preShadeDef);
 					}else if (renderElement._type===1){
 					var staticBatch=renderElement.renderObj;
 					state.owner=null;
 					state.renderElement=renderElement;
 					state._batchIndexStart=renderElement._batchIndexStart;
 					state._batchIndexEnd=renderElement._batchIndexEnd;
-					preShadeDef=state.shaderDefs.getValue();
-					renderElement.renderObj._render(state);
-					state.shaderDefs.setValue(preShadeDef);
+					renderObj=renderElement.renderObj,material=renderElement._material;
+					if (this._begainRenderElement(state,renderObj,material)){
+						renderElement._material._setLoopShaderParams(state,state.projectionViewMatrix,staticBatch._rootSprite.transform.worldMatrix,renderElement.renderObj,renderElement._material);
+						this._endRenderElement(state,renderObj,material);
+					}
 					}else if (renderElement._type===2){
 					var dynamicBatch=renderElement.renderObj;
 					state.owner=null;
 					state.renderElement=renderElement;
 					state._batchIndexStart=renderElement._batchIndexStart;
 					state._batchIndexEnd=renderElement._batchIndexEnd;
-					preShadeDef=state.shaderDefs.getValue();
-					renderElement.renderObj._render(state);
-					state.shaderDefs.setValue(preShadeDef);
+					renderObj=renderElement.renderObj,material=renderElement._material;
+					if (this._begainRenderElement(state,renderObj,material)){
+						renderElement._material._setLoopShaderParams(state,state.projectionViewMatrix,Matrix4x4.DEFAULT,renderElement.renderObj,renderElement._material);
+						this._endRenderElement(state,renderObj,material);
+					}
 				}
+				state.shaderDefs.setValue(preShadeDef);
 				state.shaderValue.length=preShaderValue;
 			}
 		}
@@ -8745,6 +9104,7 @@ window.Laya=(function(window,document){
 		RenderQueue.NONDEPTH_ALPHA_BLEND_DOUBLEFACE=12;
 		RenderQueue.NONDEPTH_ALPHA_ADDTIVE_BLEND=13;
 		RenderQueue.NONDEPTH_ALPHA_ADDTIVE_BLEND_DOUBLEFACE=14;
+		RenderQueue._cameraPosition=null
 		return RenderQueue;
 	})()
 
@@ -8755,7 +9115,6 @@ window.Laya=(function(window,document){
 	//class laya.d3.core.render.RenderState
 	var RenderState=(function(){
 		function RenderState(){
-			this._shadingMode=0;
 			this.elapsedTime=NaN;
 			this.loopCount=0;
 			this.context=null;
@@ -8788,22 +9147,6 @@ window.Laya=(function(window,document){
 			this.shaderDefs.setValue(0);
 			(WebGL.frameShaderHighPrecision)&& (this.shaderDefs.setValue(0x100000));
 		}
-
-		/**
-		*设置着色模式。
-		*@param value 着色模式
-		*/
-		/**
-		*获取着色模式。
-		*@return 着色模式
-		*/
-		__getset(0,__proto,'shadingMode',function(){
-			return this._shadingMode;
-			},function(value){
-			this.shaderDefs.remove(value==0x04 ? 0x08 :0x04);
-			this.shaderDefs.add(value);
-			this._shadingMode=value;
-		});
 
 		RenderState.VERTEXSHADERING=0x04;
 		RenderState.PIXELSHADERING=0x08;
@@ -8847,7 +9190,7 @@ window.Laya=(function(window,document){
 		__class(DynamicBatch,'laya.d3.graphics.DynamicBatch');
 		var __proto=DynamicBatch.prototype;
 		Laya.imps(__proto,{"laya.d3.core.render.IRenderable":true})
-		__proto.getVertexBuffer=function(index){
+		__proto._getVertexBuffer=function(index){
 			(index===void 0)&& (index=0);
 			if (index===0)
 				return this._vertexBuffer;
@@ -8855,23 +9198,12 @@ window.Laya=(function(window,document){
 			return null;
 		}
 
-		__proto.getIndexBuffer=function(){
+		__proto._getIndexBuffer=function(){
 			return this._indexBuffer;
 		}
 
-		__proto._getShader=function(state,vertexBuffer,material){
-			if (!material)
-				return null;
-			var def=0;
-			var shaderAttribute=vertexBuffer.vertexDeclaration.shaderAttribute;
-			(shaderAttribute.UV)&& (def |=material.shaderDef);
-			(shaderAttribute.COLOR)&& (def |=0x20);
-			(state.scene.enableFog)&& (def |=0x20000);
-			def > 0 && state.shaderDefs.addInt(def);
-			var shader=material.getShader(state);
-			return shader;
-		}
-
+		__proto._testTangent=function(state){}
+		//}
 		__proto._getCombineRenderElementFromPool=function(){
 			var renderElement=this._combineRenderElementPool[this._combineRenderElementPoolIndex++];
 			return renderElement || (this._combineRenderElementPool[this._combineRenderElementPoolIndex-1]=new RenderElement());
@@ -8922,8 +9254,8 @@ window.Laya=(function(window,document){
 
 		__proto._addCombineRenderObjTest=function(renderElement){
 			var renderObj=renderElement.renderObj;
-			var indexCount=this._currentCombineIndexCount+renderObj.getIndexBuffer().indexCount;
-			var vertexCount=this._currentCombineVertexCount+renderObj.getVertexBuffer().vertexCount;
+			var indexCount=this._currentCombineIndexCount+renderObj._getIndexBuffer().indexCount;
+			var vertexCount=this._currentCombineVertexCount+renderObj._getVertexBuffer().vertexCount;
 			if (vertexCount > DynamicBatch.maxVertexCount || indexCount > DynamicBatch.maxIndexCount){
 				return false;
 			}
@@ -8933,8 +9265,8 @@ window.Laya=(function(window,document){
 		__proto._addCombineRenderObj=function(renderElement){
 			var renderObj=renderElement.renderObj;
 			this._combineRenderElements.push(renderElement);
-			this._currentCombineIndexCount=this._currentCombineIndexCount+renderObj.getIndexBuffer().indexCount;
-			this._currentCombineVertexCount=this._currentCombineVertexCount+renderObj.getVertexBuffer().vertexCount;
+			this._currentCombineIndexCount=this._currentCombineIndexCount+renderObj._getIndexBuffer().indexCount;
+			this._currentCombineVertexCount=this._currentCombineVertexCount+renderObj._getVertexBuffer().vertexCount;
 		}
 
 		__proto._addCombineMaterial=function(material){
@@ -8959,46 +9291,33 @@ window.Laya=(function(window,document){
 			scene.getRenderQueue(this._materials[i].renderQueue)._addDynamicBatchElement(this._merageElements[i]);
 		}
 
+		__proto._beforeRender=function(state){
+			this._vertexBuffer._bind();
+			this._indexBuffer._bind();
+			return true;
+		}
+
 		__proto._render=function(state){
-			var vb=this._vertexBuffer;
-			var ib=this._indexBuffer;
-			var material=state.renderElement._material;
-			vb._bind();
-			ib._bind();
-			if (material){
-				var shader=this._getShader(state,vb,material);
-				var presz=state.shaderValue.length;
-				state.shaderValue.pushArray(vb.vertexDeclaration.shaderValues);
-				var worldMat=Matrix4x4.DEFAULT;
-				state.shaderValue.pushValue("MATRIX1",worldMat.elements,-1);
-				state.shaderValue.pushValue("MVPMATRIX",state.projectionViewMatrix.elements,-1);
-				if (!material.upload(state,null,shader)){
-					state.shaderValue.length=presz;
-					return false;
-				}
-				state.shaderValue.length=presz;
-			};
 			var indexCount=state._batchIndexEnd-state._batchIndexStart;
 			state.context.drawElements(0x0004,indexCount,0x1403,state._batchIndexStart *2);
 			Stat.drawCall++;
 			Stat.trianglesFaces+=indexCount / 3;
-			return true;
 		}
-
-		__getset(0,__proto,'VertexBufferCount',function(){
-			return 1;
-		});
 
 		__getset(0,__proto,'indexOfHost',function(){
 			return 0;
 		});
 
-		__getset(0,__proto,'triangleCount',function(){
-			return this._indexBuffer.indexCount / 3;
+		__getset(0,__proto,'_vertexBufferCount',function(){
+			return 1;
 		});
 
 		__getset(0,__proto,'combineRenderElementsCount',function(){
 			return this._combineRenderElements.length;
+		});
+
+		__getset(0,__proto,'triangleCount',function(){
+			return this._indexBuffer.indexCount / 3;
 		});
 
 		DynamicBatch.maxVertexCount=20000;
@@ -9062,7 +9381,7 @@ window.Laya=(function(window,document){
 			var laterAddMatToElementOffset=-1;
 			for (var i=0,n=this._prepareDynamicBatchCombineElements.length;i < n;i++){
 				curRenderElement=this._prepareDynamicBatchCombineElements[i];
-				var curDeclaration=curRenderElement.renderObj.getVertexBuffer(0).vertexDeclaration;
+				var curDeclaration=curRenderElement.renderObj._getVertexBuffer(0).vertexDeclaration;
 				var declarationChanged=(lastVertexDeclaration!==curDeclaration);
 				declarationChanged && (curbatchNumber=0,lastVertexDeclaration=curDeclaration);
 				var batchNumbrChanged=(curbatchNumber!==lastBatchNumber);
@@ -9089,7 +9408,7 @@ window.Laya=(function(window,document){
 							if (laterAddMaterial){
 								var lastRenderObj=laterAddRenderElement.renderObj;
 								var curRenderObj=curRenderElement.renderObj;
-								if (((lastRenderObj.getVertexBuffer().vertexCount+curRenderObj.getVertexBuffer().vertexCount)> DynamicBatch.maxVertexCount)|| ((lastRenderObj.getIndexBuffer().indexCount+curRenderObj.getIndexBuffer().indexCount)> DynamicBatch.maxIndexCount)){
+								if (((lastRenderObj._getVertexBuffer().vertexCount+curRenderObj._getVertexBuffer().vertexCount)> DynamicBatch.maxVertexCount)|| ((lastRenderObj._getIndexBuffer().indexCount+curRenderObj._getIndexBuffer().indexCount)> DynamicBatch.maxIndexCount)){
 									scene.getRenderQueue(laterAddRenderElement._material.renderQueue)._addRenderElement(laterAddRenderElement);
 									laterAddMaterial=curMaterial;
 									laterAddMatToElementOffset=curDynamicBatch.combineRenderElementsCount;
@@ -9200,7 +9519,7 @@ window.Laya=(function(window,document){
 							staticBatch._addRenderElement(renderElement);
 							}else {
 							var renderObj=renderElement.renderObj;
-							if ((renderObj.triangleCount < 50)&& (renderObj.VertexBufferCount===1)&& (renderObj.getIndexBuffer()))
+							if ((renderObj.triangleCount < 50)&& (renderObj._vertexBufferCount===1)&& (renderObj._getIndexBuffer())&&(renderElement._material.renderQueue<3))
 								dynamicBatchManager._addPrepareRenderElement(renderElement);
 							else
 							scene.getRenderQueue(renderElement._material.renderQueue)._addRenderElement(renderElement);
@@ -9221,9 +9540,9 @@ window.Laya=(function(window,document){
 	*...
 	*@author ...
 	*/
-	//class laya.d3.graphics.RenderCullingObject
-	var RenderCullingObject=(function(){
-		function RenderCullingObject(){
+	//class laya.d3.graphics.RenderObject
+	var RenderObject1=(function(){
+		function RenderObject(){
 			this._render=null;
 			this._renderElements=null;
 			this._layerMask=0;
@@ -9232,13 +9551,13 @@ window.Laya=(function(window,document){
 			this._renderElements=[];
 		}
 
-		__class(RenderCullingObject,'laya.d3.graphics.RenderCullingObject');
-		var __proto=RenderCullingObject.prototype;
+		__class(RenderObject,'laya.d3.graphics.RenderObject',null,'RenderObject1');
+		var __proto=RenderObject.prototype;
 		__getset(0,__proto,'_boundingSphere',function(){
 			return this._render.boundingSphere;
 		});
 
-		return RenderCullingObject;
+		return RenderObject;
 	})()
 
 
@@ -9249,8 +9568,6 @@ window.Laya=(function(window,document){
 	//class laya.d3.graphics.StaticBatch
 	var StaticBatch=(function(){
 		function StaticBatch(rootSprite,vertexDeclaration,material){
-			this._vertexDeclaration=null;
-			this._material=null;
 			this._vertexBuffer=null;
 			this._indexBuffer=null;
 			this._renderElements=null;
@@ -9261,6 +9578,8 @@ window.Laya=(function(window,document){
 			this._currentCombineIndexCount=0;
 			this._needFinishCombine=false;
 			this._rootSprite=null;
+			this._vertexDeclaration=null;
+			this._material=null;
 			this._currentCombineVertexCount=0;
 			this._currentCombineIndexCount=0;
 			this._needFinishCombine=false;
@@ -9276,7 +9595,9 @@ window.Laya=(function(window,document){
 		__class(StaticBatch,'laya.d3.graphics.StaticBatch');
 		var __proto=StaticBatch.prototype;
 		Laya.imps(__proto,{"laya.d3.core.render.IRenderable":true})
-		__proto.getVertexBuffer=function(index){
+		__proto._testTangent=function(state){}
+		//}
+		__proto._getVertexBuffer=function(index){
 			(index===void 0)&& (index=0);
 			if (index===0)
 				return this._vertexBuffer;
@@ -9284,21 +9605,8 @@ window.Laya=(function(window,document){
 			return null;
 		}
 
-		__proto.getIndexBuffer=function(){
+		__proto._getIndexBuffer=function(){
 			return this._indexBuffer;
-		}
-
-		__proto._getShader=function(state,vertexBuffer,material){
-			if (!material)
-				return null;
-			var def=0;
-			var shaderAttribute=vertexBuffer.vertexDeclaration.shaderAttribute;
-			(shaderAttribute.UV)&& (def |=material.shaderDef);
-			(shaderAttribute.COLOR)&& (def |=0x20);
-			(state.scene.enableFog)&& (def |=0x20000);
-			def > 0 && state.shaderDefs.addInt(def);
-			var shader=material.getShader(state);
-			return shader;
 		}
 
 		__proto._getCombineRenderElementFromPool=function(){
@@ -9308,7 +9616,7 @@ window.Laya=(function(window,document){
 
 		__proto._addCombineRenderObjTest=function(renderElement){
 			var renderObj=renderElement.renderObj;
-			var vertexCount=this._currentCombineVertexCount+renderObj.getVertexBuffer().vertexCount;
+			var vertexCount=this._currentCombineVertexCount+renderObj._getVertexBuffer().vertexCount;
 			if (vertexCount > StaticBatch.maxVertexCount){
 				return false;
 			}
@@ -9319,8 +9627,8 @@ window.Laya=(function(window,document){
 			var renderObj=renderElement.renderObj;
 			this._combineRenderElements.push(renderElement);
 			renderElement._staticBatch=this;
-			this._currentCombineIndexCount=this._currentCombineIndexCount+renderObj.getIndexBuffer().indexCount;
-			this._currentCombineVertexCount=this._currentCombineVertexCount+renderObj.getVertexBuffer().vertexCount;
+			this._currentCombineIndexCount=this._currentCombineIndexCount+renderObj._getIndexBuffer().indexCount;
+			this._currentCombineVertexCount=this._currentCombineVertexCount+renderObj._getVertexBuffer().vertexCount;
 			this._needFinishCombine=true;
 		}
 
@@ -9330,8 +9638,8 @@ window.Laya=(function(window,document){
 			if (index!==-1){
 				this._combineRenderElements.splice(index,1);
 				renderElement._staticBatch=null;
-				this._currentCombineIndexCount=this._currentCombineIndexCount-renderObj.getIndexBuffer().indexCount;
-				this._currentCombineVertexCount=this._currentCombineVertexCount-renderObj.getVertexBuffer().vertexCount;
+				this._currentCombineIndexCount=this._currentCombineIndexCount-renderObj._getIndexBuffer().indexCount;
+				this._currentCombineVertexCount=this._currentCombineVertexCount-renderObj._getVertexBuffer().vertexCount;
 				this._needFinishCombine=true;
 			}
 		}
@@ -9420,34 +9728,20 @@ window.Laya=(function(window,document){
 		}
 
 		//TODO:>0移到外层
+		__proto._beforeRender=function(state){
+			this._vertexBuffer._bind();
+			this._indexBuffer._bind();
+			return true;
+		}
+
 		__proto._render=function(state){
-			var vb=this._vertexBuffer;
-			var ib=this._indexBuffer;
-			var material=state.renderElement._material;
-			vb._bind();
-			ib._bind();
-			if (material){
-				var shader=this._getShader(state,vb,material);
-				var presz=state.shaderValue.length;
-				state.shaderValue.pushArray(vb.vertexDeclaration.shaderValues);
-				var worldMat=this._rootSprite.transform.worldMatrix;
-				state.shaderValue.pushValue("MATRIX1",worldMat.elements,-1);
-				Matrix4x4.multiply(state.projectionViewMatrix,worldMat,this._rootSprite.wvpMatrix);
-				state.shaderValue.pushValue("MVPMATRIX",this._rootSprite.wvpMatrix.elements,-1);
-				if (!material.upload(state,null,shader)){
-					state.shaderValue.length=presz;
-					return false;
-				}
-				state.shaderValue.length=presz;
-			};
 			var indexCount=state._batchIndexEnd-state._batchIndexStart;
 			state.context.drawElements(0x0004,indexCount,0x1403,state._batchIndexStart *2);
 			Stat.drawCall++;
 			Stat.trianglesFaces+=indexCount / 3;
-			return true;
 		}
 
-		__getset(0,__proto,'VertexBufferCount',function(){
+		__getset(0,__proto,'_vertexBufferCount',function(){
 			return 1;
 		});
 
@@ -9465,7 +9759,7 @@ window.Laya=(function(window,document){
 				var renderElements=(sprite3D).meshRender.renderCullingObject._renderElements;
 				for (i=0,n=renderElements.length;i < n;i++){
 					var renderElement=renderElements[i];
-					if (renderElement.renderObj.VertexBufferCount===1)
+					if (renderElement.renderObj._vertexBufferCount===1)
 						scene._staticBatchManager._addPrepareRenderElement(renderElement);
 				}
 			}
@@ -9544,13 +9838,13 @@ window.Laya=(function(window,document){
 			var batchNumber=0;
 			for (var i=0,n=this._prepareStaticBatchCombineElements.length;i < n;i++){
 				renderElement=this._prepareStaticBatchCombineElements[i];
-				vb=renderElement.renderObj.getVertexBuffer(0);
+				vb=renderElement.renderObj._getVertexBuffer(0);
 				if ((lastVertexDeclaration===vb.vertexDeclaration)&& (lastMaterial===renderElement._material)){
 					if (!lastCanMerage){
 						lastRenderObj=this._prepareStaticBatchCombineElements[i-1];
 						var lastRenderElement=lastRenderObj.renderObj;
 						var curRenderElement=renderElement.renderObj;
-						if (((lastRenderElement.getVertexBuffer().vertexCount+curRenderElement.getVertexBuffer().vertexCount)> StaticBatch.maxVertexCount)){
+						if (((lastRenderElement._getVertexBuffer().vertexCount+curRenderElement._getVertexBuffer().vertexCount)> StaticBatch.maxVertexCount)){
 							lastCanMerage=false;
 							}else {
 							curStaticBatch=this.getStaticBatch(rootSprite,lastVertexDeclaration,lastMaterial,batchNumber);
@@ -9616,30 +9910,42 @@ window.Laya=(function(window,document){
 		function VertexDeclaration(vertexStride,vertexElements){
 			this._id=0;
 			this._shaderValues=null;
-			this._shaderAttribute=null;
+			this._shaderDefine=0;
 			this._vertexStride=0;
 			this._vertexElements=null;
+			this._vertexElementsDic=null;
 			this._id=++VertexDeclaration._uniqueIDCounter;
 			if (this._id > VertexDeclaration.maxVertexDeclaration)
 				throw new Error("VertexDeclaration: VertexDeclaration count should not large than ",VertexDeclaration.maxVertexDeclaration);
-			this._shaderAttribute={};
 			this._shaderValues=new ValusArray();
+			this._vertexElementsDic={};
 			this._vertexStride=vertexStride;
 			this._vertexElements=vertexElements;
 			for (var i=0;i < vertexElements.length;i++){
 				var vertexElement=vertexElements[i];
 				var attributeName=vertexElement.elementUsage;
+				this._vertexElementsDic[attributeName]=vertexElement;
 				var value=[VertexDeclaration._getTypeSize(vertexElement.elementFormat)/ 4,0x1406,false,this._vertexStride,vertexElement.offset];
-				this._shaderValues.pushValue(attributeName,value,-1);
-				this._shaderAttribute[attributeName]=value;
+				this._shaderValues.pushValue(attributeName,value);
+				switch (attributeName){
+					case "UV":
+						this._shaderDefine |=0x200000;
+						break ;
+					case "COLOR":
+						this._shaderDefine |=0x20;
+						break ;
+					}
 			}
 		}
 
 		__class(VertexDeclaration,'laya.d3.graphics.VertexDeclaration');
 		var __proto=VertexDeclaration.prototype;
-		//临时
 		__proto.getVertexElements=function(){
 			return this._vertexElements.slice();
+		}
+
+		__proto.getVertexElementByUsage=function(usage){
+			return this._vertexElementsDic[usage];
 		}
 
 		__proto.unBinding=function(){}
@@ -9651,8 +9957,8 @@ window.Laya=(function(window,document){
 			return this._id;
 		});
 
-		__getset(0,__proto,'shaderAttribute',function(){
-			return this._shaderAttribute;
+		__getset(0,__proto,'shaderDefine',function(){
+			return this._shaderDefine;
 		});
 
 		__getset(0,__proto,'shaderValues',function(){
@@ -10914,12 +11220,12 @@ window.Laya=(function(window,document){
 				if (material){
 					this._materials[index]=material;
 					}else {
-					material=this._materials[index]=Resource.materialCache[url]=new Material();
+					material=this._materials[index]=Resource.materialCache[url]=new StandardMaterial();
 					material.setShaderName(shaderName);
-					Material.createFromFile(url,material);
+					BaseMaterial.createFromFile(url,material);
 				}
 				}else {
-				this._materials[index]=new Material();
+				this._materials[index]=new BaseMaterial();
 			}
 			return true;
 		}
@@ -10970,13 +11276,13 @@ window.Laya=(function(window,document){
 			var boneDicofs=this._readData.getUint32();
 			var boneDicsize=this._readData.getUint32();
 			var arrayBuffer=this._readData.__getBuffer();
-			var submesh=new SubMesh1(this._mesh);
+			var submesh=new SubMesh1();
 			var vertexDeclaration=this._getVertexDeclaration();
 			var vb=VertexBuffer3D.create(vertexDeclaration,vbsize / vertexDeclaration.vertexStride,0x88E4,true);
 			var vbStart=vbofs+this._DATA.offset;
 			var vbArrayBuffer=arrayBuffer.slice(vbStart,vbStart+vbsize);
 			vb.setData(new Float32Array(vbArrayBuffer));
-			submesh.setVB(vb);
+			submesh._vertexBuffer=vb;
 			var vertexElements=vb.vertexDeclaration.getVertexElements();
 			for (var i=0;i < vertexElements.length;i++)
 			submesh._bufferUsage[(vertexElements [i]).elementUsage]=vb;
@@ -10984,9 +11290,9 @@ window.Laya=(function(window,document){
 			var ibStart=ibofs+this._DATA.offset;
 			var ibArrayBuffer=arrayBuffer.slice(ibStart,ibStart+ibsize);
 			ib.setData(new Uint16Array(ibArrayBuffer));
-			submesh.setIB(ib,ibsize / 2);
+			submesh._indexBuffer=ib;
 			var boneDicArrayBuffer=arrayBuffer.slice(boneDicofs+this._DATA.offset,boneDicofs+this._DATA.offset+boneDicsize);
-			submesh._setBoneDic(new Uint8Array(boneDicArrayBuffer));
+			submesh._boneIndices=new Uint8Array(boneDicArrayBuffer);
 			this._mesh._add(submesh);
 			return true;
 		}
@@ -10996,7 +11302,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto._getVertexDeclaration=function(){
-			var position=false,normal=false,color=false,texcoord0=false,texcoord1=false,blendWeight=false,blendIndex=false;
+			var position=false,normal=false,color=false,texcoord0=false,texcoord1=false,tangent=false,blendWeight=false,blendIndex=false;
 			for (var i=0;i < this._shaderAttributes.length;i+=8){
 				switch (this._shaderAttributes[i]){
 					case "POSITION":
@@ -11013,6 +11319,9 @@ window.Laya=(function(window,document){
 						break ;
 					case "UV1":
 						texcoord1=true;
+						break ;
+					case "TANGENT":
+						tangent=true;
 						break ;
 					case "BLENDWEIGHT":
 						blendWeight=true;
@@ -11613,24 +11922,21 @@ window.Laya=(function(window,document){
 			if (box1MineX > box2MaxeX){
 				delta=box1MineX-box2MaxeX;
 				distance+=delta *delta;
-			}
-			else if(box2MineX > box1MaxeX){
+				}else if (box2MineX > box1MaxeX){
 				delta=box2MineX-box1MaxeX;
 				distance+=delta *delta;
 			}
 			if (box1MineY > box2MaxeY){
 				delta=box1MineY-box2MaxeY;
 				distance+=delta *delta;
-			}
-			else if(box2MineY > box1MaxeY){
+				}else if (box2MineY > box1MaxeY){
 				delta=box2MineY-box1MaxeY;
 				distance+=delta *delta;
 			}
 			if (box1MineZ > box2MaxeZ){
 				delta=box1MineZ-box2MaxeZ;
 				distance+=delta *delta;
-			}
-			else if(box2MineZ > box1MaxeZ){
+				}else if (box2MineZ > box1MaxeZ){
 				delta=box2MineZ-box1MaxeZ;
 				distance+=delta *delta;
 			}
@@ -11647,6 +11953,103 @@ window.Laya=(function(window,document){
 			var distance=Math.sqrt(Vector3.distanceSquared(sphere1.center,sphere2.center));
 			distance-=sphere1.radius+sphere2.radius;
 			return Math.max(distance,0);
+		}
+
+		Collision.intersectsRayAndTriangleRD=function(ray,vertex1,vertex2,vertex3,out){
+			var rayO=ray.origin;
+			var rayOe=rayO.elements;
+			var rayOeX=rayOe[0];
+			var rayOeY=rayOe[1];
+			var rayOeZ=rayOe[2];
+			var rayD=ray.direction;
+			var rayDe=rayD.elements;
+			var rayDeX=rayDe[0];
+			var rayDeY=rayDe[1];
+			var rayDeZ=rayDe[2];
+			var v1e=vertex1.elements;
+			var v1eX=v1e[0];
+			var v1eY=v1e[1];
+			var v1eZ=v1e[2];
+			var v2e=vertex2.elements;
+			var v2eX=v2e[0];
+			var v2eY=v2e[1];
+			var v2eZ=v2e[2];
+			var v3e=vertex3.elements;
+			var v3eX=v3e[0];
+			var v3eY=v3e[1];
+			var v3eZ=v3e[2];
+			var _tempV30e=Collision._tempV30.elements;
+			var _tempV30eX=_tempV30e[0];
+			var _tempV30eY=_tempV30e[1];
+			var _tempV30eZ=_tempV30e[2];
+			_tempV30eX=v2eX-v1eX;
+			_tempV30eY=v2eY-v1eY;
+			_tempV30eZ=v2eZ-v1eZ;
+			var _tempV31e=Collision._tempV31.elements;
+			var _tempV31eX=_tempV31e[0];
+			var _tempV31eY=_tempV31e[1];
+			var _tempV31eZ=_tempV31e[2];
+			_tempV31eX=v3eX-v1eX;
+			_tempV31eY=v3eY-v1eY;
+			_tempV31eZ=v3eZ-v1eZ;
+			var _tempV32e=Collision._tempV32.elements;
+			var _tempV32eX=_tempV32e[0];
+			var _tempV32eY=_tempV32e[1];
+			var _tempV32eZ=_tempV32e[2];
+			_tempV32eX=(rayDeY *_tempV31eZ)-(rayDeZ *_tempV31eY);
+			_tempV32eY=(rayDeZ *_tempV31eX)-(rayDeX *_tempV31eZ);
+			_tempV32eZ=(rayDeX *_tempV31eY)-(rayDeY *_tempV31eX);
+			var determinant=(_tempV30eX *_tempV32eX)+(_tempV30eY *_tempV32eY)+(_tempV30eZ *_tempV32eZ);
+			if (MathUtils3D.isZero(determinant)){
+				out=0;
+				return false;
+			};
+			var inversedeterminant=1 / determinant;
+			var _tempV33e=Collision._tempV33.elements;
+			var _tempV33eX=_tempV33e[0];
+			var _tempV33eY=_tempV33e[1];
+			var _tempV33eZ=_tempV33e[2];
+			_tempV33eX=rayOeX-v1eX;
+			_tempV33eY=rayOeY-v1eY;
+			_tempV33eZ=rayOeZ-v1eZ;
+			var triangleU=(_tempV33eX *_tempV32eX)+(_tempV33eY *_tempV32eY)+(_tempV33eZ *_tempV32eZ);
+			triangleU *=inversedeterminant;
+			if (triangleU < 0 || triangleU > 1){
+				out=0;
+				return false;
+			};
+			var _tempV34e=Collision._tempV34.elements;
+			var _tempV34eX=_tempV34e[0];
+			var _tempV34eY=_tempV34e[1];
+			var _tempV34eZ=_tempV34e[2];
+			_tempV34eX=(_tempV33eY *_tempV30eZ)-(_tempV33eZ *_tempV30eY);
+			_tempV34eY=(_tempV33eZ *_tempV30eX)-(_tempV33eX *_tempV30eZ);
+			_tempV34eZ=(_tempV33eX *_tempV30eY)-(_tempV33eY *_tempV30eX);
+			var triangleV=((rayDeX *_tempV34eX)+(rayDeY *_tempV34eY))+(rayDeZ *_tempV34eZ);
+			triangleV *=inversedeterminant;
+			if (triangleV < 0 || triangleU+triangleV > 1){
+				out=0;
+				return false;
+			};
+			var raydistance=(_tempV31eX *_tempV34eX)+(_tempV31eY *_tempV34eY)+(_tempV31eZ *_tempV34eZ);
+			raydistance *=inversedeterminant;
+			if (raydistance < 0){
+				out=0;
+				return false;
+			}
+			out=raydistance;
+			return true;
+		}
+
+		Collision.intersectsRayAndTriangleRP=function(ray,vertex1,vertex2,vertex3,out){
+			var distance=NaN;
+			if (!Collision.intersectsRayAndTriangleRD(ray,vertex1,vertex2,vertex3,distance)){
+				out=Vector3.ZERO;
+				return false;
+			}
+			Vector3.scale(ray.direction,distance,Collision._tempV30);
+			Vector3.add(ray.origin,Collision._tempV30,out);
+			return true;
 		}
 
 		Collision.intersectsRayAndPoint=function(ray,point){
@@ -11722,6 +12125,17 @@ window.Laya=(function(window,document){
 			return true;
 		}
 
+		Collision.intersectsPlaneAndTriangle=function(plane,vertex1,vertex2,vertex3){
+			var test1=Collision.intersectsPlaneAndPoint(plane,vertex1);
+			var test2=Collision.intersectsPlaneAndPoint(plane,vertex2);
+			var test3=Collision.intersectsPlaneAndPoint(plane,vertex3);
+			if (test1==Plane.PlaneIntersectionType_Front && test2==Plane.PlaneIntersectionType_Front && test3==Plane.PlaneIntersectionType_Front)
+				return Plane.PlaneIntersectionType_Front;
+			if (test1==Plane.PlaneIntersectionType_Back && test2==Plane.PlaneIntersectionType_Back && test3==Plane.PlaneIntersectionType_Back)
+				return Plane.PlaneIntersectionType_Back;
+			return Plane.PlaneIntersectionType_Intersecting;
+		}
+
 		Collision.intersectsRayAndPlaneRD=function(ray,plane,out){
 			var planeNor=plane.normal;
 			var direction=Vector3.dot(planeNor,ray.direction);
@@ -11751,7 +12165,7 @@ window.Laya=(function(window,document){
 		}
 
 		Collision.intersectsRayAndBoxRD=function(ray,box,out){
-			var rayoe=ray.origin.elements;;
+			var rayoe=ray.origin.elements;
 			var rayoeX=rayoe[0];
 			var rayoeY=rayoe[1];
 			var rayoeZ=rayoe[2];
@@ -11774,7 +12188,7 @@ window.Laya=(function(window,document){
 					out=0;
 					return false;
 				}
-				}else{
+				}else {
 				var inverse=1 / raydeX;
 				var t1=(boxMineX-rayoeX)*inverse;
 				var t2=(boxMaxeX-rayoeX)*inverse;
@@ -11795,7 +12209,7 @@ window.Laya=(function(window,document){
 					out=0;
 					return false;
 				}
-				}else{
+				}else {
 				var inverse1=1 / raydeY;
 				var t3=(boxMineY-rayoeY)*inverse1;
 				var t4=(boxMaxeY-rayoeY)*inverse1;
@@ -11816,7 +12230,7 @@ window.Laya=(function(window,document){
 					out=0;
 					return false;
 				}
-				}else{
+				}else {
 				var inverse2=1 / raydeZ;
 				var t5=(boxMineZ-rayoeZ)*inverse2;
 				var t6=(boxMaxeZ-rayoeZ)*inverse2;
@@ -11877,6 +12291,15 @@ window.Laya=(function(window,document){
 			Vector3.add(ray.origin,Collision._tempV30,Collision._tempV31);
 			out=Collision._tempV31;
 			return true;
+		}
+
+		Collision.intersectsSphereAndTriangle=function(sphere,vertex1,vertex2,vertex3){
+			var sphereC=sphere.center;
+			var sphereR=sphere.radius;
+			Collision.closestPointPointTriangle(sphereC,vertex1,vertex2,vertex3,Collision._tempV30);
+			Vector3.subtract(Collision._tempV30,sphereC,Collision._tempV31);
+			var dot=Vector3.dot(Collision._tempV31,Collision._tempV31);
+			return dot <=sphereR *sphereR;
 		}
 
 		Collision.intersectsPlaneAndPoint=function(plane,point){
@@ -11955,17 +12378,9 @@ window.Laya=(function(window,document){
 
 		Collision.intersectsBoxAndBox=function(box1,box2){
 			var box1Mine=box1.min.elements;
-			var box1MineY=box1Mine[1];
-			var box1MineZ=box1Mine[2];
 			var box1Maxe=box1.max.elements;
-			var box1MaxeY=box1Maxe[1];
-			var box1MaxeZ=box1Maxe[2];
 			var box2Mine=box2.min.elements;
-			var box2MineY=box2Mine[1];
-			var box2MineZ=box2Mine[2];
 			var box2Maxe=box2.max.elements;
-			var box2MaxeY=box2Maxe[1];
-			var box2MaxeZ=box2Maxe[2];
 			if (box1Mine[0] > box2Maxe[0] || box2Mine[0] > box1Maxe[0])
 				return false;
 			if (box1Mine[1] > box2Maxe[1] || box2Mine[1] > box1Maxe[1])
@@ -11988,8 +12403,252 @@ window.Laya=(function(window,document){
 			return Vector3.distanceSquared(sphere1.center,sphere2.center)<=radiisum *radiisum;
 		}
 
+		Collision.boxContainsPoint=function(box,point){
+			var boxMine=box.min.elements;
+			var boxMaxe=box.max.elements;
+			var pointe=point.elements;
+			if (boxMine[0] <=pointe[0] && boxMaxe[0] >=pointe[0] && boxMine[1] <=pointe[1] && boxMaxe[1] >=pointe[1] && boxMine[2] <=pointe[2] && boxMaxe[2] >=pointe[2])
+				return 1;
+			return 0;
+		}
+
+		Collision.boxContainsBox=function(box1,box2){
+			var box1Mine=box1.min.elements;
+			var box1MineX=box1Mine[0];
+			var box1MineY=box1Mine[1];
+			var box1MineZ=box1Mine[2];
+			var box1Maxe=box1.max.elements;
+			var box1MaxeX=box1Maxe[0];
+			var box1MaxeY=box1Maxe[1];
+			var box1MaxeZ=box1Maxe[2];
+			var box2Mine=box2.min.elements;
+			var box2MineX=box2Mine[0];
+			var box2MineY=box2Mine[1];
+			var box2MineZ=box2Mine[2];
+			var box2Maxe=box2.max.elements;
+			var box2MaxeX=box2Maxe[0];
+			var box2MaxeY=box2Maxe[1];
+			var box2MaxeZ=box2Maxe[2];
+			if (box1MaxeX < box2MineX || box1MineX > box2MaxeX)
+				return 0;
+			if (box1MaxeY < box2MineY || box1MineY > box2MaxeY)
+				return 0;
+			if (box1MaxeZ < box2MineZ || box1MineZ > box2MaxeZ)
+				return 0;
+			if (box1MineX <=box2MineX && box2MaxeX <=box2MineX && box1MineY <=box2MineY && box2MaxeY <=box1MaxeY && box1MineZ <=box2MineZ && box2MaxeZ <=box1MaxeZ){
+				return 1;
+			}
+			return 2;
+		}
+
+		Collision.boxContainsSphere=function(box,sphere){
+			var boxMin=box.min;
+			var boxMine=boxMin.elements;
+			var boxMineX=boxMine[0];
+			var boxMineY=boxMine[1];
+			var boxMineZ=boxMine[2];
+			var boxMax=box.max;
+			var boxMaxe=boxMax.elements;
+			var boxMaxeX=boxMaxe[0];
+			var boxMaxeY=boxMaxe[1];
+			var boxMaxeZ=boxMaxe[2];
+			var sphereC=sphere.center;
+			var sphereCe=sphereC.elements;
+			var sphereCeX=sphereCe[0];
+			var sphereCeY=sphereCe[1];
+			var sphereCeZ=sphereCe[2];
+			var sphereR=sphere.radius;
+			Vector3.Clamp(sphereC,boxMin,boxMax,Collision._tempV30);
+			var distance=Vector3.distanceSquared(sphereC,Collision._tempV30);
+			if (distance > sphereR *sphereR)
+				return 0;
+			if ((((boxMineX+sphereR <=sphereCeX)&& (sphereCeX <=boxMaxeX-sphereR))&& ((boxMaxeX-boxMineX > sphereR)&&
+				(boxMineY+sphereR <=sphereCeY)))&& (((sphereCeY <=boxMaxeY-sphereR)&& (boxMaxeY-boxMineY > sphereR))&&
+			(((boxMineZ+sphereR <=sphereCeZ)&& (sphereCeZ <=boxMaxeZ-sphereR))&& (boxMaxeZ-boxMineZ > sphereR))))
+			return 1;
+			return 2;
+		}
+
+		Collision.sphereContainsPoint=function(sphere,point){
+			if (Vector3.distanceSquared(point,sphere.center)<=sphere.radius *sphere.radius)
+				return 1;
+			return 0;
+		}
+
+		Collision.sphereContainsTriangle=function(sphere,vertex1,vertex2,vertex3){
+			var test1=Collision.sphereContainsPoint(sphere,vertex1);
+			var test2=Collision.sphereContainsPoint(sphere,vertex2);
+			var test3=Collision.sphereContainsPoint(sphere,vertex3);
+			if (test1==1 && test2==1 && test3==1)
+				return 1;
+			if (Collision.intersectsSphereAndTriangle(sphere,vertex1,vertex2,vertex3))
+				return 2;
+			return 0;
+		}
+
+		Collision.sphereContainsBox=function(sphere,box){
+			var sphereC=sphere.center;
+			var sphereCe=sphereC.elements;
+			var sphereCeX=sphereCe[0];
+			var sphereCeY=sphereCe[1];
+			var sphereCeZ=sphereCe[2];
+			var sphereR=sphere.radius;
+			var boxMin=box.min;
+			var boxMine=boxMin.elements;
+			var boxMineX=boxMine[0];
+			var boxMineY=boxMine[1];
+			var boxMineZ=boxMine[2];
+			var boxMax=box.max;
+			var boxMaxe=boxMax.elements;
+			var boxMaxeX=boxMaxe[0];
+			var boxMaxeY=boxMaxe[1];
+			var boxMaxeZ=boxMaxe[2];
+			var _tempV30e=Collision._tempV30.elements;
+			var _tempV30eX=_tempV30e[0];
+			var _tempV30eY=_tempV30e[1];
+			var _tempV30eZ=_tempV30e[2];
+			if (!Collision.intersectsBoxAndSphere(box,sphere))
+				return 0;
+			var radiusSquared=sphereR *sphereR;
+			_tempV30eX=sphereCeX-boxMineX;
+			_tempV30eY=sphereCeY-boxMaxeY;
+			_tempV30eZ=sphereCeZ-boxMaxeZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMaxeX;
+			_tempV30eY=sphereCeY-boxMaxeY;
+			_tempV30eZ=sphereCeZ-boxMaxeZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMaxeX;
+			_tempV30eY=sphereCeY-boxMineY;
+			_tempV30eZ=sphereCeZ-boxMaxeZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMineX;
+			_tempV30eY=sphereCeY-boxMineY;
+			_tempV30eZ=sphereCeZ-boxMaxeZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMineX;
+			_tempV30eY=sphereCeY-boxMaxeY;
+			_tempV30eZ=sphereCeZ-boxMineZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMaxeX;
+			_tempV30eY=sphereCeY-boxMaxeY;
+			_tempV30eZ=sphereCeZ-boxMineZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMaxeX;
+			_tempV30eY=sphereCeY-boxMineY;
+			_tempV30eZ=sphereCeZ-boxMineZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			_tempV30eX=sphereCeX-boxMineX;
+			_tempV30eY=sphereCeY-boxMineY;
+			_tempV30eZ=sphereCeZ-boxMineZ;
+			if (Vector3.scalarLengthSquared(Collision._tempV30)> radiusSquared)
+				return 2;
+			return 1;
+		}
+
+		Collision.sphereContainsSphere=function(sphere1,sphere2){
+			var sphere1R=sphere1.radius;
+			var sphere2R=sphere2.radius;
+			var distance=Vector3.distance(sphere1.center,sphere2.center);
+			if (sphere1R+sphere2R < distance)
+				return 0;
+			if (sphere1R-sphere2R < distance)
+				return 2;
+			return 1;
+		}
+
+		Collision.closestPointPointTriangle=function(point,vertex1,vertex2,vertex3,out){
+			Vector3.subtract(vertex2,vertex1,Collision._tempV30);
+			Vector3.subtract(vertex3,vertex1,Collision._tempV31);
+			Vector3.subtract(point,vertex1,Collision._tempV32);
+			Vector3.subtract(point,vertex2,Collision._tempV33);
+			Vector3.subtract(point,vertex3,Collision._tempV34);
+			var d1=Vector3.dot(Collision._tempV30,Collision._tempV32);
+			var d2=Vector3.dot(Collision._tempV31,Collision._tempV32);
+			var d3=Vector3.dot(Collision._tempV30,Collision._tempV33);
+			var d4=Vector3.dot(Collision._tempV31,Collision._tempV33);
+			var d5=Vector3.dot(Collision._tempV30,Collision._tempV34);
+			var d6=Vector3.dot(Collision._tempV31,Collision._tempV34);
+			if (d1 <=0 && d2 <=0){
+				vertex1.cloneTo(out);
+				return;
+			}
+			if (d3 >=0 && d4 <=d3){
+				vertex2.cloneTo(out);
+				return;
+			};
+			var vc=d1 *d4-d3 *d2;
+			if (vc <=0 && d1 >=0 && d3 <=0){
+				var v=d1 / (d1-d3);
+				Vector3.scale(Collision._tempV30,v,out);
+				Vector3.add(vertex1,out,out);
+				return;
+			}
+			if (d6 >=0 && d5 <=d6){
+				vertex3.cloneTo(out);
+				return;
+			};
+			var vb=d5 *d2-d1 *d6;
+			if (vb <=0 && d2 >=0 && d6 <=0){
+				var w=d2 / (d2-d6);
+				Vector3.scale(Collision._tempV31,w,out);
+				Vector3.add(vertex1,out,out);
+				return;
+			};
+			var va=d3 *d6-d5 *d4;
+			if (va <=0 && (d4-d3)>=0 && (d5-d6)>=0){
+				var w3=(d4-d3)/ ((d4-d3)+(d5-d6));
+				Vector3.subtract(vertex3,vertex2,out);
+				Vector3.scale(out,w3,out);
+				Vector3.add(vertex2,out,out);
+				return;
+			};
+			var denom=1 / (va+vb+vc);
+			var v2=vb *denom;
+			var w2=vc *denom;
+			Vector3.scale(Collision._tempV30,v2,Collision._tempV35);
+			Vector3.scale(Collision._tempV31,w2,Collision._tempV36);
+			Vector3.add(Collision._tempV35,Collision._tempV36,out);
+			Vector3.add(vertex1,out,out);
+		}
+
+		Collision.closestPointPlanePoint=function(plane,point,out){
+			var planeN=plane.normal;
+			var t=Vector3.dot(planeN,point)-plane.distance;
+			Vector3.scale(planeN,t,Collision._tempV30);
+			Vector3.subtract(point,Collision._tempV30,out);
+		}
+
+		Collision.closestPointBoxPoint=function(box,point,out){
+			Vector3.max(point,box.min,Collision._tempV30);
+			Vector3.min(Collision._tempV30,box.max,out);
+		}
+
+		Collision.closestPointSpherePoint=function(sphere,point,out){
+			var sphereC=sphere.center;
+			Vector3.subtract(point,sphereC,out);
+			Vector3.normalize(out,out);
+			Vector3.scale(out,sphere.radius,out);
+			Vector3.add(out,sphereC,out);
+		}
+
+		Collision.closestPointSphereSphere=function(sphere1,sphere2,out){
+			var sphere1C=sphere1.center;
+			Vector3.subtract(sphere2.center,sphere1C,out);
+			Vector3.normalize(out,out);
+			Vector3.scale(out,sphere1.radius,out);
+			Vector3.add(out,sphere1C,out);
+		}
+
 		__static(Collision,
-		['_tempV30',function(){return this._tempV30=new Vector3();},'_tempV31',function(){return this._tempV31=new Vector3();},'_tempV32',function(){return this._tempV32=new Vector3();},'_tempV33',function(){return this._tempV33=new Vector3();},'_tempV34',function(){return this._tempV34=new Vector3();}
+		['_tempV30',function(){return this._tempV30=new Vector3();},'_tempV31',function(){return this._tempV31=new Vector3();},'_tempV32',function(){return this._tempV32=new Vector3();},'_tempV33',function(){return this._tempV33=new Vector3();},'_tempV34',function(){return this._tempV34=new Vector3();},'_tempV35',function(){return this._tempV35=new Vector3();},'_tempV36',function(){return this._tempV36=new Vector3();}
 		]);
 		return Collision;
 	})()
@@ -13499,6 +14158,15 @@ window.Laya=(function(window,document){
 			return (x *x)+(y *y)+(z *z);
 		}
 
+		Vector3.distance=function(value1,value2){
+			var value1e=value1.elements;
+			var value2e=value2.elements;
+			var x=value1e[0]-value2e[0];
+			var y=value1e[1]-value2e[1];
+			var z=value1e[2]-value2e[2];
+			return Math.sqrt((x *x)+(y *y)+(z *z));
+		}
+
 		Vector3.min=function(a,b,out){
 			var e=out.elements;
 			var f=a.elements;
@@ -13532,6 +14200,12 @@ window.Laya=(function(window,document){
 			var f=a.elements;
 			var x=f[0],y=f[1],z=f[2];
 			return Math.sqrt(x *x+y *y+z *z);
+		}
+
+		Vector3.scalarLengthSquared=function(a){
+			var f=a.elements;
+			var x=f[0],y=f[1],z=f[2];
+			return x *x+y *y+z *z;
 		}
 
 		Vector3.normalize=function(s,out){
@@ -13595,6 +14269,18 @@ window.Laya=(function(window,document){
 			resultElem[1]=(vectorX *transformElem[1])+(vectorY *transformElem[5])+(vectorZ *transformElem[9])+transformElem[13];
 			resultElem[2]=(vectorX *transformElem[2])+(vectorY *transformElem[6])+(vectorZ *transformElem[10])+transformElem[14];
 			resultElem[3]=(vectorX *transformElem[3])+(vectorY *transformElem[7])+(vectorZ *transformElem[11])+transformElem[15];
+		}
+
+		Vector3.TransformNormal=function(normal,transform,result){
+			var normalElem=normal.elements;
+			var normalX=normalElem[0];
+			var normalY=normalElem[1];
+			var normalZ=normalElem[2];
+			var transformElem=transform.elements;
+			var resultElem=result.elements;
+			resultElem[0]=(normalX *transformElem[0])+(normalY *transformElem[4])+(normalZ *transformElem[8]);
+			resultElem[1]=(normalX *transformElem[1])+(normalY *transformElem[5])+(normalZ *transformElem[9]);
+			resultElem[2]=(normalX *transformElem[2])+(normalY *transformElem[6])+(normalZ *transformElem[10]);
 		}
 
 		Vector3.transformCoordinate=function(coordinate,transform,result){
@@ -13672,6 +14358,14 @@ window.Laya=(function(window,document){
 			var be=b.elements;
 			var r=(ae[0] *be[0])+(ae[1] *be[1])+(ae[2] *be[2]);
 			return r;
+		}
+
+		Vector3.equals=function(a,b){
+			var ae=a.elements;
+			var be=b.elements;
+			return MathUtils3D.nearEqual(Math.abs(ae[0]),Math.abs(be[0]))
+			&& MathUtils3D.nearEqual(Math.abs(ae[1]),Math.abs(be[1]))
+			&& MathUtils3D.nearEqual(Math.abs(ae[2]),Math.abs(be[2]));
 		}
 
 		__static(Vector3,
@@ -13854,52 +14548,67 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*@private
 	*<code>SubMesh</code> 类用于创建子网格数据模板。
 	*/
 	//class laya.d3.resource.models.SubMesh
 	var SubMesh1=(function(){
-		function SubMesh(mesh){
-			this._ib=null;
-			this._numberIndices=0;
-			this._vb=null;
-			this._mesh=null;
-			this._boneIndex=null;
+		function SubMesh(){
+			this._indexBuffer=null;
+			this._vertexBuffer=null;
+			this._boneIndices=null;
+			this._bufferUsage=null;
+			this._indexInMesh=0;
 			this._bufferUsage={};
-			this._finalBufferUsageDic=null;
-			this._indexOfHost=0;
-			this._mesh=mesh;
 		}
 
 		__class(SubMesh,'laya.d3.resource.models.SubMesh',null,'SubMesh1');
 		var __proto=SubMesh.prototype;
 		Laya.imps(__proto,{"laya.d3.core.render.IRenderable":true,"laya.resource.IDispose":true})
-		__proto.getVertexBuffer=function(index){
-			(index===void 0)&& (index=0);
-			if (index===0)
-				return this._vb;
-			else
-			return null;
-		}
-
-		__proto.getIndexBuffer=function(){
-			return this._ib;
+		/**
+		*@private
+		*/
+		__proto._testTangent=function(state){
+			var vb=this._vertexBuffer;
+			var vertexDeclaration=vb.vertexDeclaration;
+			var material=state.renderElement._material;
+			if (material.normalTexture && !vertexDeclaration.getVertexElementByUsage("TANGENT0")){
+				var vertexDatas=vb.getData();
+				var newVertexDatas=Utils3D.generateTangent(vertexDatas,vertexDeclaration.vertexStride / 4,vertexDeclaration.getVertexElementByUsage("POSITION").offset / 4,vertexDeclaration.getVertexElementByUsage("UV").offset / 4,this._indexBuffer.getData());
+				vertexDeclaration=Utils3D.getVertexTangentDeclaration(vertexDeclaration.getVertexElements());
+				var newVB=VertexBuffer3D.create(vertexDeclaration,0x88E4);
+				newVB.setData(newVertexDatas);
+				vb.dispose();
+				this._vertexBuffer=newVB;
+				this._bufferUsage["TANGENT0"]=newVB;
+			}
 		}
 
 		/**
 		*@private
 		*/
-		__proto._getShader=function(state,vertexBuffer,material){
-			if (!material)
-				return null;
-			var def=0;
-			var shaderAttribute=vertexBuffer.vertexDeclaration.shaderAttribute;
-			(shaderAttribute.UV)&& (def |=material.shaderDef);
-			(shaderAttribute.COLOR)&& (def |=0x20);
-			(state.scene.enableFog)&& (def |=0x20000);
-			def > 0 && state.shaderDefs.addInt(def);
-			var shader=material.getShader(state);
-			return shader;
+		__proto._getVertexBuffer=function(index){
+			(index===void 0)&& (index=0);
+			if (index===0)
+				return this._vertexBuffer;
+			else
+			return null;
+		}
+
+		/**
+		*@private
+		*/
+		__proto._getIndexBuffer=function(){
+			return this._indexBuffer;
+		}
+
+		/**
+		*@private
+		*/
+		__proto._beforeRender=function(state){
+			this._testTangent(state);
+			this._vertexBuffer._bind();
+			this._indexBuffer._bind();
+			return true;
 		}
 
 		/**
@@ -13908,82 +14617,10 @@ window.Laya=(function(window,document){
 		*@param state 渲染状态。
 		*/
 		__proto._render=function(state){
-			var mesh=this._mesh,vb=this._vb,ib=this._ib;
-			var material=state.renderElement._material;
-			if (material.normalTexture && !vb.vertexDeclaration.shaderAttribute["TANGENT0"]){
-				var vertexDatas=vb.getData();
-				var newVertexDatas=Utils3D.generateTangent(vertexDatas,vb.vertexDeclaration.vertexStride / 4,vb.vertexDeclaration.shaderAttribute["POSITION"][4] / 4,vb.vertexDeclaration.shaderAttribute["UV"][4] / 4,ib.getData());
-				var vertexDeclaration=Utils3D.getVertexTangentDeclaration(vb.vertexDeclaration.getVertexElements());
-				var newVB=VertexBuffer3D.create(vertexDeclaration,0x88E4);
-				newVB.setData(newVertexDatas);
-				vb.dispose();
-				vb=this._vb=newVB;
-				this._bufferUsage["TANGENT0"]=newVB;
-			}
-			if (ib===null)return false;
-			vb._bind();
-			ib._bind();
-			if (material){
-				var shader=this._getShader(state,vb,material);
-				var presz=state.shaderValue.length;
-				state.shaderValue.pushArray(vb.vertexDeclaration.shaderValues);
-				var meshSprite=state.owner;
-				var worldMat=meshSprite.transform.worldMatrix;
-				state.shaderValue.pushValue("MATRIX1",worldMat.elements,-1);
-				Matrix4x4.multiply(state.projectionViewMatrix,worldMat,meshSprite.wvpMatrix);
-				state.shaderValue.pushValue("MVPMATRIX",meshSprite.wvpMatrix.elements,-1);
-				if (!material.upload(state,this._finalBufferUsageDic,shader)){
-					state.shaderValue.length=presz;
-					return false;
-				}
-				state.shaderValue.length=presz;
-			}
-			state.context.drawElements(0x0004,this._numberIndices,0x1403,0);
+			var indexCount=this._indexBuffer.indexCount;
+			state.context.drawElements(0x0004,indexCount,0x1403,0);
 			Stat.drawCall++;
-			Stat.trianglesFaces+=this._numberIndices / 3;
-			return true;
-		}
-
-		/**
-		*@private
-		*/
-		__proto._setBoneDic=function(boneDic){
-			this._boneIndex=boneDic;
-			this._mesh.disableUseFullBone();
-		}
-
-		/**
-		*设置索引缓冲。
-		*@param value 索引缓冲。
-		*@param elementCount 索引的个数。
-		*/
-		__proto.setIB=function(value,elementCount){
-			this._ib=value;
-			this._numberIndices=elementCount;
-		}
-
-		/**
-		*获取索引缓冲。
-		*@return 索引缓冲。
-		*/
-		__proto.getIB=function(){
-			return this._ib;
-		}
-
-		/**
-		*设置顶点缓冲。
-		*@param vb 顶点缓冲。
-		*/
-		__proto.setVB=function(vb){
-			this._vb=vb;
-		}
-
-		/**
-		*获取顶点缓冲。
-		*@return 顶点缓冲。
-		*/
-		__proto.getVB=function(){
-			return this._vb;
+			Stat.trianglesFaces+=indexCount / 3;
 		}
 
 		/**
@@ -13991,26 +14628,30 @@ window.Laya=(function(window,document){
 		*<p><b>注意：</b>会强制解锁清理。</p>
 		*/
 		__proto.dispose=function(){
-			this._mesh=null;
-			this._boneIndex=null;
-			this._ib.dispose();
-			this._vb.dispose();
+			this._boneIndices=null;
+			this._indexBuffer.dispose();
+			this._vertexBuffer.dispose();
 		}
 
-		__getset(0,__proto,'VertexBufferCount',function(){
+		/**
+		*@private
+		*/
+		__getset(0,__proto,'_vertexBufferCount',function(){
 			return 1;
 		});
 
 		/**
-		*获取在宿主中的序列。
-		*@return 序列。
+		*@private
 		*/
 		__getset(0,__proto,'indexOfHost',function(){
-			return this._indexOfHost;
+			return this._indexInMesh;
 		});
 
+		/**
+		*@private
+		*/
 		__getset(0,__proto,'triangleCount',function(){
-			return this._ib.indexCount/3;
+			return this._indexBuffer.indexCount / 3;
 		});
 
 		return SubMesh;
@@ -14199,10 +14840,10 @@ window.Laya=(function(window,document){
 			};
 			vs="#include?DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT \"LightHelper.glsl\";\n\nattribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\n\n#include?VR \"VRHelper.glsl\";\n\n\n\n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&COLOR&&SPECULARMAP)\nattribute vec2 a_Texcoord0;\nvarying vec2 v_Texcoord0;\n  #ifdef MIXUV\n  attribute vec2 a_TexcoordNext0;\n  uniform float  u_UVAge;\n  #endif\n  #ifdef UVTRANSFORM\n  uniform mat4 u_UVMatrix;\n  #endif\n#endif\n\n#ifdef AMBIENTMAP\nattribute vec2 a_Texcoord1;\nvarying vec2 v_Texcoord1;\n#endif\n\n\n#ifdef COLOR\nattribute vec4 a_Color;\nvarying vec4 v_Color;\n#endif\n\n#ifdef BONE\nattribute vec4 a_BoneIndices;\nattribute vec4 a_BoneWeights;\nconst int c_MaxBoneCount = 24;\nuniform mat4 u_Bones[c_MaxBoneCount];\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\nattribute vec3 a_Normal;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\nuniform mat4 u_WorldMat;\nuniform vec3 u_CameraPos;\n#endif\n\n#ifdef DIRECTIONLIGHT\nuniform DirectionLight u_DirectionLight;\n#endif\n\n#ifdef POINTLIGHT\nuniform PointLight u_PointLight;\n#endif\n\n#ifdef SPOTLIGHT\nuniform SpotLight u_SpotLight;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\nuniform vec3 u_MaterialDiffuse;\nuniform vec4 u_MaterialSpecular;\n\nvarying vec3 v_Diffuse;\nvarying vec3 v_Ambient;\nvarying vec3 v_Specular;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||AMBIENTMAP\nuniform vec3 u_MaterialAmbient;\n#endif\n\n#ifdef FOG\nvarying float v_ToEyeLength;\n#endif\n\n#ifdef REFLECTMAP\nvarying vec3 v_ToEye;\nvarying vec3 v_Normal;\n#endif\n\n\nvoid main()\n{\n #ifdef BONE\n mat4 skinTransform=mat4(0.0);\n skinTransform += u_Bones[int(a_BoneIndices.x)] * a_BoneWeights.x;\n skinTransform += u_Bones[int(a_BoneIndices.y)] * a_BoneWeights.y;\n skinTransform += u_Bones[int(a_BoneIndices.z)] * a_BoneWeights.z;\n skinTransform += u_Bones[int(a_BoneIndices.w)] * a_BoneWeights.w;\n vec4 position=skinTransform*a_Position;\n   #ifdef VR\n   gl_Position = DistortFishEye(u_MvpMatrix * position);\n   #else\n   gl_Position = u_MvpMatrix * position;\n   #endif\n #else\n   #ifdef VR\n   gl_Position = DistortFishEye(u_MvpMatrix * a_Position);\n   #else\n   gl_Position = u_MvpMatrix * a_Position;\n   #endif\n #endif\n \n \n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\n  #ifdef BONE\n  vec3 normal=normalize( mat3(u_WorldMat*skinTransform)*a_Normal);\n  #else\n  vec3 normal=normalize( mat3(u_WorldMat)*a_Normal);\n  #endif\n \n  #ifdef REFLECTMAP\n  v_Normal=normal;\n  #endif\n#endif\n \n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\n  v_Diffuse=vec3(0.0);\n  v_Ambient=vec3(0.0);\n  v_Specular=vec3(0.0);\n  vec3 dif, amb, spe;\n#endif\n\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\n  #ifdef BONE\n  vec3 positionWorld=(u_WorldMat*position).xyz;\n  #else\n  vec3 positionWorld=(u_WorldMat*a_Position).xyz;\n  #endif\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\nvec3 toEye;\n  #ifdef FOG\n  toEye=u_CameraPos-positionWorld;\n  v_ToEyeLength=length(toEye);\n  toEye/=v_ToEyeLength;\n  #else\n  toEye=normalize(u_CameraPos-positionWorld);\n  #endif\n \n  #ifdef REFLECTMAP\n  v_ToEye=toEye;\n  #endif\n#endif\n \n#ifdef DIRECTIONLIGHT\ncomputeDirectionLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_DirectionLight,normal,toEye, dif, amb, spe);\nv_Diffuse+=dif;\nv_Ambient+=amb;\nv_Specular+=spe;\n#endif\n \n#ifdef POINTLIGHT\ncomputePointLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_PointLight,positionWorld,normal,toEye, dif, amb, spe);\nv_Diffuse+=dif;\nv_Ambient+=amb;\nv_Specular+=spe;\n#endif\n\n#ifdef SPOTLIGHT\nComputeSpotLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_SpotLight,positionWorld,normal,toEye, dif, amb, spe);\nv_Diffuse+=dif;\nv_Ambient+=amb;\nv_Specular+=spe;\n#endif\n  \n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&COLOR&&SPECULARMAP)\n  #ifdef MIXUV\n  v_Texcoord0=mix(a_Texcoord0,a_TexcoordNext0,u_UVAge);\n  #else\n  v_Texcoord0=a_Texcoord0;\n  #endif\n  #ifdef UVTRANSFORM\n  v_Texcoord0=(u_UVMatrix*vec4(v_Texcoord0,0.0,1.0)).xy;\n  #endif\n#endif\n\n#ifdef AMBIENTMAP\nv_Texcoord1=a_Texcoord1;\n#endif\n  \n#ifdef COLOR\nv_Color=a_Color;\n#endif\n}";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform vec4 u_Albedo;\n\n#ifdef ALPHATEST\nuniform float u_AlphaTestValue;\n#endif\n\n#ifdef DIFFUSEMAP\nuniform sampler2D u_DiffuseTexture;\n#endif\n\n#ifdef REFLECTMAP\nuniform samplerCube u_ReflectTexture;\nuniform vec3 u_MaterialReflect;\n#endif\n\n\n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&COLOR&&SPECULARMAP)\nvarying vec2 v_Texcoord0;\n#endif\n\n#ifdef AMBIENTMAP\nvarying vec2 v_Texcoord1;\nuniform sampler2D u_AmbientTexture;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||AMBIENTMAP\nuniform vec3 u_MaterialAmbient;\n#endif\n\n#ifdef COLOR\nvarying vec4 v_Color;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\nvarying vec3 v_Diffuse;\nvarying vec3 v_Ambient;\nvarying vec3 v_Specular;\n  #ifdef (DIFFUSEMAP||COLOR)&&SPECULARMAP\n  uniform sampler2D u_SpecularTexture;\n  #endif\n#endif\n\n#ifdef FOG\nuniform float u_FogStart;\nuniform float u_FogRange;\nuniform vec3 u_FogColor;\nvarying float v_ToEyeLength;\n#endif\n\n#ifdef MIXUV\nuniform float  u_UVAniAge;\n#endif\n\n#ifdef REFLECTMAP\nvarying vec3 v_Normal;\nvarying vec3 v_ToEye;\n#endif\n\n\nvoid main()\n{\n #ifdef DIFFUSEMAP&&!COLOR\n gl_FragColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n #endif \n \n #ifdef COLOR&&!DIFFUSEMAP\n gl_FragColor=v_Color;\n #endif \n \n #ifdef DIFFUSEMAP&&COLOR\n vec4 texColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n gl_FragColor=texColor*v_Color;\n #endif\n \n #ifdef !DIFFUSEMAP&&!COLOR\n gl_FragColor=vec4(1.0,1.0,1.0,1.0);\n #endif \n \n #ifdef AMBIENTMAP\n gl_FragColor.rgb=gl_FragColor.rgb*(u_MaterialAmbient+texture2D(u_AmbientTexture, v_Texcoord1).rgb);\n #endif \n \n gl_FragColor=gl_FragColor*u_Albedo;\n  \n #ifdef ALPHATEST\n   if(gl_FragColor.a-u_AlphaTestValue<0.0)\n    discard;\n #endif\n \n \n #ifdef REFLECTMAP\n vec3 normal=normalize(v_Normal);\n #endif 	\n\n  \n #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\n   #ifdef (DIFFUSEMAP||COLOR)&&SPECULARMAP\n   vec3 specular =v_Specular*texture2D(u_SpecularTexture,v_Texcoord0).rgb;\n   gl_FragColor =vec4( gl_FragColor.rgb*(v_Ambient + v_Diffuse)+specular,gl_FragColor.a);\n   #else\n   gl_FragColor =vec4( gl_FragColor.rgb*(v_Ambient + v_Diffuse)+v_Specular,gl_FragColor.a);\n   #endif\n #endif\n \n #ifdef REFLECTMAP\n vec3 incident = -v_ToEye;\n vec3 reflectionVector = reflect(incident,v_Normal);\n vec3 reflectionColor  = textureCube(u_ReflectTexture,reflectionVector).rgb;\n gl_FragColor.rgb += u_MaterialReflect*reflectionColor;\n #endif\n \n #ifdef FOG\n float lerpFact=clamp((v_ToEyeLength-u_FogStart)/u_FogRange,0.0,1.0);\n gl_FragColor.rgb=mix(gl_FragColor.rgb,u_FogColor,lerpFact);\n #endif\n}\n\n";
-			Shader.preCompile(Shader3D.SIMPLE,0x1000 ,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SIMPLE,ShaderDefines3D.VERTEXSHADERING ,vs,ps,shaderNameMap);
 			vs="#include?VR \"VRHelper.glsl\";\nattribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\n\n\n\n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&(COLOR&&SPECULARMAP||NORMALMAP))\nattribute vec2 a_Texcoord0;\nvarying vec2 v_Texcoord0;\n  #ifdef MIXUV\n  attribute vec2 a_TexcoordNext0;\n  uniform float  u_UVAge;\n  #endif\n  #ifdef UVTRANSFORM \n  uniform mat4 u_UVMatrix;\n  #endif\n#endif\n\n#ifdef AMBIENTMAP\nattribute vec2 a_Texcoord1;\nvarying vec2 v_Texcoord1;\n#endif\n\n#ifdef COLOR\nattribute vec4 a_Color;\nvarying vec4 v_Color;\n#endif\n\n#ifdef BONE\nattribute vec4 a_BoneIndices;\nattribute vec4 a_BoneWeights;\nconst int c_MaxBoneCount = 24;\nuniform mat4 u_Bones[c_MaxBoneCount];\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\nattribute vec3 a_Normal;\nvarying vec3 v_Normal;\n#endif\n\n#ifdef (DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP)&&NORMALMAP\nattribute vec3 a_Tangent0;\nvarying vec3 v_Tangent0;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\nuniform mat4 u_WorldMat;\nvarying vec3 v_PositionWorld;\n#endif\n\n\nvoid main()\n{\n #ifdef BONE\n mat4 skinTransform=mat4(0.0);\n skinTransform += u_Bones[int(a_BoneIndices.x)] * a_BoneWeights.x;\n skinTransform += u_Bones[int(a_BoneIndices.y)] * a_BoneWeights.y;\n skinTransform += u_Bones[int(a_BoneIndices.z)] * a_BoneWeights.z;\n skinTransform += u_Bones[int(a_BoneIndices.w)] * a_BoneWeights.w;\n vec4 position=skinTransform*a_Position;\n   #ifdef VR\n   gl_Position = DistortFishEye(u_MvpMatrix * position);\n   #else\n   gl_Position = u_MvpMatrix * position;\n   #endif\n #else\n   #ifdef VR\n   gl_Position = DistortFishEye(u_MvpMatrix * a_Position);\n   #else\n   gl_Position = u_MvpMatrix * a_Position;\n   #endif\n #endif\n \n\n #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\n mat3 worldMat;\n   #ifdef BONE\n   worldMat=mat3(u_WorldMat*skinTransform);\n   #else\n   worldMat=mat3(u_WorldMat);\n   #endif  \n v_Normal=worldMat*a_Normal;\n   #ifdef (DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&NORMALMAP\n   v_Tangent0=worldMat*a_Tangent0;\n   #endif\n #endif\n \n #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG\n   #ifdef BONE\n   v_PositionWorld=(u_WorldMat*position).xyz;\n   #else\n   v_PositionWorld=(u_WorldMat*a_Position).xyz;\n   #endif\n #endif\n \n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&(COLOR&&SPECULARMAP||NORMALMAP))\n  #ifdef MIXUV\n  v_Texcoord0=mix(a_Texcoord0,a_TexcoordNext0,u_UVAge);\n  #else\n  v_Texcoord0=a_Texcoord0;\n  #endif\n  #ifdef UVTRANSFORM\n  v_Texcoord0=(u_UVMatrix*vec4(v_Texcoord0,0.0,1.0)).xy;\n  #endif\n#endif\n\n#ifdef AMBIENTMAP\nv_Texcoord1=a_Texcoord1;\n#endif\n\n  \n#ifdef COLOR\nv_Color=a_Color;\n#endif\n}";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\n#include?DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT \"LightHelper.glsl\";\n\nuniform vec4 u_Albedo;\n\n#ifdef ALPHATEST\nuniform float u_AlphaTestValue;\n#endif\n\n#ifdef DIFFUSEMAP\nuniform sampler2D u_DiffuseTexture;\n#endif\n\n#ifdef REFLECTMAP\nuniform samplerCube u_ReflectTexture;\nuniform vec3 u_MaterialReflect;\n#endif\n\n#ifdef DIFFUSEMAP||((DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&(COLOR&&SPECULARMAP||NORMALMAP))\nvarying vec2 v_Texcoord0;\n#endif\n\n#ifdef AMBIENTMAP\nvarying vec2 v_Texcoord1;\nuniform sampler2D u_AmbientTexture;\n#endif\n\n#ifdef COLOR\nvarying vec4 v_Color;\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\nuniform vec3 u_MaterialDiffuse;\nuniform vec4 u_MaterialSpecular;\n  #ifdef (DIFFUSEMAP||COLOR)&&SPECULARMAP \n  uniform sampler2D u_SpecularTexture;\n  #endif\n#endif\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||AMBIENTMAP\nuniform vec3 u_MaterialAmbient;\n#endif\n\n#ifdef FOG\nuniform float u_FogStart;\nuniform float u_FogRange;\nuniform vec3 u_FogColor;\n#endif\n\n#ifdef MIXUV\nuniform float  u_UVAniAge;\n#endif\n\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\nvarying vec3 v_Normal;\n#endif\n\n#ifdef (DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&NORMALMAP\nuniform sampler2D u_NormalTexture;\nvarying vec3 v_Tangent0;\n#endif\n\n#ifdef DIRECTIONLIGHT\nuniform DirectionLight u_DirectionLight;\n#endif\n\n#ifdef POINTLIGHT\nuniform PointLight u_PointLight;\n#endif\n\n#ifdef SPOTLIGHT\nuniform SpotLight u_SpotLight;\n#endif\n\n\n#ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\nuniform vec3 u_CameraPos;\nvarying vec3 v_PositionWorld;\n#endif\n\n\nvoid main()\n{\n  #ifdef DIFFUSEMAP&&!COLOR\n  gl_FragColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  #endif \n  \n  #ifdef COLOR&&!DIFFUSEMAP\n  gl_FragColor=v_Color;\n  #endif \n  \n  #ifdef DIFFUSEMAP&&COLOR\n  vec4 texColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  gl_FragColor=texColor*v_Color;\n  #endif\n  \n  #ifdef !DIFFUSEMAP&&!COLOR\n  gl_FragColor=vec4(1.0,1.0,1.0,1.0);\n  #endif \n  \n  #ifdef AMBIENTMAP\n  gl_FragColor.rgb=gl_FragColor.rgb*(u_MaterialAmbient+texture2D(u_AmbientTexture, v_Texcoord1).rgb);\n  #endif \n  \n  gl_FragColor=gl_FragColor*u_Albedo;\n  \n  #ifdef ALPHATEST\n  if(gl_FragColor.a-u_AlphaTestValue<0.0)\n    discard;\n  #endif\n  \n  \n  #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||REFLECTMAP\n  vec3 normal;\n    #ifdef (DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT)&&NORMALMAP\n    vec3 normalMapSample = texture2D(u_NormalTexture, v_Texcoord0).rgb;\n	normal = normalize(NormalSampleToWorldSpace(normalMapSample, v_Normal, v_Tangent0));\n	#else\n	normal = normalize(v_Normal);\n    #endif\n  #endif\n	\n  #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\n  vec3 diffuse = vec3(0.0);\n  vec3 ambient = vec3(0.0);\n  vec3 specular= vec3(0.0);\n  vec3 dif, amb, spe;\n  #endif\n  \n  #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT||FOG||REFLECTMAP\n  vec3 toEye;\n    #ifdef FOG\n	toEye=u_CameraPos-v_PositionWorld;\n    float toEyeLength=length(toEye);\n    toEye/=toEyeLength;\n    #else\n	toEye=normalize(u_CameraPos-v_PositionWorld);\n    #endif\n  #endif\n	\n  #ifdef DIRECTIONLIGHT\n  computeDirectionLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_DirectionLight,normal,toEye, dif, amb, spe);\n  diffuse+=dif;\n  ambient+=amb;\n  specular+=spe;\n  #endif\n \n  #ifdef POINTLIGHT\n  computePointLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_PointLight,v_PositionWorld,normal,toEye, dif, amb, spe);\n  diffuse+=dif;\n  ambient+=amb;\n  specular+=spe;\n  #endif\n\n  #ifdef SPOTLIGHT\n  ComputeSpotLight(u_MaterialDiffuse,u_MaterialAmbient,u_MaterialSpecular,u_SpotLight,v_PositionWorld,normal,toEye, dif, amb, spe);\n  diffuse+=dif;\n  ambient+=amb;\n  specular+=spe;\n  #endif\n  \n\n  \n  \n  \n  #ifdef DIRECTIONLIGHT||POINTLIGHT||SPOTLIGHT\n    #ifdef (DIFFUSEMAP||COLOR)&&SPECULARMAP\n    specular =specular*texture2D(u_SpecularTexture, v_Texcoord0).rgb;\n    #endif\n  gl_FragColor =vec4( gl_FragColor.rgb*(ambient + diffuse) + specular,gl_FragColor.a);\n  #endif\n  \n  #ifdef REFLECTMAP\n  vec3 incident = -toEye;\n  vec3 reflectionVector = reflect(incident,normal);\n  vec3 reflectionColor  = textureCube(u_ReflectTexture,reflectionVector).rgb;\n  gl_FragColor.rgb += u_MaterialReflect*reflectionColor;\n  #endif\n  \n  #ifdef FOG\n  float lerpFact=clamp((toEyeLength-u_FogStart)/u_FogRange,0.0,1.0);\n  gl_FragColor.rgb=mix(gl_FragColor.rgb,u_FogColor,lerpFact);\n  #endif\n}\n\n";
-			Shader.preCompile(Shader3D.SIMPLE,0x2000,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SIMPLE,ShaderDefines3D.PIXELSHADERING,vs,ps,shaderNameMap);
 			shaderNameMap={
 				'a_Position':"POSITION",
 				'a_Texcoord':"UV",
@@ -14223,8 +14864,8 @@ window.Laya=(function(window,document){
 			};
 			vs="#include?VR \"VRHelper.glsl\";\nattribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\nuniform mat4 u_UVMatrix;\n\n#ifdef DIFFUSEMAP&&NORMALMAP&&SPECULARMAP&&EMISSIVEMAP&&AMBIENTMAP\nattribute vec2 a_Texcoord;\nvarying vec2 v_Texcoord;\nvarying vec2 v_TiledTexcoord;\n#endif\n\n#ifdef FOG\nuniform mat4 u_WorldMat;\nvarying vec3 v_PositionWorld;\n#endif\n\n\nvoid main()\n{\n #ifdef VR\n gl_Position = DistortFishEye(u_MvpMatrix * a_Position);\n #else\n gl_Position = u_MvpMatrix * a_Position;\n #endif\n \n #ifdef FOG\n v_PositionWorld=(u_WorldMat*a_Position).xyz;\n #endif\n \n #ifdef DIFFUSEMAP&&NORMALMAP&&SPECULARMAP&&EMISSIVEMAP&&AMBIENTMAP\n v_Texcoord=a_Texcoord;\n v_TiledTexcoord=(u_UVMatrix*vec4(a_Texcoord,0.0,1.0)).xy;\n #endif\n}";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform vec4 u_Albedo;\nuniform vec3 u_Ambient;\n\n#ifdef FOG\nuniform vec3 u_CameraPos;\nvarying vec3 v_PositionWorld;\n\nuniform float u_FogStart;\nuniform float u_FogRange;\nuniform vec3 u_FogColor;\n#endif\n\n#ifdef DIFFUSEMAP&&NORMALMAP&&SPECULARMAP&&EMISSIVEMAP&&AMBIENTMAP\n  varying vec2 v_Texcoord;\n  varying vec2 v_TiledTexcoord;\n  uniform sampler2D u_BlendTexture;\n  uniform sampler2D u_LayerTexture0;\n  uniform sampler2D u_LayerTexture1;\n  uniform sampler2D u_LayerTexture2;\n  uniform sampler2D u_LayerTexture3;\n#endif\n\nvoid main()\n{	\n  #ifdef DIFFUSEMAP&&NORMALMAP&&SPECULARMAP&&EMISSIVEMAP&&AMBIENTMAP\n  vec4 blend=texture2D(u_BlendTexture, v_Texcoord);\n  vec4 c0=texture2D(u_LayerTexture0, v_TiledTexcoord);\n  vec4 c1=texture2D(u_LayerTexture1, v_TiledTexcoord);\n  vec4 c2=texture2D(u_LayerTexture2, v_TiledTexcoord);\n  vec4 c3=texture2D(u_LayerTexture3, v_TiledTexcoord);\n  vec4 texColor = c0;\n  texColor = mix(texColor, c1, blend.r);\n  texColor = mix(texColor, c2, blend.g);\n  texColor = mix(texColor, c3, blend.b);\n  gl_FragColor=vec4(texColor.rgb*u_Ambient.rgb*blend.a,1.0);\n  gl_FragColor=gl_FragColor*u_Albedo;\n  #endif \n  \n  #ifdef FOG\n  vec3 toEye=u_CameraPos-v_PositionWorld;\n  float toEyeLength=length(toEye);\n  \n  float lerpFact=clamp((toEyeLength-u_FogStart)/u_FogRange,0.0,1.0);\n  gl_FragColor.rgb=mix(gl_FragColor.rgb,u_FogColor,lerpFact);\n  #endif\n}\n\n";
-			Shader.preCompile(Shader3D.TERRAIN,0x1000 ,vs,ps,shaderNameMap);
-			Shader.preCompile(Shader3D.TERRAIN,0x2000,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.TERRAIN,ShaderDefines3D.VERTEXSHADERING ,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.TERRAIN,ShaderDefines3D.PIXELSHADERING,vs,ps,shaderNameMap);
 			shaderNameMap={
 				'a_CornerTextureCoordinate':"CORNERTEXTURECOORDINATE",
 				'a_Position':"POSITION",
@@ -14246,8 +14887,8 @@ window.Laya=(function(window,document){
 				'u_EndVelocity':"ENDVELOCITY",
 				'u_texture':"DIFFUSETEXTURE"
 			};
-			Shader.preCompile(Shader3D.PARTICLE,0x1000 ,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
-			Shader.preCompile(Shader3D.PARTICLE,0x2000,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
+			Shader.preCompile(Shader3D.PARTICLE,ShaderDefines3D.VERTEXSHADERING ,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
+			Shader.preCompile(Shader3D.PARTICLE,ShaderDefines3D.PIXELSHADERING,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
 			shaderNameMap={
 				'a_CornerTextureCoordinate':"CORNERTEXTURECOORDINATE",
 				'a_Position':"POSITION",
@@ -14269,8 +14910,8 @@ window.Laya=(function(window,document){
 				'u_EndVelocity':"ENDVELOCITY",
 				'u_texture':"DIFFUSETEXTURE"
 			};
-			Shader.preCompile(Shader3D.U3DPARTICLE,0x1000 ,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
-			Shader.preCompile(Shader3D.U3DPARTICLE,0x2000,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
+			Shader.preCompile(Shader3D.U3DPARTICLE,ShaderDefines3D.VERTEXSHADERING ,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
+			Shader.preCompile(Shader3D.U3DPARTICLE,ShaderDefines3D.PIXELSHADERING,ParticleShader.vs,ParticleShader.ps,shaderNameMap);
 			shaderNameMap={
 				'a_Position':"POSITION",
 				'a_Texcoord0':"UV",
@@ -14284,8 +14925,8 @@ window.Laya=(function(window,document){
 			};
 			vs="attribute vec4 a_Position;\nattribute vec2 a_Texcoord0;\nattribute float a_Time;\n\nuniform mat4 u_MvpMatrix;\nuniform  float u_CurrentTime;\nuniform  vec4 u_Color;\nuniform float u_Duration;\n\nvarying vec2 v_Texcoord;\nvarying vec4 v_Color;\n\n\nvoid main()\n{\n  gl_Position = u_MvpMatrix * a_Position;\n  \n  float age = u_CurrentTime-a_Time;\n  float normalizedAge = clamp(age / u_Duration,0.0,1.0);\n   \n  v_Texcoord=a_Texcoord0;\n  \n  v_Color=u_Color;\n  v_Color.a*=1.0-normalizedAge;\n}\n";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform vec4 u_Albedo;\nuniform sampler2D u_Texture;\n\nvarying vec2 v_Texcoord;\nvarying vec4 v_Color;\n\n\nvoid main()\n{	\n  gl_FragColor=texture2D(u_Texture, v_Texcoord)*v_Color;\n  gl_FragColor=gl_FragColor*u_Albedo;\n}\n\n";
-			Shader.preCompile(Shader3D.GLITTER,0x1000 ,vs,ps,shaderNameMap);
-			Shader.preCompile(Shader3D.GLITTER,0x2000,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.GLITTER,ShaderDefines3D.VERTEXSHADERING ,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.GLITTER,ShaderDefines3D.PIXELSHADERING,vs,ps,shaderNameMap);
 			shaderNameMap={
 				'a_Position':"POSITION",
 				'a_Color':"COLOR",
@@ -14305,10 +14946,10 @@ window.Laya=(function(window,document){
 			};
 			vs="attribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\n\n#ifdef DIFFUSEMAP\nattribute vec2 a_Texcoord0;\nattribute vec2 a_Texcoord1;\nvarying vec2 v_Texcoord0;\nvarying vec2 v_Texcoord1;\n#ifdef MIXUV\nattribute vec2 a_TexcoordNext0;\nattribute vec2 a_TexcoordNext1;\nuniform float  u_UVAge;\n#endif\n#endif\n\n#ifdef COLOR\nattribute vec4 a_Color;\nvarying vec4 v_Color;\n#endif\n\n\nvoid main()\n{\n gl_Position = u_MvpMatrix * a_Position;\n \n \n #ifdef DIFFUSEMAP\n  #ifdef MIXUV\n  v_Texcoord0=mix(a_Texcoord0,a_TexcoordNext0,u_UVAge);\n   v_Texcoord1=mix(a_Texcoord1,a_TexcoordNext1,u_UVAge);\n  #else\n  v_Texcoord0=a_Texcoord0;\n  v_Texcoord1=a_Texcoord1;\n  #endif\n #endif\n  \n #ifdef COLOR\n v_Color=a_Color;\n #endif\n}";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform float u_Luminance;\n\n#ifdef DIFFUSEMAP\nvarying vec2 v_Texcoord0;\nuniform sampler2D u_DiffuseTexture;\n#endif\n\n#ifdef SPECULARMAP \nvarying vec2 v_Texcoord1;\nuniform sampler2D u_SpecularTexture;\n#endif\n\n#ifdef COLOR\nvarying vec4 v_Color;\n#endif\n\n\n\n#ifdef FOG\nuniform float u_FogStart;\nuniform float u_FogRange;\nuniform vec3 u_FogColor;\n#endif\n\nvoid main()\n{\n  \n  #ifdef DIFFUSEMAP&&!COLOR\n  gl_FragColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  #endif \n  \n  #ifdef COLOR&&!DIFFUSEMAP\n  gl_FragColor=v_Color;\n  #endif \n  \n  #ifdef DIFFUSEMAP&&COLOR\n  vec4 texColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  gl_FragColor=texColor*v_Color;\n  #endif\n  \n  #ifdef SPECULARMAP \n  vec4 specularColor=texture2D(u_SpecularTexture, v_Texcoord1);\n  gl_FragColor=gl_FragColor*specularColor;\n  #endif\n \n  gl_FragColor.rgb=gl_FragColor.rgb*u_Luminance;\n  \n  #ifdef FOG\n  float lerpFact=clamp((toEyeLength-u_FogStart)/u_FogRange,0.0,1.0);\n  gl_FragColor.rgb=mix(gl_FragColor.rgb,u_FogColor,lerpFact);\n  #endif\n}\n\n";
-			Shader.preCompile(Shader3D.SIMPLE_EFFECT,0x1000 ,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SIMPLE_EFFECT,ShaderDefines3D.VERTEXSHADERING ,vs,ps,shaderNameMap);
 			vs="attribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\n\n#ifdef DIFFUSEMAP\nattribute vec2 a_Texcoord0;\nattribute vec2 a_Texcoord1;\nvarying vec2 v_Texcoord0;\nvarying vec2 v_Texcoord1;\n#ifdef MIXUV\nattribute vec2 a_TexcoordNext0;\nattribute vec2 a_TexcoordNext1;\nuniform float  u_UVAge;\n#endif\n#endif\n\n#ifdef COLOR\nattribute vec4 a_Color;\nvarying vec4 v_Color;\n#endif\n\n\nvoid main()\n{\n gl_Position = u_MvpMatrix * a_Position;\n \n \n #ifdef DIFFUSEMAP\n  #ifdef MIXUV\n  v_Texcoord0=mix(a_Texcoord0,a_TexcoordNext0,u_UVAge);\n   v_Texcoord1=mix(a_Texcoord1,a_TexcoordNext1,u_UVAge);\n  #else\n  v_Texcoord0=a_Texcoord0;\n  v_Texcoord1=a_Texcoord1;\n  #endif\n #endif\n  \n #ifdef COLOR\n v_Color=a_Color;\n #endif\n}";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform float u_Luminance;\n\n#ifdef DIFFUSEMAP\nvarying vec2 v_Texcoord0;\nuniform sampler2D u_DiffuseTexture;\n#endif\n\n#ifdef SPECULARMAP \nvarying vec2 v_Texcoord1;\nuniform sampler2D u_SpecularTexture;\n#endif\n\n#ifdef COLOR\nvarying vec4 v_Color;\n#endif\n\n\n\n#ifdef FOG\nuniform float u_FogStart;\nuniform float u_FogRange;\nuniform vec3 u_FogColor;\n#endif\n\nvoid main()\n{\n  \n  #ifdef DIFFUSEMAP&&!COLOR\n  gl_FragColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  #endif \n  \n  #ifdef COLOR&&!DIFFUSEMAP\n  gl_FragColor=v_Color;\n  #endif \n  \n  #ifdef DIFFUSEMAP&&COLOR\n  vec4 texColor=texture2D(u_DiffuseTexture, v_Texcoord0);\n  gl_FragColor=texColor*v_Color;\n  #endif\n  \n  #ifdef SPECULARMAP \n  vec4 specularColor=texture2D(u_SpecularTexture, v_Texcoord1);\n  gl_FragColor=gl_FragColor*specularColor;\n  #endif\n \n  gl_FragColor.rgb=gl_FragColor.rgb*u_Luminance;\n  \n  #ifdef FOG\n  float lerpFact=clamp((toEyeLength-u_FogStart)/u_FogRange,0.0,1.0);\n  gl_FragColor.rgb=mix(gl_FragColor.rgb,u_FogColor,lerpFact);\n  #endif\n}\n\n";
-			Shader.preCompile(Shader3D.SIMPLE_EFFECT,0x2000,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SIMPLE_EFFECT,ShaderDefines3D.PIXELSHADERING,vs,ps,shaderNameMap);
 			shaderNameMap={
 				'a_Position':"POSITION",
 				'u_MvpMatrix':"MVPMATRIX",
@@ -14318,10 +14959,10 @@ window.Laya=(function(window,document){
 			};
 			vs="attribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\nvarying vec3 v_Texcoord;\n\n\nvoid main()\n{\n  gl_Position = (u_MvpMatrix*a_Position).xyww;\n  v_Texcoord=a_Position.xyz;\n}\n";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform float u_Intensity;\nuniform float u_AlphaBlending;\nuniform samplerCube u_CubeTexture;\n\nvarying vec3 v_Texcoord;\n\n\nvoid main()\n{	\n  gl_FragColor=vec4(textureCube(u_CubeTexture, v_Texcoord).rgb*u_Intensity,u_AlphaBlending);\n}\n\n";
-			Shader.preCompile(Shader3D.SKY,0x1000 ,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SKY,ShaderDefines3D.VERTEXSHADERING ,vs,ps,shaderNameMap);
 			vs="attribute vec4 a_Position;\nuniform mat4 u_MvpMatrix;\nvarying vec3 v_Texcoord;\n\n\nvoid main()\n{\n  gl_Position = (u_MvpMatrix*a_Position).xyww;\n  v_Texcoord=a_Position.xyz;\n}\n";
 			ps="#ifdef FSHIGHPRECISION\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n\nuniform float u_Intensity;\nuniform float u_AlphaBlending;\nuniform samplerCube u_CubeTexture;\n\nvarying vec3 v_Texcoord;\n\n\nvoid main()\n{	\n  gl_FragColor=vec4(textureCube(u_CubeTexture, v_Texcoord).rgb*u_Intensity,u_AlphaBlending);\n}\n\n";
-			Shader.preCompile(Shader3D.SKY,0x2000,vs,ps,shaderNameMap);
+			Shader.preCompile(Shader3D.SKY,ShaderDefines3D.PIXELSHADERING,vs,ps,shaderNameMap);
 		}
 
 		Shader3D.SIMPLE=0;
@@ -14417,6 +15058,224 @@ window.Laya=(function(window,document){
 		}
 
 		return ShaderDefines;
+	})()
+
+
+	/**
+	*<code>Picker</code> 类用于创建拾取。
+	*/
+	//class laya.d3.utils.Picker
+	var Picker=(function(){
+		/**
+		*创建一个 <code>Picker</code> 实例。
+		*/
+		function Picker(){}
+		__class(Picker,'laya.d3.utils.Picker');
+		Picker.calculateCursorRay=function(point,viewPort,projectionMatrix,viewMatrix,world,out){
+			var x=point.elements[0];
+			var y=point.elements[1];
+			var nearSource=Picker._tempVector30;
+			var nerSourceE=nearSource.elements;
+			nerSourceE[0]=x;
+			nerSourceE[1]=y;
+			nerSourceE[2]=viewPort.minDepth;
+			var farSource=Picker._tempVector31;
+			var farSourceE=farSource.elements;
+			farSourceE[0]=x;
+			farSourceE[1]=y;
+			farSourceE[2]=viewPort.maxDepth;
+			var nearPoint=out.origin;
+			var farPoint=Picker._tempVector32;
+			viewPort.unprojectFromWVP(nearSource,projectionMatrix,viewMatrix,world,nearPoint);
+			viewPort.unprojectFromWVP(farSource,projectionMatrix,viewMatrix,world,farPoint);
+			var outDire=out.direction.elements;
+			outDire[0]=farPoint.x-nearPoint.x;
+			outDire[1]=farPoint.y-nearPoint.y;
+			outDire[2]=farPoint.z-nearPoint.z;
+			Vector3.normalize(out.direction,out.direction);
+		}
+
+		Picker.rayIntersectsPositionsAndIndices=function(ray,vertexDatas,vertexDeclaration,indices,outHitInfo){
+			var vertexStrideFloatCount=vertexDeclaration.vertexStride / 4;
+			var positionVertexElementOffset=vertexDeclaration.getVertexElementByUsage("POSITION").offset / 4;
+			var closestIntersection=Number.MAX_VALUE;
+			var closestTriangleVertexIndex1=-1;
+			var closestTriangleVertexIndex2=-1;
+			var closestTriangleVertexIndex3=-1;
+			for (var j=0;j < indices.length;j+=3){
+				var vertex1=Picker._tempVector35;
+				var vertex1E=vertex1.elements;
+				var vertex1Index=indices[j] *vertexStrideFloatCount;
+				var vertex1PositionIndex=vertex1Index+positionVertexElementOffset;
+				vertex1E[0]=vertexDatas[vertex1PositionIndex];
+				vertex1E[1]=vertexDatas[vertex1PositionIndex+1];
+				vertex1E[2]=vertexDatas[vertex1PositionIndex+2];
+				var vertex2=Picker._tempVector36;
+				var vertex2E=vertex2.elements;
+				var vertex2Index=indices[j+1] *vertexStrideFloatCount;
+				var vertex2PositionIndex=vertex2Index+positionVertexElementOffset;
+				vertex2E[0]=vertexDatas[vertex2PositionIndex];
+				vertex2E[1]=vertexDatas[vertex2PositionIndex+1];
+				vertex2E[2]=vertexDatas[vertex2PositionIndex+2];
+				var vertex3=Picker._tempVector37;
+				var vertex3E=vertex3.elements;
+				var vertex3Index=indices[j+2] *vertexStrideFloatCount;
+				var vertex3PositionIndex=vertex3Index+positionVertexElementOffset;
+				vertex3E[0]=vertexDatas[vertex3PositionIndex];
+				vertex3E[1]=vertexDatas[vertex3PositionIndex+1];
+				vertex3E[2]=vertexDatas[vertex3PositionIndex+2];
+				var intersection=laya.d3.utils.Picker.rayIntersectsTriangle(ray,vertex1,vertex2,vertex3);
+				if (!isNaN(intersection)&& intersection < closestIntersection){
+					closestIntersection=intersection;
+					closestTriangleVertexIndex1=vertex1Index;
+					closestTriangleVertexIndex2=vertex2Index;
+					closestTriangleVertexIndex3=vertex3Index;
+				}
+			}
+			if (closestIntersection!==Number.MAX_VALUE){
+				outHitInfo.distance=closestIntersection;
+				Vector3.normalize(ray.direction,ray.direction);
+				Vector3.scale(ray.direction,closestIntersection,outHitInfo.position);
+				Vector3.add(ray.origin,outHitInfo.position,outHitInfo.position);
+				var trianglePositions=outHitInfo.trianglePositions;
+				var position0=trianglePositions[0];
+				var position1=trianglePositions[1];
+				var position2=trianglePositions[2];
+				var position0E=position0.elements;
+				var position1E=position1.elements;
+				var position2E=position2.elements;
+				var closestVertex1PositionIndex=closestTriangleVertexIndex1+positionVertexElementOffset;
+				position0E[0]=vertexDatas[closestVertex1PositionIndex];
+				position0E[1]=vertexDatas[closestVertex1PositionIndex+1];
+				position0E[2]=vertexDatas[closestVertex1PositionIndex+2];
+				var closestVertex2PositionIndex=closestTriangleVertexIndex2+positionVertexElementOffset;
+				position1E[0]=vertexDatas[closestVertex2PositionIndex];
+				position1E[1]=vertexDatas[closestVertex2PositionIndex+1];
+				position1E[2]=vertexDatas[closestVertex2PositionIndex+2];
+				var closestVertex3PositionIndex=closestTriangleVertexIndex3+positionVertexElementOffset;
+				position2E[0]=vertexDatas[closestVertex3PositionIndex];
+				position2E[1]=vertexDatas[closestVertex3PositionIndex+1];
+				position2E[2]=vertexDatas[closestVertex3PositionIndex+2];
+				var normalVertexElement=vertexDeclaration.getVertexElementByUsage("NORMAL");
+				if (normalVertexElement){
+					var normalVertexElementOffset=normalVertexElement.offset / 4;
+					var triangleNormals=outHitInfo.triangleNormals;
+					var normal0=triangleNormals[0];
+					var normal1=triangleNormals[1];
+					var normal2=triangleNormals[2];
+					var normal0E=normal0.elements;
+					var normal1E=normal1.elements;
+					var normal2E=normal2.elements;
+					var closestVertex1NormalIndex=closestTriangleVertexIndex1+normalVertexElementOffset;
+					normal0E[0]=vertexDatas[closestVertex1NormalIndex];
+					normal0E[1]=vertexDatas[closestVertex1NormalIndex+1];
+					normal0E[2]=vertexDatas[closestVertex1NormalIndex+2];
+					var closestVertex2NormalIndex=closestTriangleVertexIndex2+normalVertexElementOffset;
+					normal1E[0]=vertexDatas[closestVertex2NormalIndex];
+					normal1E[1]=vertexDatas[closestVertex2NormalIndex+1];
+					normal1E[2]=vertexDatas[closestVertex2NormalIndex+2];
+					var closestVertex3NormalIndex=closestTriangleVertexIndex3+normalVertexElementOffset;
+					normal2E[0]=vertexDatas[closestVertex3NormalIndex];
+					normal2E[1]=vertexDatas[closestVertex3NormalIndex+1];
+					normal2E[2]=vertexDatas[closestVertex3NormalIndex+2];
+				}
+				return true;
+				}else {
+				outHitInfo.position.toDefault();
+				outHitInfo.distance=Number.MAX_VALUE;
+				outHitInfo.trianglePositions[0].toDefault();
+				outHitInfo.trianglePositions[1].toDefault();
+				outHitInfo.trianglePositions[2].toDefault();
+				outHitInfo.triangleNormals[0].toDefault();
+				outHitInfo.triangleNormals[1].toDefault();
+				outHitInfo.triangleNormals[2].toDefault();
+				return false;
+			}
+		}
+
+		Picker.rayIntersectsTriangle=function(ray,vertex1,vertex2,vertex3){
+			var result;
+			var edge1=Picker._tempVector30,edge2=Picker._tempVector31;
+			Vector3.subtract(vertex2,vertex1,edge1);
+			Vector3.subtract(vertex3,vertex1,edge2);
+			var directionCrossEdge2=Picker._tempVector32;
+			Vector3.cross(ray.direction,edge2,directionCrossEdge2);
+			var determinant;
+			determinant=Vector3.dot(edge1,directionCrossEdge2);
+			if (determinant >-Number.MIN_VALUE && determinant < Number.MIN_VALUE){
+				result=Number.NaN;
+				return result;
+			};
+			var inverseDeterminant=1.0 / determinant;
+			var distanceVector=Picker._tempVector33;
+			Vector3.subtract(ray.origin,vertex1,distanceVector);
+			var triangleU;
+			triangleU=Vector3.dot(distanceVector,directionCrossEdge2);
+			triangleU *=inverseDeterminant;
+			if (triangleU < 0 || triangleU > 1){
+				result=Number.NaN;
+				return result;
+			};
+			var distanceCrossEdge1=Picker._tempVector34;
+			Vector3.cross(distanceVector,edge1,distanceCrossEdge1);
+			var triangleV;
+			triangleV=Vector3.dot(ray.direction,distanceCrossEdge1);
+			triangleV *=inverseDeterminant;
+			if (triangleV < 0 || triangleU+triangleV > 1){
+				result=Number.NaN;
+				return result;
+			};
+			var rayDistance;
+			rayDistance=Vector3.dot(edge2,distanceCrossEdge1);
+			rayDistance *=inverseDeterminant;
+			if (rayDistance < 0){
+				result=Number.NaN;
+				return result;
+			}
+			result=rayDistance;
+			return result;
+		}
+
+		__static(Picker,
+		['_tempVector30',function(){return this._tempVector30=new Vector3();},'_tempVector31',function(){return this._tempVector31=new Vector3();},'_tempVector32',function(){return this._tempVector32=new Vector3();},'_tempVector33',function(){return this._tempVector33=new Vector3();},'_tempVector34',function(){return this._tempVector34=new Vector3();},'_tempVector35',function(){return this._tempVector35=new Vector3();},'_tempVector36',function(){return this._tempVector36=new Vector3();},'_tempVector37',function(){return this._tempVector37=new Vector3();}
+		]);
+		return Picker;
+	})()
+
+
+	/**
+	*...
+	*@author ...
+	*/
+	//class laya.d3.utils.RaycastHit
+	var RaycastHit=(function(){
+		function RaycastHit(){
+			this.distance=NaN;
+			this.trianglePositions=null;
+			this.triangleNormals=null;
+			this.position=null;
+			this.distance=Number.MAX_VALUE;
+			this.trianglePositions=[new Vector3(),new Vector3(),new Vector3()];
+			this.trianglePositions.length=3;
+			this.triangleNormals=[new Vector3(),new Vector3(),new Vector3()];
+			this.triangleNormals.length=3;
+			this.position=new Vector3();
+		}
+
+		__class(RaycastHit,'laya.d3.utils.RaycastHit');
+		var __proto=RaycastHit.prototype;
+		__proto.copy=function(dec){
+			dec.distance=this.distance;
+			this.trianglePositions[0].cloneTo(dec.trianglePositions[0]);
+			this.trianglePositions[1].cloneTo(dec.trianglePositions[1]);
+			this.trianglePositions[2].cloneTo(dec.trianglePositions[2]);
+			this.triangleNormals[0].cloneTo(dec.triangleNormals[0]);
+			this.triangleNormals[1].cloneTo(dec.triangleNormals[1]);
+			this.triangleNormals[2].cloneTo(dec.triangleNormals[2]);
+			this.position.cloneTo(dec.position);
+		}
+
+		return RaycastHit;
 	})()
 
 
@@ -14555,51 +15414,33 @@ window.Laya=(function(window,document){
 					break ;
 				case "diffuseTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.diffuseTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				case "normalTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.normalTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				case "specularTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.specularTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				case "emissiveTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.emissiveTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				case "ambientTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.ambientTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				case "reflectTexture":
 					(value.texture2D)&& (Laya.loader.load(Utils3D._getTexturePath(value.texture2D),Handler.create(null,function(tex){
-						(tex.bitmap).enableMerageInAtlas=false;
-						(tex.bitmap).mipmap=true;
-						(tex.bitmap).repeat=true;
 						material.reflectTexture=tex;
-					})));
+					}),null,"texture2d"));
 					break ;
 				}
 		}
@@ -14958,7 +15799,8 @@ window.Laya=(function(window,document){
 			var tInfo=xml.getElementsByTagName("info");
 			this.fontSize=parseInt(tInfo[0].attributes["size"].nodeValue);
 			var tPadding=tInfo[0].attributes["padding"].nodeValue;
-			var tPaddingArray=tPadding.split(",");
+			var tPaddingArray=tPadding.split
+			(",");
 			var tUpPadding=parseInt(tPaddingArray[0]);
 			var tDownPadding=parseInt(tPaddingArray[2]);
 			this._leftPadding=parseInt(tPaddingArray[3]);
@@ -15669,6 +16511,7 @@ window.Laya=(function(window,document){
 			this.mouseY=0;
 			this.disableMouseEvent=false;
 			this.mouseDownTime=0;
+			this.mouseMoveAccuracy=2;
 			this._stage=null;
 			this._target=null;
 			this._lastOvers=[];
@@ -15682,6 +16525,7 @@ window.Laya=(function(window,document){
 			this._matrix=new Matrix();
 			this._point=new Point();
 			this._rect=new Rectangle();
+			this._prePoint=new Point();
 		}
 
 		__class(MouseManager,'laya.events.MouseManager');
@@ -15804,7 +16648,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.sendMouseOver=function(ele){
-			if (ele.parent){
+			if (ele.parent || ele===this._stage){
 				if (!ele._get$P("$_MOUSEOVER")){
 					ele._set$P("$_MOUSEOVER",true);
 					ele.event("mouseover",this._event.setTo("mouseover",ele,this._target));
@@ -15815,6 +16659,13 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.onMouseDown=function(ele){
+			if (Input.isInputting && Laya.stage.focus && Laya.stage.focus["focus"] && !Laya.stage.focus.contains(this._target)){
+				Laya.stage.focus["focus"]=false;
+			}
+			this._onMouseDown(ele);
+		}
+
+		__proto._onMouseDown=function(ele){
 			if (this._isLeftMouse){
 				ele._set$P("$_MOUSEDOWN",true);
 				ele.event("mousedown",this._event.setTo("mousedown",ele,this._target));
@@ -15927,6 +16778,7 @@ window.Laya=(function(window,document){
 			var i=0;
 			while (i < len){
 				var evt=this._eventList[i];
+				if (evt.type!=='mousemove')this._prePoint.x=this._prePoint.y=-1000000;
 				switch (evt.type){
 					case 'mousedown':
 						if (!MouseManager._isTouchRespond){
@@ -15945,9 +16797,13 @@ window.Laya=(function(window,document){
 						_this.check(_this._stage,_this.mouseX,_this.mouseY,_this.onMouseUp);
 						break ;
 					case 'mousemove':
-						_this.initEvent(evt);
-						_this.check(_this._stage,_this.mouseX,_this.mouseY,_this.onMouseMove);
-						_this.checkMouseOut();
+						if ((Math.abs(this._prePoint.x-evt.clientX)+Math.abs(this._prePoint.y-evt.clientY))>=this.mouseMoveAccuracy){
+							this._prePoint.x=evt.clientX;
+							this._prePoint.y=evt.clientY;
+							_this.initEvent(evt);
+							_this.check(_this._stage,_this.mouseX,_this.mouseY,_this.onMouseMove);
+							_this.checkMouseOut();
+						}
 						break ;
 					case "touchstart":
 						MouseManager._isTouchRespond=true;
@@ -17110,7 +17966,7 @@ window.Laya=(function(window,document){
 		*@return 如果传入的矩形对象与此对象相交，则返回 true 值，否则返回 false。
 		*/
 		__proto.intersects=function(rect){
-			return !(rect.x > this.right || rect.right < this.x || rect.y > this.bottom || rect.bottom < this.y);
+			return !(rect.x > (this.x+this.width)|| (rect.x+rect.width)< this.x || rect.y > (this.y+this.height)|| (rect.y+rect.height)< this.y);
 		}
 
 		/**
@@ -17506,7 +18362,7 @@ window.Laya=(function(window,document){
 				function Storage(){};
 				__class(Storage,'');
 				Storage.init=function(){
-					if (window.localStorage){Storage.items=window.localStorage;try {Storage.setItem('laya','1');Storage.removeItem('laya');Storage.support=true;}catch (e){}}if (!Storage.support)console.log('LocalStorage is not supprot or browser is private mode.');
+					try{Storage.items=window.localStorage;Storage.setItem('laya','1');Storage.removeItem('laya');Storage.support=true;}catch(e){}if(!Storage.support)console.log('LocalStorage is not supprot or browser is private mode.');
 				}
 				Storage.setItem=function(key,value){
 					try {
@@ -17535,7 +18391,7 @@ window.Laya=(function(window,document){
 					Storage.support && Storage.items.clear();
 				}
 				Storage.items=null
-				Storage.support=false;
+				Storage.support=true;
 				return Storage;
 			})()
 		}
@@ -17622,12 +18478,8 @@ window.Laya=(function(window,document){
 	*/
 	//class laya.renders.Render
 	var Render=(function(){
-		/**
-		*初始化引擎。
-		*@param width 游戏窗口宽度。
-		*@param height 游戏窗口高度。
-		*/
 		function Render(width,height){
+			this._timeId=0;
 			var style=Render._mainCanvas.source.style;
 			style.position='absolute';
 			style.top=style.left="0px";
@@ -17635,7 +18487,7 @@ window.Laya=(function(window,document){
 			Render._mainCanvas.source.id=Render._mainCanvas.source.id || "layaCanvas";
 			var isWebGl=laya.renders.Render.isWebGL;
 			isWebGl && Render.WebGL.init(Render._mainCanvas,width,height);
-			if (Render._mainCanvas.source.nodeName||laya.renders.Render.isConchApp){
+			if (Render._mainCanvas.source.nodeName || laya.renders.Render.isConchApp){
 				Browser.container.appendChild(Render._mainCanvas.source);
 			}
 			Render._context=new RenderContext(width,height,isWebGl ? null :Render._mainCanvas);
@@ -17645,10 +18497,22 @@ window.Laya=(function(window,document){
 				Laya.stage._loop();
 				Browser.window.requestAnimationFrame(loop);
 			}
+			Laya.stage.on("blur",this,this._onBlur);
+			Laya.stage.on("focus",this,this._onFocus);
 		}
 
 		__class(Render,'laya.renders.Render');
 		var __proto=Render.prototype;
+		/**@private */
+		__proto._onFocus=function(){
+			Browser.window.clearInterval(this._timeId);
+		}
+
+		/**@private */
+		__proto._onBlur=function(){
+			this._timeId=Browser.window.setInterval(this._enterFrame,1000);
+		}
+
 		/**@private */
 		__proto._enterFrame=function(e){
 			Laya.stage._loop();
@@ -17706,7 +18570,7 @@ window.Laya=(function(window,document){
 
 		Render.__init$=function(){
 			window.ConchRenderType=window.ConchRenderType||1;;
-			window.ConchRenderType|=(!window.conch?0:0x04);;
+			window.ConchRenderType|=(!window.conch?0:0x04);;;
 		}
 
 		return Render;
@@ -17777,7 +18641,7 @@ window.Laya=(function(window,document){
 				}else {}
 			}
 			this._drawTextureWithTransform=function(x,y,args){
-				if (args[0].loaded)this.ctx.drawTextureWithTransform(args[0],args[1],args[2],args[3],args[4],args[5],x,y);
+				if (args[0].loaded)this.ctx.drawTextureWithTransform(args[0],args[1],args[2],args[3],args[4],args[5],x,y,args[6]);
 			}
 			this._fillQuadrangle=function(x,y,args){
 				this.ctx.fillQuadrangle(args[0],args[1],args[2],args[3],args[4]);
@@ -18060,8 +18924,12 @@ window.Laya=(function(window,document){
 			if (tex.loaded)this.ctx.drawTexture(tex,x,y,width,height,this.x,this.y);
 		}
 
-		__proto.drawTextureWithTransform=function(tex,x,y,width,height,m){
-			if (tex.loaded)this.ctx.drawTextureWithTransform(tex,x,y,width,height,m,this.x,this.y);
+		__proto._drawTextures=function(x,y,args){
+			if (args[0].loaded)this.ctx.drawTextures(args[0],args[1],x+this.x,y+this.y);
+		}
+
+		__proto.drawTextureWithTransform=function(tex,x,y,width,height,m,alpha){
+			if (tex.loaded)this.ctx.drawTextureWithTransform(tex,x,y,width,height,m,this.x,this.y,alpha);
 		}
 
 		__proto.fillQuadrangle=function(tex,x,y,point4,m){
@@ -18382,15 +19250,20 @@ window.Laya=(function(window,document){
 			var words=sprite._getWords();
 			words && context.fillWords(words,x,y,(style).font,(style).color);
 			var childs=sprite._childs,n=childs.length,ele;
-			if (!sprite.optimizeScrollRect || sprite.scrollRect==null){
+			if (!sprite.viewport || !sprite.optimizeScrollRect){
 				for (var i=0;i < n;++i)
-				(ele=(childs [i])).visible && ele.render(context,x,y);
+				(ele=(childs [i]))._style.visible && ele.render(context,x,y);
 				}else {
-				var rect=sprite.scrollRect;
+				var rect=sprite.viewport;
+				var left=rect.x;
+				var top=rect.y;
+				var right=rect.right;
+				var bottom=rect.bottom;
+				var _x=0,_y=0;
 				for (i=0;i < n;++i){
-					ele=childs [i];
-					if (ele.visible && rect.intersects(Rectangle.TEMP.setTo(ele.x,ele.y,ele.width,ele.height)))
+					if ((ele=childs [i])._style.visible && ((_x=ele.x)< right && (_x+ele.width)> left && (_y=ele.y)< bottom && (_y+ele.height)> top)){
 						ele.render(context,x,y);
+					}
 				}
 			}
 		}
@@ -18559,6 +19432,15 @@ window.Laya=(function(window,document){
 		__class(Context,'laya.resource.Context');
 		var __proto=Context.prototype;
 		__proto.setIsMainContext=function(){}
+		__proto.drawTextures=function(tex,pos,tx,ty){
+			Stat.drawCall+=pos.length / 2;
+			var w=tex.bitmap.width;
+			var h=tex.bitmap.height;
+			for (var i=0,sz=pos.length;i < sz;i+=2){
+				this.drawTexture(tex,pos[i],pos[i+1],w,h,tx,ty);
+			}
+		}
+
 		/***@private */
 		__proto.drawCanvas=function(canvas,x,y,width,height){
 			Stat.drawCall++;
@@ -18636,12 +19518,17 @@ window.Laya=(function(window,document){
 		}
 
 		/***@private */
-		__proto.drawTextureWithTransform=function(tex,x,y,width,height,m,tx,ty){
+		__proto.drawTextureWithTransform=function(tex,x,y,width,height,m,tx,ty,alpha){
 			Stat.drawCall++;
 			var uv=tex.uv,w=tex.bitmap.width,h=tex.bitmap.height;
 			this.save();
-			this.transform(m.a,m.b,m.c,m.d,m.tx+tx,m.ty+ty);
-			this.drawImage(tex.source,uv[0] *w,uv[1] *h,(uv[2]-uv[0])*w,(uv[5]-uv[3])*h,x ,y,width,height);
+			alpha !=1 && (this.globalAlpha *=alpha);
+			if (m){
+				this.transform(m.a,m.b,m.c,m.d,m.tx+tx,m.ty+ty);
+				this.drawImage(tex.source,uv[0] *w,uv[1] *h,(uv[2]-uv[0])*w,(uv[5]-uv[3])*h,x ,y,width,height);
+				}else {
+				this.drawImage(tex.source,uv[0] *w,uv[1] *h,(uv[2]-uv[0])*w,(uv[5]-uv[3])*h,x+tx ,y+ty,width,height);
+			}
 			this.restore();
 		}
 
@@ -18705,7 +19592,7 @@ window.Laya=(function(window,document){
 			to.__fillText=to.fillText;
 			to.__fillRect=to.fillRect;
 			to.__strokeText=to.strokeText;
-			var funs=['fillWords','setIsMainContext','fillRect','strokeText','fillText','transformByMatrix','setTransformByMatrix','clipRect','drawTexture','drawTexture2','drawTextureWithTransform','flush','clear','destroy','drawCanvas','fillBorderText'];
+			var funs=['drawTextures','fillWords','setIsMainContext','fillRect','strokeText','fillText','transformByMatrix','setTransformByMatrix','clipRect','drawTexture','drawTexture2','drawTextureWithTransform','flush','clear','destroy','drawCanvas','fillBorderText'];
 			funs.forEach(function(i){
 				to[i]=from[i] || to[i];
 			});
@@ -19476,6 +20363,12 @@ window.Laya=(function(window,document){
 			return v;
 		}
 
+		__proto.getFloat64=function(){
+			var v=this._d_.getFloat64(this._pos_,this._xd_);
+			this._pos_+=8;
+			return v;
+		}
+
 		/**
 		*在当前字节偏移量位置处写入 Float32 值。
 		*@param value 需要写入的 Float32 值。
@@ -19484,6 +20377,12 @@ window.Laya=(function(window,document){
 			this.ensureWrite(this._pos_+4);
 			this._d_.setFloat32(this._pos_,value,this._xd_);
 			this._pos_+=4;
+		}
+
+		__proto.writeFloat64=function(value){
+			this.ensureWrite(this._pos_+8);
+			this._d_.setFloat64(this._pos_,value,this._xd_);
+			this._pos_+=8;
 		}
 
 		/**
@@ -20127,7 +21026,7 @@ window.Laya=(function(window,document){
 			g=graphic;
 			var m;
 			var params=ClassUtils._getParams(propsO,drawConfig[1],drawConfig[2],drawConfig[3]);
-			m=params.m;
+			m=ClassUtils._tM;
 			if (m){
 				g.save();
 				g.transform(m);
@@ -20176,9 +21075,9 @@ window.Laya=(function(window,document){
 				if (!xPos)xPos=0;
 				m.translate(rst[xPos],rst[xPos+1]);
 				rst[xPos]=rst[xPos+1]=0;
-				rst.m=m;
+				ClassUtils._tM=m;
 				}else {
-				rst.map=null;
+				ClassUtils._tM=null;
 			}
 			if (adptFun && ClassUtils[adptFun]){
 				rst=ClassUtils[adptFun](rst);
@@ -20213,6 +21112,7 @@ window.Laya=(function(window,document){
 			return classObject;
 		}
 
+		ClassUtils._tM=null
 		__static(ClassUtils,
 		['DrawTypeDic',function(){return this.DrawTypeDic={"Rect":["drawRect",[["x",0],["y",0],["width",0],["height",0],["fillColor",null],["lineColor",null],["lineWidth",1]]],"Circle":["drawCircle",[["x",0],["y",0],["radius",0],["fillColor",null],["lineColor",null],["lineWidth",1]]],"Pie":["drawPie",[["x",0],["y",0],["radius",0],["startAngle",0],["endAngle",0],["fillColor",null],["lineColor",null],["lineWidth",1]]],"Image":["drawTexture",[["x",0],["y",0],["width",0],["height",0]]],"Texture":["drawTexture",[["skin",null],["x",0],["y",0],["width",0],["height",0]],1,"_adptTextureData"],"FillTexture":["fillTexture",[["skin",null],["x",0],["y",0],["width",0],["height",0],["repeat",null]],1,"_adptTextureData"],"FillText":["fillText",[["text",""],["x",0],["y",0],["font",null],["color",null],["textAlign",null]],1],"Line":["drawLine",[["x",0],["y",0],["toX",0],["toY",0],["lineColor",null],["lineWidth",0]],0,"_adptLineData"],"Lines":["drawLines",[["x",0],["y",0],["points",""],["lineColor",null],["lineWidth",0]],0,"_adptLinesData"],"Curves":["drawCurves",[["x",0],["y",0],["points",""],["lineColor",null],["lineWidth",0]],0,"_adptLinesData"],"Poly":["drawPoly",[["x",0],["y",0],["points",""],["fillColor",null],["lineColor",null],["lineWidth",1]],0,"_adptLinesData"]};}
 		]);
@@ -20392,6 +21292,7 @@ window.Laya=(function(window,document){
 			//this._offsets=null;
 			//this._disableMouseEvent=false;
 			//this._tween=null;
+			//this._parent=null;
 		}
 
 		__class(Dragging,'laya.utils.Dragging');
@@ -20415,11 +21316,16 @@ window.Laya=(function(window,document){
 			this.elasticBackTime=elasticBackTime;
 			this.data=data;
 			this._disableMouseEvent=disableMouseEvent;
+			if (target.globalScaleX !=1 || target.globalScaleY !=1){
+				this._parent=target.parent;
+				}else {
+				this._parent=Laya.stage;
+			}
 			this._clickOnly=true;
 			this._dragging=true;
 			this._elasticRateX=this._elasticRateY=1;
-			this._lastX=Laya.stage.mouseX;
-			this._lastY=Laya.stage.mouseY;
+			this._lastX=this._parent.mouseX;
+			this._lastY=this._parent.mouseY;
 			Laya.stage.on("mouseup",this,this.onStageMouseUp);
 			Laya.stage.on("mouseout",this,this.onStageMouseUp);
 			Laya.timer.frameLoop(1,this,this.loop);
@@ -20455,8 +21361,9 @@ window.Laya=(function(window,document){
 		*拖拽的循环处理函数。
 		*/
 		__proto.loop=function(){
-			var mouseX=Laya.stage.mouseX;
-			var mouseY=Laya.stage.mouseY;
+			var point=this._parent.getMousePoint();
+			var mouseX=point.x;
+			var mouseY=point.y;
 			var offsetX=mouseX-this._lastX;
 			var offsetY=mouseY-this._lastY;
 			if (this._clickOnly){
@@ -20526,7 +21433,7 @@ window.Laya=(function(window,document){
 			if (this._clickOnly || !this.target)return;
 			if (this.hasInertia){
 				if (this._offsets.length < 1){
-					this._offsets.push(Laya.stage.mouseX-this._lastX,Laya.stage.mouseY-this._lastY);
+					this._offsets.push(this._parent.mouseX-this._lastX,this._parent.mouseY-this._lastY);
 				}
 				this._offsetX=this._offsetY=0;
 				var len=this._offsets.length;
@@ -20593,6 +21500,7 @@ window.Laya=(function(window,document){
 				this.clearTimer();
 				var sp=this.target;
 				this.target=null;
+				this._parent=null;
 				sp.event("dragend",this.data);
 			}
 		}
@@ -20811,35 +21719,54 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*鼠标点击区域类
+	*鼠标点击区域，可以设置绘制一系列矢量图作为点击区域和非点击区域（目前只支持圆形，矩形，多边形）
 	*/
 	//class laya.utils.HitArea
 	var HitArea=(function(){
 		function HitArea(){
-			this.hit=null;
-			this.unHit=null;
+			this._hit=null;
+			this._unHit=null;
 		}
 
 		__class(HitArea,'laya.utils.HitArea');
 		var __proto=HitArea.prototype;
 		/**
 		*是否包含某个点
-		*@param x
-		*@param y
-		*@return
-		*
+		*@param x x坐标
+		*@param y y坐标
+		*@return 是否点击到
 		*/
 		__proto.isHit=function(x,y){
 			if (!HitArea.isHitGraphic(x,y,this.hit))return false;
 			return !HitArea.isHitGraphic(x,y,this.unHit);
 		}
 
+		/**
+		*可点击区域，可以设置绘制一系列矢量图作为点击区域（目前只支持圆形，矩形，多边形）
+		*/
+		__getset(0,__proto,'hit',function(){
+			if (!this._hit)this._hit=new Graphics();
+			return this._hit;
+			},function(value){
+			this._hit=value;
+		});
+
+		/**
+		*不可点击区域，可以设置绘制一系列矢量图作为非点击区域（目前只支持圆形，矩形，多边形）
+		*/
+		__getset(0,__proto,'unHit',function(){
+			if (!this._unHit)this._unHit=new Graphics();
+			return this._unHit;
+			},function(value){
+			this._unHit=value;
+		});
+
 		HitArea.isHitGraphic=function(x,y,graphic){
 			if (!graphic)return false;
 			var cmds;
 			cmds=graphic.cmds;
-			if (!cmds&&graphic._one){
-				cmds=HitArea._tCmds;
+			if (!cmds && graphic._one){
+				cmds=HitArea._cmds;
 				cmds.length=1;
 				cmds[0]=graphic._one;
 			}
@@ -20889,6 +21816,7 @@ window.Laya=(function(window,document){
 					rst=HitArea.ptInPolygon(x,y,cmd[2]);
 					break ;
 				default :
+					break ;
 				}
 			return rst;
 		}
@@ -20922,7 +21850,7 @@ window.Laya=(function(window,document){
 			return (nCross % 2==1);
 		}
 
-		HitArea._tCmds=[];
+		HitArea._cmds=[];
 		__static(HitArea,
 		['_rec',function(){return this._rec=new Rectangle();},'_ptPoint',function(){return this._ptPoint=new Point();}
 		]);
@@ -21582,7 +22510,7 @@ window.Laya=(function(window,document){
 		/**
 		*缓动对象的props属性到目标值。
 		*@param target 目标对象(即将更改属性值的对象)。
-		*@param props 变化的属性列表，比如{x:100,y:20}。
+		*@param props 变化的属性列表，比如{x:100,y:20,ease:Ease.backOut,complete:Handler.create(this,onComplete),update:new Handler(this,onComplete)}。
 		*@param duration 花费的时间，单位毫秒。
 		*@param ease 缓动类型，默认为匀速运动。
 		*@param complete 结束回调函数。
@@ -21599,7 +22527,7 @@ window.Laya=(function(window,document){
 		/**
 		*从props属性，缓动到当前状态。
 		*@param target 目标对象(即将更改属性值的对象)。
-		*@param props 变化的属性列表，比如{x:100,y:20}。
+		*@param props 变化的属性列表，比如{x:100,y:20,ease:Ease.backOut,complete:Handler.create(this,onComplete),update:new Handler(this,onComplete)}。
 		*@param duration 花费的时间，单位毫秒。
 		*@param ease 缓动类型，默认为匀速运动。
 		*@param complete 结束回调函数。
@@ -21617,7 +22545,7 @@ window.Laya=(function(window,document){
 		__proto._create=function(target,props,duration,ease,complete,delay,coverBefore,isTo,usePool,runNow){
 			if (!target)throw new Error("Tween:target is null");
 			this._target=target;
-			this._duration=duration||props.duration||0;
+			this._duration=duration;
 			this._ease=ease || props.ease || Tween.easeNone;
 			this._complete=complete || props.complete;
 			this._delay=delay;
@@ -21785,7 +22713,7 @@ window.Laya=(function(window,document){
 
 		/**设置当前执行比例**/
 		__getset(0,__proto,'progress',null,function(v){
-			var uTime=v*this._duration;
+			var uTime=v *this._duration;
 			this._startTimer=Browser.now()-this._delay-uTime;
 		});
 
@@ -21908,42 +22836,21 @@ window.Laya=(function(window,document){
 			return RunDriver.measureText(txt,font);
 		}
 
-		Utils.updateOrder=function(childs){
-			if ((!childs)|| childs.length < 2)return false;
-			var c=childs[0];
-			var i=1,sz=childs.length;
-			var z=c._zOrder,low=NaN,high=NaN,mid=NaN,zz=NaN;
-			var repaint=false;
-			for (i=1;i < sz;i++){
-				c=childs [i];
-				if (!c)continue ;
-				if ((z=c._zOrder)< 0)z=c._zOrder;
-				if (z < childs[i-1]._zOrder){
-					mid=low=0;
-					high=i-1;
-					while (low <=high){
-						mid=(low+high)>>> 1;
-						if (!childs[mid])break ;
-						zz=childs[mid]._zOrder;
-						if (zz < 0)zz=childs[mid]._zOrder;
-						if (zz < z)
-							low=mid+1;
-						else if (zz > z)
-						high=mid-1;
-						else break ;
-					}
-					if (z > childs[mid]._zOrder)mid++;
-					var f=c.parent;
-					childs.splice(i,1);
-					childs.splice(mid,0,c);
-					if (f && f.model){
-						f.model&&f.model.removeChild(c.model);
-						f.model && f.model.addChildAt(c.model,mid);
-					}
-					repaint=true;
+		Utils.updateOrder=function(array){
+			if (!array || array.length < 2)return false;
+			var i=1,j=0,len=array.length,key=NaN,c;
+			while (i < len){
+				j=i;
+				c=array[j];
+				key=array[j]._zOrder;
+				while (--j >-1){
+					if (array[j]._zOrder > key)array[j+1]=array[j];
+					else break ;
 				}
+				array[j+1]=c;
+				i++;
 			}
-			return repaint;
+			return true;
 		}
 
 		Utils.transPointList=function(points,x,y){
@@ -23097,6 +24004,9 @@ window.Laya=(function(window,document){
 			this._resultPs=null;
 			this._ps=null;
 			this._vb=null;
+			this.u_texRange=[0,1,0,1];
+			this.u_offset=[0,0];
+			this._tempMatrix=new Matrix();
 		}
 
 		__class(FillTextureSprite,'laya.webgl.shader.d2.fillTexture.FillTextureSprite');
@@ -23127,15 +24037,12 @@ window.Laya=(function(window,document){
 			this._ps.push(0,1,3,3,1,2);
 			this.mEleNum=this._ps.length;
 			this.mVBData=new Float32Array(this._vb);
-			if (this.mShaderValue==null){
-				this.mShaderValue=new FillTextureShaderValue();
-			}
-			this.mShaderValue.u_offset[0]=-offsetX / tTextureW;
-			this.mShaderValue.u_offset[1]=-offsetY / tTextureH;
-			this.mShaderValue.u_texRange[0]=tTextureX / w;
-			this.mShaderValue.u_texRange[1]=tTextureW / w;
-			this.mShaderValue.u_texRange[2]=tTextureY / h;
-			this.mShaderValue.u_texRange[3]=tTextureH / h;
+			this.u_offset[0]=-offsetX / tTextureW;
+			this.u_offset[1]=-offsetY / tTextureH;
+			this.u_texRange[0]=tTextureX / w;
+			this.u_texRange[1]=tTextureW / w;
+			this.u_texRange[2]=tTextureY / h;
+			this.u_texRange[3]=tTextureH / h;
 		}
 
 		__proto.getData=function(vb,ib,start){
@@ -23156,8 +24063,28 @@ window.Laya=(function(window,document){
 		__proto.render=function(context,x,y){
 			if (Render.isWebGL){
 				SkinMeshBuffer.getInstance().addFillTexture(this);
-				this.mShaderValue.textureHost=this.mTexture;
-				context.setIBVB(x,y,this.mIBBuffer,this.mVBBuffer,this.mEleNum,this.transform,FillTextureShader.getInstance(),this.mShaderValue,this._indexStart,0,1);
+				if (this.mIBBuffer && this.mIBBuffer){
+					context._shader2D.glTexture=null;
+					var tempSubmit=Submit.createShape(context,this.mIBBuffer,this.mVBBuffer,this.mEleNum,this._indexStart,Value2D.create(0x100,0));
+					Matrix.TEMP.identity();
+					this.transform || (this.transform=Matrix.EMPTY);
+					this.transform.translate(x,y);
+					Matrix.mul(this.transform,context._curMat,this._tempMatrix);
+					this.transform.translate(-x,-y);
+					var tArray=RenderState2D.getMatrArray();
+					RenderState2D.mat2MatArray(this._tempMatrix,tArray);
+					var tShaderValue=tempSubmit.shaderValue;
+					tShaderValue.textureHost=this.mTexture;
+					tShaderValue.u_offset[0]=this.u_offset[0];
+					tShaderValue.u_offset[1]=this.u_offset[1];
+					tShaderValue.u_texRange[0]=this.u_texRange[0];
+					tShaderValue.u_texRange[1]=this.u_texRange[1];
+					tShaderValue.u_texRange[2]=this.u_texRange[2];
+					tShaderValue.u_texRange[3]=this.u_texRange[3];
+					tShaderValue.ALPHA=context._shader2D.ALPHA;
+					tShaderValue.u_mmat2=tArray;
+					(context)._submits[(context)._submits._length++]=tempSubmit;
+				}
 			}
 		}
 
@@ -23194,13 +24121,19 @@ window.Laya=(function(window,document){
 			var vs,ps;
 			vs="attribute vec4 position;\nattribute vec2 texcoord;\nuniform vec2 size;\n\n#ifdef WORLDMAT\nuniform mat4 mmat;\n#endif\nvarying vec2 v_texcoord;\n\n#include?BLUR_FILTER  \"parts/BlurFilter_vs_uniform.glsl\";\nvoid main() {\n  #ifdef WORLDMAT\n  vec4 pos=mmat*position;\n  gl_Position =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  #else\n  gl_Position =vec4((position.x/size.x-0.5)*2.0,(0.5-position.y/size.y)*2.0,position.z,1.0);\n  #endif\n  \n  v_texcoord = texcoord;\n  #include?BLUR_FILTER  \"parts/BlurFilter_vs_logic.glsl\";\n}";
 			ps="precision mediump float;\n//precision highp float;\nvarying vec2 v_texcoord;\nuniform sampler2D texture;\nuniform float alpha;\n#include?BLUR_FILTER  \"parts/BlurFilter_ps_uniform.glsl\";\n#include?COLOR_FILTER \"parts/ColorFilter_ps_uniform.glsl\";\n#include?GLOW_FILTER \"parts/GlowFilter_ps_uniform.glsl\";\n#include?COLOR_ADD \"parts/ColorAdd_ps_uniform.glsl\";\n\nvoid main() {\n   vec4 color= texture2D(texture, v_texcoord);\n   color.a*=alpha;\n   gl_FragColor=color;\n   #include?COLOR_ADD \"parts/ColorAdd_ps_logic.glsl\";   \n   #include?BLUR_FILTER  \"parts/BlurFilter_ps_logic.glsl\";\n   #include?COLOR_FILTER \"parts/ColorFilter_ps_logic.glsl\";\n   #include?GLOW_FILTER \"parts/GlowFilter_ps_logic.glsl\";\n}";
-			Shader.preCompile(0,0x01,vs,ps,null);
+			Shader.preCompile2D(0,0x01,vs,ps,null);
 			vs="attribute vec4 position;\nuniform vec2 size;\nuniform mat4 mmat;\nvoid main() {\n  vec4 pos=mmat*position;\n  gl_Position =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n}";
 			ps="precision mediump float;\nuniform vec4 color;\nuniform float alpha;\n#include?COLOR_FILTER \"parts/ColorFilter_ps_uniform.glsl\";\nvoid main() {\n	vec4 a = vec4(color.r, color.g, color.b, color.a);\n	a.w = alpha;\n	gl_FragColor = a;\n	#include?COLOR_FILTER \"parts/ColorFilter_ps_logic.glsl\";\n}";
-			Shader.preCompile(0,0x02,vs,ps,null);
+			Shader.preCompile2D(0,0x02,vs,ps,null);
 			vs="attribute vec4 position;\nattribute vec3 a_color;\nuniform mat4 mmat;\nuniform mat4 u_mmat2;\nuniform vec2 u_pos;\nuniform vec2 size;\nvarying vec3 color;\nvoid main(){\n  vec4 tPos = vec4(position.x + u_pos.x,position.y + u_pos.y,position.z,position.w);\n  vec4 pos=mmat*u_mmat2*tPos;\n  gl_Position =vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  color=a_color;\n}";
 			ps="precision mediump float;\n//precision mediump float;\nvarying vec3 color;\nuniform float alpha;\nvoid main(){\n	//vec4 a=vec4(color.r, color.g, color.b, 1);\n	//a.a*=alpha;\n    gl_FragColor=vec4(color.r, color.g, color.b, alpha);\n}";
-			Shader.preCompile(0,0x04,vs,ps,null);
+			Shader.preCompile2D(0,0x04,vs,ps,null);
+			vs="attribute vec2 position;\nattribute vec2 texcoord;\nattribute vec4 color;\nuniform vec2 size;\nuniform mat4 mmat;\nuniform mat4 u_mmat2;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nvoid main() {\n  vec4 pos=mmat*u_mmat2*vec4(position.x,position.y,0,1 );\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  v_color = color;\n  v_texcoord = texcoord;  \n}";
+			ps="precision mediump float;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nuniform sampler2D texture;\nuniform vec4 u_texRange;\nuniform vec2 u_offset;\nuniform float alpha;\nvoid main() {\n	vec2 newTexCoord;\n	newTexCoord.x = mod(((u_offset.x + v_texcoord.x) * u_texRange.y),u_texRange.y) + u_texRange.x;\n	newTexCoord.y = mod(((u_offset.y + v_texcoord.y) * u_texRange.w),u_texRange.w) + u_texRange.z;\n	vec4 t_color = texture2D(texture, newTexCoord);\n	gl_FragColor = t_color * v_color;\n	gl_FragColor.a = gl_FragColor.a * alpha;\n}";
+			Shader.preCompile2D(0,0x100,vs,ps,null);
+			vs="attribute vec2 position;\nattribute vec2 texcoord;\nattribute vec4 color;\nuniform vec2 size;\nuniform float offsetX;\nuniform float offsetY;\nuniform mat4 mmat;\nuniform mat4 u_mmat2;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nvoid main() {\n  vec4 pos=mmat*u_mmat2*vec4(offsetX+position.x,offsetY+position.y,0,1 );\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  v_color = color;\n  v_texcoord = texcoord;  \n}";
+			ps="precision mediump float;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nuniform sampler2D texture;\nuniform float alpha;\nvoid main() {\n	vec4 t_color = texture2D(texture, v_texcoord);\n	gl_FragColor = t_color.rgba * v_color;\n	gl_FragColor.a = gl_FragColor.a * alpha;\n}";
+			Shader.preCompile2D(0,0x200,vs,ps,null);
 		}
 
 		return Shader2D;
@@ -23213,7 +24146,6 @@ window.Laya=(function(window,document){
 	//class laya.webgl.shader.d2.skinAnishader.SkinMesh
 	var SkinMesh=(function(){
 		function SkinMesh(){
-			this.mShaderValue=null;
 			this.mVBBuffer=null;
 			this.mIBBuffer=null;
 			this.mVBData=null;
@@ -23226,6 +24158,7 @@ window.Laya=(function(window,document){
 			this._resultPs=null;
 			this._start=-1;
 			this._indexStart=-1;
+			this._tempMatrix=new Matrix();
 		}
 
 		__class(SkinMesh,'laya.webgl.shader.d2.skinAnishader.SkinMesh');
@@ -23255,9 +24188,6 @@ window.Laya=(function(window,document){
 			this.mVBData=new Float32Array(this._vs);
 			this.mEleNum=this._ps.length;
 			this.mTexture=texture;
-			if (this.mShaderValue==null){
-				this.mShaderValue=new aniShaderValue1();
-			}
 		}
 
 		__proto.getData=function(vb,ib,start){
@@ -23276,10 +24206,23 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.render=function(context,x,y){
-			if (Render.isWebGL){
-				this.mShaderValue.textureHost=this.mTexture;
+			if (Render.isWebGL && this.mTexture){
+				context._shader2D.glTexture=null;
 				SkinMeshBuffer.getInstance().addSkinMesh(this);
-				(context).setIBVB(x,y,this.mIBBuffer,this.mVBBuffer,this.mEleNum,this.transform,SkinAniShader1.getInstance(),this.mShaderValue,this._indexStart,0,1);
+				var tempSubmit=Submit.createShape(context,this.mIBBuffer,this.mVBBuffer,this.mEleNum,this._indexStart,Value2D.create(0x200,0));
+				this.transform || (this.transform=Matrix.EMPTY);
+				this.transform.translate(x,y);
+				Matrix.mul(this.transform,context._curMat,this._tempMatrix);
+				this.transform.translate(-x,-y);
+				var tArray=RenderState2D.getMatrArray();
+				RenderState2D.mat2MatArray(this._tempMatrix,tArray);
+				var tShaderValue=tempSubmit.shaderValue;
+				tShaderValue.textureHost=this.mTexture;
+				tShaderValue.offsetX=0;
+				tShaderValue.offsetY=0;
+				tShaderValue.u_mmat2=tArray;
+				tShaderValue.ALPHA=context._shader2D.ALPHA;
+				context._submits[context._submits._length++]=tempSubmit;
 			}
 		}
 
@@ -24664,6 +25607,24 @@ window.Laya=(function(window,document){
 			return true;
 		}
 
+		GlUtils.copyPreImgVb=function(vb,dx,dy){
+			var vpos=(vb._byteLength >> 2);
+			vb.byteLength=((vpos+16)<< 2);
+			var vbdata=vb.getFloat32Array();
+			for (var i=0;i < 16;i++){
+				vbdata[vpos+i]=vbdata[vpos+i-16];
+			}
+			vbdata[vpos]+=dx;
+			vbdata[vpos+1]+=dy;
+			vbdata[vpos+4]+=dx;
+			vbdata[vpos+5]+=dy;
+			vbdata[vpos+8]+=dx;
+			vbdata[vpos+9]+=dy;
+			vbdata[vpos+12]+=dx;
+			vbdata[vpos+13]+=dy;
+			vb._upload=true;
+		}
+
 		GlUtils.fillRectImgVb=function(vb,clip,x,y,width,height,uv,m,_x,_y,dx,dy,round){
 			(round===void 0)&& (round=false);
 			'use strict';
@@ -24673,11 +25634,11 @@ window.Laya=(function(window,document){
 			var w0,h0,tx,ty;
 			var finalX,finalY,offsetX,offsetY;
 			var a=m.a,b=m.b,c=m.c,d=m.d;
-			var useClip=false;
+			var useClip=clip.width < 99999999;
 			if (a!==1 || b!==0 || c!==0 || d!==1){
 				m.bTransform=true;
 				if (b===0 && c===0){
-					mType=useClip ? 30 :23;
+					mType=23;
 					w0=width+x,h0=height+y;
 					tx=m.tx+_x,ty=m.ty+_y;
 					toBx=a *x+tx;
@@ -24686,7 +25647,7 @@ window.Laya=(function(window,document){
 					toEy=d *h0+ty;
 				}
 				}else {
-				mType=useClip ? 30 :23;
+				mType=23;
 				m.bTransform=false;
 				toBx=x+m.tx+_x;
 				toEx=toBx+width;
@@ -24698,10 +25659,9 @@ window.Laya=(function(window,document){
 			}
 			if (mType!==1 && (toBx >=cEx || toBy >=cEy || toEx <=cBx || toEy <=cBy))
 				return false;
-			var vpos=(vb._byteLength >> 2)+16;
-			vb.byteLength=(vpos << 2);
+			var vpos=(vb._byteLength >> 2);
+			vb.byteLength=((vpos+16)<< 2);
 			var vbdata=vb.getFloat32Array();
-			vpos-=16;
 			vbdata[vpos+2]=uv[0];
 			vbdata[vpos+3]=uv[1];
 			vbdata[vpos+6]=uv[2];
@@ -24766,49 +25726,6 @@ window.Laya=(function(window,document){
 						vbdata[vpos+13]=toEy;
 					}
 					break ;
-				case 30:
-					if (toBx < cBx || toBy < cBy || toEx > cEx || toEy > cEy){
-						var dcx=cBx-toBx,dcty=cBy-toBy,decr=toEx-cEx,decb=toEy-cEy;
-						if (dcx > 0){
-							toBx=cBx;
-							vbdata[vpos+14]=vbdata[vpos+2]=vbdata[vpos+2]+dcx / (width *a)*(vbdata[vpos+6]-vbdata[vpos+2])
-						}
-						if (dcty > 0){
-							toBy=cBy;
-							vbdata[vpos+7]=vbdata[vpos+3]=vbdata[vpos+3]+dcty / (height *d)*(vbdata[vpos+11]-vbdata[vpos+7])
-						}
-						if (decr > 0){
-							toEx=cEx;
-							vbdata[vpos+6]=vbdata[vpos+10]=vbdata[vpos+6]-decr / (width *a)*(vbdata[vpos+6]-vbdata[vpos+2])
-						}
-						if (decb > 0){
-							toEy=cEy;
-							vbdata[vpos+11]=vbdata[vpos+15]=vbdata[vpos+15]-decb / (height *d)*(vbdata[vpos+11]-vbdata[vpos+7])
-						}
-					}
-					if (round){
-						finalX=toBx+dx;
-						offsetX=Math.round(finalX)-finalX;
-						finalY=toBy;
-						offsetY=Math.round(finalY)-finalY;
-						vbdata[vpos]=finalX+offsetX;
-						vbdata[vpos+1]=finalY+offsetY;
-						vbdata[vpos+4]=toEx+dx+offsetX;
-						vbdata[vpos+5]=toBy+offsetY;
-						vbdata[vpos+8]=toEx+offsetX;
-						vbdata[vpos+9]=toEy+offsetY;
-						vbdata[vpos+12]=toBx+offsetX;
-						vbdata[vpos+13]=toEy+offsetY;
-						}else {
-						vbdata[vpos]=toBx+dx;
-						vbdata[vpos+1]=toBy;
-						vbdata[vpos+4]=toEx+dx;
-						vbdata[vpos+5]=toBy;
-						vbdata[vpos+8]=toEx;
-						vbdata[vpos+9]=toEy;
-						vbdata[vpos+12]=toBx;
-						vbdata[vpos+13]=toEy;
-					}
 				}
 			vb._upload=true;
 			return true;
@@ -25081,28 +25998,24 @@ window.Laya=(function(window,document){
 
 		__class(ValusArray,'laya.webgl.utils.ValusArray');
 		var __proto=ValusArray.prototype;
-		__proto.pushValue=function(name,value,id){
-			this.setValue(this._length,name,value,id);
+		__proto.pushValue=function(name,value){
+			this.setValue(this._length,name,value);
 			this._length+=2;
 		}
 
-		__proto.setValue=function(index,name,value,id){
+		__proto.setValue=function(index,name,value){
 			this._data[index++]=name;
-			var d=this._data[index];
-			d || (d=this._data[index]=[value,0]);
-			d[0]=value;
-			d[1]=id;
+			this._data[index]=value;
 		}
 
 		__proto.pushArray=function(value){
 			var data=this._data;
 			var len=this._length;
 			var inData=value._data;
-			var dec,src;
+			var dec;
 			for (var i=0,n=value.length;i < n;i++,len++){
 				data[len++]=inData[i++];
-				src=inData[i];
-				(dec=data[len])?(dec[0]=src[0],dec[1]=src[1]):(data[len]=[src[0],src[1]]);
+				data[len]=inData[i];
 			}
 			this._length=len;
 		}
@@ -25112,16 +26025,7 @@ window.Laya=(function(window,document){
 			var values=this._data;
 			var decData=dec._data;
 			for (var i=0;i < this._length;i++){
-				if (((values[i])instanceof Array)){
-					var valueArray=values[i];
-					var decDataArray=decData[i]=[];
-					decDataArray.length=valueArray.length;
-					for (var j=0;j<valueArray.length;j++)
-					decDataArray[j]=valueArray[j];
-				}
-				else {
-					decData[i]=values[i];
-				}
+				decData[i]=values[i];
 			}
 			dec.length=this._length;
 			return dec;
@@ -25734,13 +26638,13 @@ window.Laya=(function(window,document){
 		__proto.loadingRes=function(){
 			var assets=[];
 			assets.push({url:"res/atlas/sanguo.json",type:"atlas"});
-			assets.push(
-			{url:"res/atlas/bmfont.json",type:"atlas"});
+			assets.push({url:"res/atlas/bmfont.json",type:"atlas"});
 			assets.push({url:"res/atlas/buff.json",type:"atlas"});
 			assets.push({url:"res/atlas/role.json",type:"atlas"});
 			assets.push({url:"res/atlas/combo.json",type:"atlas"});
 			assets.push({url:"res/atlas/result.json",type:"atlas"});
 			assets.push({url:"res/atlas/res.json",type:"atlas"});
+			assets.push({url:"res/atlas/superCutin.json",type:"atlas"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qingqizhuqiang/qingqizhuqiang.png",type:"image"});
 			assets.push({url:"res/skeleton/qingqizhuqiang_effect/qingqizhuqiang_effect.sk",type:"arraybuffer"});
@@ -25753,10 +26657,20 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/heishenyushan_fly_item/heishenyushan_fly_item.png",type:"image"});
 			assets.push({url:"res/skeleton/heishenyushan_fly_item_effect/heishenyushan_fly_item_effect.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/heishenyushan_fly_item_effect/heishenyushan_fly_item_effect.png",type:"image"});
+			assets.push({url:"res/skeleton/heishenyushan_target_bg/heishenyushan_target_bg.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/heishenyushan_target_bg/heishenyushan_target_bg.png",type:"image"});
 			assets.push({url:"res/skeleton/xingyuebian/xingyuebian.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/xingyuebian/xingyuebian.png",type:"image"});
 			assets.push({url:"res/skeleton/xingyuebian_effect/xingyuebian_effect.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/xingyuebian_effect/xingyuebian_effect.png",type:"image"});
+			assets.push({url:"res/skeleton/xingyuebian_target_bg/xingyuebian_target_bg.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/xingyuebian_target_bg/xingyuebian_target_bg.png",type:"image"});
+			assets.push({url:"res/img/qingqizhuqiang_lihui_cutin.png",type:"image"});
+			assets.push({url:"res/img/qingqizhuqiang_skill_cutin.png",type:"image"});
+			assets.push({url:"res/img/heishenyushan_lihui_cutin.png",type:"image"});
+			assets.push({url:"res/img/heishenyushan_skill_cutin.png",type:"image"});
+			assets.push({url:"res/img/xingyuebian_lihui_cutin.png",type:"image"});
+			assets.push({url:"res/img/xingyuebian_skill_cutin.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/Fight/Fight.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qteORfight/Fight/Fight.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/Go/Go.sk",type:"arraybuffer"});
@@ -25789,6 +26703,8 @@ window.Laya=(function(window,document){
 			assets.push({url:"res/skeleton/qteORfight/KO_normal/KO_normal.png",type:"image"});
 			assets.push({url:"res/skeleton/qteORfight/SoundT/SoundT.sk",type:"arraybuffer"});
 			assets.push({url:"res/skeleton/qteORfight/SoundT/SoundT.png",type:"image"});
+			assets.push({url:"res/skeleton/mannu/mannu.sk",type:"arraybuffer"});
+			assets.push({url:"res/skeleton/mannu/mannu.png",type:"image"});
 			this.loadAsset(assets);
 		}
 
@@ -25933,7 +26849,7 @@ window.Laya=(function(window,document){
 		*@return 返回添加的节点
 		*/
 		__proto.addChild=function(node){
-			if (node===this)return node;
+			if (this.destroyed || node===this)return node;
 			if (node._parent===this){
 				this._childs.splice(this.getChildIndex(node),1);
 				this._childs.push(node);
@@ -25971,7 +26887,7 @@ window.Laya=(function(window,document){
 		*@return 返回添加的节点。
 		*/
 		__proto.addChildAt=function(node,index){
-			if (node===this)return node;
+			if (this.destroyed || node===this)return node;
 			if (index >=0 && index <=this._childs.length){
 				if (node._parent===this){
 					var oldIndex=this.getChildIndex(node);
@@ -26123,7 +27039,7 @@ window.Laya=(function(window,document){
 		__proto.removeChildren=function(beginIndex,endIndex){
 			(beginIndex===void 0)&& (beginIndex=0);
 			(endIndex===void 0)&& (endIndex=0x7fffffff);
-			if (this._childs.length > 0){
+			if (this._childs && this._childs.length > 0){
 				var childs=this._childs;
 				if (beginIndex===0 && endIndex >=n){
 					var arr=childs;
@@ -26321,11 +27237,7 @@ window.Laya=(function(window,document){
 
 		__class(ArenaMediator,'com.gamepark.casino.game.arena.mediator.ArenaMediator',_super);
 		var __proto=ArenaMediator.prototype;
-		__proto.onInitialize=function(){
-			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
-			this.initButtonShow();
-		}
-
+		__proto.onInitialize=function(){}
 		__proto.btnPauseClickHandler=function($evt){
 			if (this.pauseState==false){
 				this.pauseState=true;
@@ -26368,6 +27280,26 @@ window.Laya=(function(window,document){
 		}
 
 		//gameContext.arenaContext.data.doAutoBattleOperation();
+		__proto.autoBattleShowOrHideSelect=function(){
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				this.arenaView.roleView.hideAllSelect();
+			}
+			else{
+				var numberPostion=0;
+				var newRoleInfo;
+				if(this.gameContext.arenaContext.manager.roleListLogic.attackPlayer.roleVO.isMe){
+					numberPostion=this.gameContext.arenaContext.manager.roleListLogic.attackPlayer.roleVO.attackDefenceRolePosition
+					newRoleInfo=this.gameContext.arenaContext.manager.roleListLogic.defensePlayer.roleVO.roleInfoList[numberPostion];
+				}
+				else{
+					numberPostion=this.gameContext.arenaContext.manager.roleListLogic.defensePlayer.roleVO.attackDefenceRolePosition
+					newRoleInfo=this.gameContext.arenaContext.manager.roleListLogic.attackPlayer.roleVO.roleInfoList[numberPostion];
+				}
+				newRoleInfo.roleItemLogic.view.showSelect();
+			}
+		}
+
+		//roleItemView=this.arenaView.roleView.roleItemViewList[i];
 		__proto.refreshStateView=function(){
 			if (this.gameContext.arenaContext.data.isAutoBattle==true){
 				this.gameContext.arenaContext.gameView.arenaFootView.img_state.visible=true;
@@ -26405,7 +27337,8 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.initUI=function(){
-			this.playGameStatus==5;
+			this.playGameStatus==5
+			this.initButtonShow();
 			var i=0;
 			for(i=0;i < 6;i++){
 				this.arenaView.arenaFootView.roleListView["roleItemView"+(i+1)].hpView.imgHp.scaleX=1;
@@ -26423,7 +27356,6 @@ window.Laya=(function(window,document){
 			GameContext.i.arenaContext.gameView.leftZhezhao2Sprite.x=0
 			GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.x=0
 			this.refreshImgHeaderLable();
-			this.arenaView.arenaFootView.roleListView.scale(1.0,1.0);
 			this.gameContext.arenaContext.data.speed=1;
 			this.arenaView.arenaFootView.btnSpeed.skin="res/btn_quick_1.png"
 			this.addImageTouch()
@@ -26453,12 +27385,13 @@ window.Laya=(function(window,document){
 					for (j=0;j < playerInfo.roleVO.roleInfoList.length;j++){
 						roleInfo=playerInfo.roleVO.roleInfoList[j];
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].disabled=false;
-						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgHeader.skin="res/img_role_"+playerInfo.roleVO.roleInfoList[j].meta.id+".png";
+						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgHeader.skin="res/img/img_role_"+playerInfo.roleVO.roleInfoList[j].meta.id+".png";
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgType.skin="res/img_type_"+playerInfo.roleVO.roleInfoList[j].meta.type+".png";
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].imgHeaderNumber=j;
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].lab_number.visible=false;
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].img_die.visible=false;
 						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].lab_jiacheng.visible=false;
+						this.arenaView.arenaFootView.roleListView["roleItemView"+(j+1)].refreshView(roleInfo.hp / roleInfo.hpMax,roleInfo.mp / 1000,roleInfo);
 						this.arenaView.arenaFootView.showView(roleInfo,j);
 					}
 				}
@@ -26501,6 +27434,8 @@ window.Laya=(function(window,document){
 			this.arenaView.roleView.showFirstSelect();
 			this.roleViewTouch()
 			this.timer.loop(1000,this,this.addUniqueSkillOrQteStage);
+			this.arenaView.arenaFootView.btn_auto.visible=true;
+			this.arenaView.arenaFootView.btn_auto.on("click",this,this.btnAutoClickHandler)
 		}
 
 		//fight阶段
@@ -26597,6 +27532,9 @@ window.Laya=(function(window,document){
 
 		__proto.roleClickHandler=function($roleItemView,$e){
 			console.log("roleClickHandler=====true")
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				return;
+			}
 			if($roleItemView.logic.isDie()){
 				return;
 			}
@@ -26760,6 +27698,9 @@ window.Laya=(function(window,document){
 			this.imgTouchHandler();
 			if ($roleInfo.canSuperUniqueSkill()==false){
 				return;
+			}
+			if (this.gameContext.arenaContext.data.isAutoBattle==true){
+				return;
 			};
 			var stateBoolean=false
 			for (var i=0;i < this.gameContext.arenaContext.data.superUniquePositionList.length;i++){
@@ -26843,14 +27784,14 @@ window.Laya=(function(window,document){
 			var roleItemView=this.arenaView.arenaFootView.roleListView["roleItemView"+($roleItemLogic.roleInfo.position+1)]
 			Tween.to(roleItemView.lab_jiacheng,{
 				y:5
-			},200,null,Handler.create(this,this.changeLablePos,[roleItemView.lab_jiacheng]));
+			},150,null,Handler.create(this,this.changeLablePos,[roleItemView.lab_jiacheng]));
 		}
 
 		__proto.changeLablePos=function($lable){
 			Tween.to($lable,{
 				alpha:0.2,
 				y:-15
-			},300,null,Handler.create(this,this.removeLable,[$lable]));
+			},250,null,Handler.create(this,this.removeLable,[$lable]));
 		}
 
 		__proto.removeLable=function($lable){
@@ -26867,6 +27808,48 @@ window.Laya=(function(window,document){
 					return;
 				}
 			}
+		}
+
+		__proto.refreshMpOrSkill=function($roleInfo){
+			if ($roleInfo.isMe==true && this.gameContext.arenaContext.data.isAutoBattle==true && !$roleInfo.isDie()){
+				var skillStatus=false;
+				var arrLenght=this.gameContext.arenaContext.data.superUniquePositionList.length;
+				if (arrLenght < 1){
+					this.refreshSkillListOrView($roleInfo.position,$roleInfo,this.arenaView.arenaFootView.roleListView["roleItemView"+($roleInfo.position+1)])
+				}
+				else{
+					for (var i=0;i < arrLenght;i++){
+						if ($roleInfo.position==this.gameContext.arenaContext.data.superUniquePositionList[i]){
+							skillStatus=true;
+						}
+						if ((i==arrLenght-1)&& skillStatus==false){
+							this.refreshSkillListOrView($roleInfo.position,$roleInfo,this.arenaView.arenaFootView.roleListView["roleItemView"+($roleInfo.position+1)])
+						}
+					}
+				}
+				console.log("this.gameContext.arenaContext.data.superUniquePositionList",this.gameContext.arenaContext.data.superUniquePositionList)
+			}
+		}
+
+		//this.refreshImgHeaderLable();
+		__proto.refreshSkillListOrView=function($args,$roleInfo,$roleItemView){
+			this.imgTouchHandler();
+			if ($roleInfo.canSuperUniqueSkill()==false){
+				return;
+			};
+			var stateBoolean=false
+			for (var i=0;i < this.gameContext.arenaContext.data.superUniquePositionList.length;i++){
+				if ($args==this.gameContext.arenaContext.data.superUniquePositionList[i]){
+					$roleItemView.imgPosMove=true
+					this.gameContext.arenaContext.data.superUniquePositionList.splice(i,1);
+					stateBoolean=true;
+				}
+			}
+			if (stateBoolean==false){
+				this.gameContext.arenaContext.data.superUniquePositionList.push($args);
+				$roleItemView.imgPosMove=true
+			}
+			this.refreshImgHeaderLable();
 		}
 
 		__proto.restartGame=function(){
@@ -26899,12 +27882,16 @@ window.Laya=(function(window,document){
 		var __proto=ArenaService.prototype;
 		__proto.onInitialize=function(){
 			this.gameContext.arenaContext.testCase.buildTestData();
-			this.gameContext.arenaContext.gameView.pivotX=this.gameContext.uiService.screenWidth / 2;
-			this.gameContext.arenaContext.gameView.pivotY=this.gameContext.uiService.screenHeight / 2;
+			this.gameContext.arenaContext.gameView.battleView.pivotX=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.battleView.pivotY=this.gameContext.uiService.screenHeight / 2;
 			this.gameContext.uiService.addChildOnGameModuleLayer(this.gameContext.arenaContext.gameView);
-			this.gameContext.arenaContext.gameView.x=this.gameContext.uiService.screenWidth / 2;
-			this.gameContext.arenaContext.gameView.y=this.gameContext.uiService.screenHeight / 2;
-			this.gameContext.camera2D.focusOnView(this.gameContext.arenaContext.gameView,new Point(this.gameContext.uiService.screenWidth / 2,this.gameContext.uiService.screenHeight / 2));
+			this.gameContext.arenaContext.gameView.battleView.x=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.battleView.y=this.gameContext.uiService.screenHeight / 2;
+			this.gameContext.arenaContext.gameView.img_scene_bg.pivotX=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.img_scene_bg.pivotY=this.gameContext.uiService.screenHeight / 2;
+			this.gameContext.arenaContext.gameView.img_scene_bg.x=this.gameContext.uiService.screenWidth / 2;
+			this.gameContext.arenaContext.gameView.img_scene_bg.y=this.gameContext.uiService.screenHeight / 2;
+			this.gameContext.camera2D.focusOnViewList([this.gameContext.arenaContext.gameView.battleView,this.gameContext.arenaContext.gameView.img_scene_bg],new Point(this.gameContext.uiService.screenWidth / 2,this.gameContext.uiService.screenHeight / 2));
 			this.gameContext.arenaContext.gameMediator.initialize();
 			this.gameContext.arenaContext.gameMediator.open();
 		}
@@ -27473,7 +28460,7 @@ window.Laya=(function(window,document){
 		__proto.play=function(index,playbackRate,overallDuration,playStart,playEnd){
 			(index===void 0)&& (index=0);
 			(playbackRate===void 0)&& (playbackRate=1.0);
-			(overallDuration===void 0)&& (overallDuration=3153600000000);
+			(overallDuration===void 0)&& (overallDuration=2147483647);
 			(playStart===void 0)&& (playStart=0);
 			(playEnd===void 0)&& (playEnd=0);
 			if (!this._templet)
@@ -27498,6 +28485,7 @@ window.Laya=(function(window,document){
 				this._calculatePlayDuration();
 			else
 			this._templet.once("loaded",this,this._calculatePlayDuration);
+			this.update(0);
 		}
 
 		/**
@@ -27511,7 +28499,7 @@ window.Laya=(function(window,document){
 		__proto.playByFrame=function(index,playbackRate,overallDuration,playStartFrame,playEndFrame,fpsIn3DBuilder){
 			(index===void 0)&& (index=0);
 			(playbackRate===void 0)&& (playbackRate=1.0);
-			(overallDuration===void 0)&& (overallDuration=3153600000000);
+			(overallDuration===void 0)&& (overallDuration=9007199254740991);
 			(playStartFrame===void 0)&& (playStartFrame=0);
 			(playEndFrame===void 0)&& (playEndFrame=0);
 			(fpsIn3DBuilder===void 0)&& (fpsIn3DBuilder=30);
@@ -27556,6 +28544,7 @@ window.Laya=(function(window,document){
 						return;
 					}
 					time-=currentAniClipPlayDuration;
+					this.event("complete");
 				}
 				this._currentTime=time;
 				this._currentKeyframeIndex=Math.floor((this.currentPlayTime)/ cacheFrameInterval);
@@ -27568,6 +28557,7 @@ window.Laya=(function(window,document){
 					return;
 				}
 				this._currentTime=this._currentFrameTime=this._currentKeyframeIndex=0;
+				this.event("complete");
 			}
 		}
 
@@ -27757,7 +28747,7 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*<code>Resource</code> 是一个资源存取类。
+	*<code>Resource</code> 资源存取类。
 	*/
 	//class laya.resource.Resource extends laya.events.EventDispatcher
 	var Resource=(function(_super){
@@ -28257,7 +29247,7 @@ window.Laya=(function(window,document){
 
 		KeyframesAniTemplet._uniqueIDCounter=1;
 		KeyframesAniTemplet.interpolation=[KeyframesAniTemplet._LinearInterpolation_0,KeyframesAniTemplet._QuaternionInterpolation_1,KeyframesAniTemplet._AngleInterpolation_2,KeyframesAniTemplet._RadiansInterpolation_3,KeyframesAniTemplet._Matrix4x4Interpolation_4,KeyframesAniTemplet._NoInterpolation_5];
-		KeyframesAniTemplet.LAYA_ANIMATION_VISION="LAYAANIMATION:1.0.4";
+		KeyframesAniTemplet.LAYA_ANIMATION_VISION="LAYAANIMATION:1.0.5";
 		return KeyframesAniTemplet;
 	})(EventDispatcher)
 
@@ -28566,6 +29556,10 @@ window.Laya=(function(window,document){
 			this.attack3NeedDistance=0;
 			this.attack4NeedDistance=0;
 			this.attack5NeedDistance=0;
+			this.cutinPic1=null;
+			this.cutinPic2=null;
+			this.hasSkillTargetBgEffect=0;
+			this.skillTargetBgEffectDistance=0;
 			HeroResourceMeta.__super.call(this,$metaObj);
 			console.log("$metaObj : ",$metaObj);
 		}
@@ -28600,8 +29594,16 @@ window.Laya=(function(window,document){
 			return "res/skeleton/"+this.name+"_fly_item/"+this.name+"_fly_item.png";
 		});
 
+		__getset(0,__proto,'resSkillTargetBgEffectAniData',function(){
+			return "res/skeleton/"+this.name+"_target_bg/"+this.name+"_target_bg.sk";
+		});
+
 		__getset(0,__proto,'resFlyItemEffectAniData',function(){
 			return "res/skeleton/"+this.name+"_fly_item_effect/"+this.name+"_fly_item_effect.sk";
+		});
+
+		__getset(0,__proto,'resSkillTargetBgEffectAniTexture',function(){
+			return "res/skeleton/"+this.name+"_target_bg/"+this.name+"_target_bg.png";
 		});
 
 		return HeroResourceMeta;
@@ -28630,7 +29632,7 @@ window.Laya=(function(window,document){
 		function BaseRender(owner){
 			this._owner=null;
 			this._enable=false;
-			this._renderCullingObject=null;
+			this._renderObject=null;
 			this._materials=null;
 			this._boundingSphereNeedChange=false;
 			this._boundingBoxNeedChange=false;
@@ -28643,11 +29645,11 @@ window.Laya=(function(window,document){
 			this._boundingSphere=new BoundSphere(new Vector3(),0);
 			this._boundingSphereNeedChange=true;
 			this._boundingBoxNeedChange=true;
-			this._renderCullingObject=new RenderCullingObject();
-			this._renderCullingObject._render=this;
-			this._renderCullingObject._layerMask=this._owner.layer.mask;
-			this._renderCullingObject._ownerEnable=this._owner.enable;
-			this._renderCullingObject._enable=this._enable;
+			this._renderObject=new RenderObject1();
+			this._renderObject._render=this;
+			this._renderObject._layerMask=this._owner.layer.mask;
+			this._renderObject._ownerEnable=this._owner.enable;
+			this._renderObject._enable=this._enable;
 			this._materials=[];
 			this._owner.transform.on("worldmatrixneedchanged",this,this._onWorldMatNeedChange);
 			this._owner.on("layerchanged",this,this._onOwnerLayerChanged);
@@ -28670,21 +29672,21 @@ window.Laya=(function(window,document){
 		*@private
 		*/
 		__proto._onOwnerLayerChanged=function(layer){
-			this._renderCullingObject._layerMask=layer.mask;
+			this._renderObject._layerMask=layer.mask;
 		}
 
 		/**
 		*@private
 		*/
 		__proto._onOwnerEnableChanged=function(enable){
-			this._renderCullingObject._ownerEnable=enable;
+			this._renderObject._ownerEnable=enable;
 		}
 
 		/**
 		*@private
 		*/
 		__proto._onEnableChanged=function(sender,enable){
-			this._renderCullingObject._enable=enable;
+			this._renderObject._enable=enable;
 		}
 
 		/**
@@ -28737,7 +29739,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'material',function(){
 			var material=this._materials[0];
 			if (material && !material._isInstance){
-				var instanceMaterial=new Material();
+				var instanceMaterial=new material.constructor();
 				material.copy(instanceMaterial);
 				instanceMaterial.name=instanceMaterial.name+"(Instance)";
 				instanceMaterial._isInstance=true;
@@ -28751,11 +29753,11 @@ window.Laya=(function(window,document){
 		});
 
 		/**
-		*获取包围盒。
-		*@return 包围盒。
+		*获取渲染物体。
+		*@return 渲染物体。
 		*/
 		__getset(0,__proto,'renderCullingObject',function(){
-			return this._renderCullingObject;
+			return this._renderObject;
 		});
 
 		/**
@@ -28782,7 +29784,7 @@ window.Laya=(function(window,document){
 			for (var i=0,n=this._materials.length;i < n;i++){
 				var material=this._materials[i];
 				if (!material._isInstance){
-					var instanceMaterial=new Material();
+					var instanceMaterial=new material.constructor();
 					material.copy(instanceMaterial);
 					instanceMaterial.name=instanceMaterial.name+"(Instance)";
 					instanceMaterial._isInstance=true;
@@ -28846,6 +29848,409 @@ window.Laya=(function(window,document){
 		});
 
 		return BaseRender;
+	})(EventDispatcher)
+
+
+	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
+	var PlayerInfo1=(function(_super){
+		function PlayerInfo(){
+			this.id=0;
+			this.name=null;
+			this._chip=0;
+			PlayerInfo.__super.call(this);
+		}
+
+		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
+		var __proto=PlayerInfo.prototype;
+		__getset(0,__proto,'chip',function(){
+			return this._chip;
+			},function(value){
+			var old=this._chip;
+			this._chip=value;
+			this.validateProperty("chip",old,value);
+		});
+
+		return PlayerInfo;
+	})(ErisGamePropertyObserver)
+
+
+	/**
+	*<code>BaseMaterial</code> 类用于创建材质,抽象类,不允许实例。
+	*/
+	//class laya.d3.core.material.BaseMaterial extends laya.events.EventDispatcher
+	var BaseMaterial=(function(_super){
+		function BaseMaterial(){
+			this._id=0;
+			this._loaded=true;
+			this._renderQueue=0;
+			this._renderMode=0;
+			this._sharderNameID=0;
+			this._shaderDefine=0;
+			this._disableShaderDefine=0;
+			this._shaderValues=null;
+			this._textures=null;
+			this._colors=null;
+			this._numbers=null;
+			this._matrix4x4s=null;
+			this._textureSharderIndices=null;
+			this._colorSharderIndices=null;
+			this._numberSharderIndices=null;
+			this._matrix4x4SharderIndices=null;
+			this._isInstance=false;
+			this.name=null;
+			this.shader=null;
+			BaseMaterial.__super.call(this);
+			this._id=++BaseMaterial._uniqueIDCounter;
+			this._shaderDefine=0;
+			this._disableShaderDefine=0;
+			this._shaderValues=new ValusArray();
+			this._textures=[];
+			this._colors=[];
+			this._numbers=[];
+			this._matrix4x4s=[];
+			this._textureSharderIndices=[];
+			this._colorSharderIndices=[];
+			this._numberSharderIndices=[];
+			this._matrix4x4SharderIndices=[];
+			this.renderMode=1;
+		}
+
+		__class(BaseMaterial,'laya.d3.core.material.BaseMaterial',_super);
+		var __proto=BaseMaterial.prototype;
+		/**
+		*@private
+		*/
+		__proto._eventLoaded=function(){
+			this._loaded=true;
+			this.event("loaded",this);
+		}
+
+		/**
+		*@private
+		*/
+		__proto._uploadTextures=function(){
+			for (var i=0,n=this._textures.length;i < n;i++){
+				var texture=this._textures[i];
+				if (texture){
+					var source=texture.source;
+					(source)? this._uploadTexture(i,source):this._uploadTexture(i,SolidColorTexture2D.pickTexture.source);
+				}
+			}
+		}
+
+		/**
+		*获取Shader。
+		*@param state 相关渲染状态。
+		*@return Shader。
+		*/
+		__proto._getShader=function(state,vertexDeclaration){
+			var shaderDefs=state.shaderDefs;
+			var shaderDefsValue=state.shaderDefs._value;
+			shaderDefsValue |=vertexDeclaration.shaderDefine | this._shaderDefine;
+			this._disableShaderDefine && (shaderDefsValue=shaderDefsValue & (~this._disableShaderDefine));
+			shaderDefs._value=shaderDefsValue;
+			var nameID=shaderDefs._value+this._sharderNameID *0.0002;
+			this.shader=Shader.withCompile(this._sharderNameID,shaderDefs.toNameDic(),nameID,null);
+		}
+
+		/**
+		*@private
+		*/
+		__proto._uploadTexture=function(shaderIndex,textureSource){
+			this._shaderValues.data[this._textureSharderIndices[shaderIndex]]=textureSource;
+		}
+
+		/**
+		*增加Shader宏定义。
+		*@param value 宏定义。
+		*/
+		__proto._addShaderDefine=function(value){
+			this._shaderDefine |=value;
+		}
+
+		/**
+		*移除Shader宏定义。
+		*@param value 宏定义。
+		*/
+		__proto._removeShaderDefine=function(value){
+			this._shaderDefine &=~value;
+		}
+
+		/**
+		*增加禁用宏定义。
+		*@param value 宏定义。
+		*/
+		__proto._addDisableShaderDefine=function(value){
+			this._disableShaderDefine |=value;
+		}
+
+		/**
+		*移除禁用宏定义。
+		*@param value 宏定义。
+		*/
+		__proto._removeDisableShaderDefine=function(value){
+			this._disableShaderDefine &=~value;
+		}
+
+		__proto._setMatrix4x4=function(matrix4x4Index,shaderName,matrix4x4){
+			var shaderValue=this._shaderValues;
+			var index=this._matrix4x4SharderIndices[matrix4x4Index];
+			if (!index && matrix4x4){
+				this._matrix4x4SharderIndices[matrix4x4Index]=index=shaderValue.length+1;
+				shaderValue.pushValue(shaderName,null);
+			}
+			shaderValue.data[index]=matrix4x4.elements;
+			this._matrix4x4s[matrix4x4Index]=matrix4x4;
+		}
+
+		__proto._getMatrix4x4=function(matrix4x4Index){
+			return this._matrix4x4s[matrix4x4Index];
+		}
+
+		__proto._setNumber=function(numberIndex,shaderName,number){
+			var shaderValue=this._shaderValues;
+			var index=this._numberSharderIndices[numberIndex];
+			if (!index && number){
+				this._numberSharderIndices[numberIndex]=index=shaderValue.length+1;
+				shaderValue.pushValue(shaderName,null);
+			}
+			shaderValue.data[index]=number;
+			this._numbers[numberIndex]=number;
+		}
+
+		__proto._getNumber=function(numberIndex){
+			return this._numbers[numberIndex];
+		}
+
+		__proto._setColor=function(colorIndex,shaderName,color){
+			var shaderValue=this._shaderValues;
+			var index=this._colorSharderIndices[colorIndex];
+			if (!index && color){
+				this._colorSharderIndices[colorIndex]=index=shaderValue.length+1;
+				shaderValue.pushValue(shaderName,null);
+			}
+			shaderValue.data[index]=color.elements;
+			this._colors[colorIndex]=color;
+		}
+
+		__proto._getColor=function(colorIndex){
+			return this._colors[colorIndex];
+		}
+
+		/**
+		*设置纹理。
+		*/
+		__proto._setTexture=function(texture,textureIndex,shaderName){
+			var shaderValue=this._shaderValues;
+			var index=this._textureSharderIndices[textureIndex];
+			if (!index && texture){
+				this._textureSharderIndices[textureIndex]=index=shaderValue.length+1;
+				shaderValue.pushValue(shaderName,null);
+			}
+			this._textures[textureIndex]=texture;
+		}
+
+		/**
+		*获取纹理。
+		*/
+		__proto._getTexture=function(textureIndex){
+			return this._textures[textureIndex];
+		}
+
+		/**
+		*上传材质。
+		*@param state 相关渲染状态。
+		*@param bufferUsageShader Buffer相关绑定。
+		*@param shader 着色器。
+		*@return 是否成功。
+		*/
+		__proto._upload=function(state,vertexDeclaration,bufferUsageShader){
+			this._uploadTextures();
+			this._getShader(state,vertexDeclaration);
+			var shaderValue=state.shaderValue;
+			shaderValue.pushArray(this._shaderValues);
+			this.shader.uploadArray(shaderValue.data,shaderValue.length,bufferUsageShader);
+		}
+
+		/**
+		*设置使用Shader名字。
+		*@param name 名称。
+		*/
+		__proto.setShaderName=function(name){
+			this._sharderNameID=Shader.nameKey.get(name);
+		}
+
+		__proto._setLoopShaderParams=function(state,projectionView,worldMatrix,mesh,material){
+			throw new Error("Marterial:must override it.");
+		}
+
+		/**
+		*复制材质
+		*@param dec 目标材质
+		*/
+		__proto.copy=function(dec){
+			dec._loaded=this._loaded;
+			dec._renderQueue=this._renderQueue;
+			dec._renderMode=this._renderMode;
+			dec._textures=this._textures.slice();
+			dec._colors=this._colors.slice();
+			dec._numbers=this._numbers.slice();
+			dec._matrix4x4s=this._matrix4x4s.slice();
+			dec._textureSharderIndices=this._textureSharderIndices.slice();
+			dec._colorSharderIndices=this._colorSharderIndices.slice();
+			dec._numberSharderIndices=this._numberSharderIndices.slice();
+			dec.shader=this.shader;
+			dec._sharderNameID=this._sharderNameID;
+			dec._disableShaderDefine=this._disableShaderDefine;
+			dec._shaderDefine=this._shaderDefine;
+			dec.name=this.name;
+			this._shaderValues.copyTo(dec._shaderValues);
+			return dec;
+		}
+
+		/**
+		*获取唯一标识ID(通常用于优化或识别)。
+		*@return 唯一标识ID
+		*/
+		__getset(0,__proto,'id',function(){
+			return this._id;
+		});
+
+		/**
+		*获取是否已加载完成。
+		*@return 是否已加载完成
+		*/
+		__getset(0,__proto,'loaded',function(){
+			return this._loaded;
+		});
+
+		/**
+		*获取所属渲染队列。
+		*@return 渲染队列。
+		*/
+		__getset(0,__proto,'renderQueue',function(){
+			return this._renderQueue;
+		});
+
+		/**
+		*设置渲染模式。
+		*@return 渲染模式。
+		*/
+		/**
+		*获取渲染状态。
+		*@return 渲染状态。
+		*/
+		__getset(0,__proto,'renderMode',function(){
+			return this._renderMode;
+			},function(value){
+			this._renderMode=value;
+			switch (value){
+				case 1:
+					this._renderQueue=1;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 2:
+					this._renderQueue=2;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 3:
+					this._renderQueue=1;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 4:
+					this._renderQueue=2;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 13:
+					this._renderQueue=3;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 14:
+					this._renderQueue=4;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 15:
+					this._renderQueue=5;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 16:
+					this._renderQueue=6;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 5:
+					this._renderQueue=7;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 6:
+					this._renderQueue=8;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 7:
+					this._renderQueue=9;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 8:
+					this._renderQueue=10;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 9:
+					this._renderQueue=11;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 10:
+					this._renderQueue=12;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 11:
+					this._renderQueue=13;
+					this.event("renderqueuechanged",this);
+					break ;
+				case 12:
+					this._renderQueue=14;
+					this.event("renderqueuechanged",this);
+					break ;
+				default :
+					throw new Error("Material:renderMode value error.");
+					break ;
+				}
+			if (this._renderMode===3 || this._renderMode===4)
+				this._shaderDefine |=0x800;
+			else
+			this._shaderDefine=this._shaderDefine & (~0x800);
+		});
+
+		BaseMaterial.createFromFile=function(url,out){
+			out._loaded=false;
+			var loader=new Loader();
+			var onComp=function (data){
+				var preBasePath=URL.basePath;
+				URL.basePath=URL.getPath(URL.formatURL(url));
+				ClassUtils.createByJson(data,out,null,Handler.create(null,Utils3D._parseMaterial,null,false));
+				URL.basePath=preBasePath;
+				out._eventLoaded();
+			}
+			loader.once("complete",null,onComp);
+			loader.load(url,"json");
+		}
+
+		BaseMaterial._uniqueIDCounter=0;
+		BaseMaterial.RENDERMODE_OPAQUE=1;
+		BaseMaterial.RENDERMODE_OPAQUEDOUBLEFACE=2;
+		BaseMaterial.RENDERMODE_CUTOUT=3;
+		BaseMaterial.RENDERMODE_CUTOUTDOUBLEFACE=4;
+		BaseMaterial.RENDERMODE_TRANSPARENT=13;
+		BaseMaterial.RENDERMODE_TRANSPARENTDOUBLEFACE=14;
+		BaseMaterial.RENDERMODE_ADDTIVE=15;
+		BaseMaterial.RENDERMODE_ADDTIVEDOUBLEFACE=16;
+		BaseMaterial.RENDERMODE_DEPTHREAD_TRANSPARENT=5;
+		BaseMaterial.RENDERMODE_DEPTHREAD_TRANSPARENTDOUBLEFACE=6;
+		BaseMaterial.RENDERMODE_DEPTHREAD_ADDTIVE=7;
+		BaseMaterial.RENDERMODE_DEPTHREAD_ADDTIVEDOUBLEFACE=8;
+		BaseMaterial.RENDERMODE_NONDEPTH_TRANSPARENT=9;
+		BaseMaterial.RENDERMODE_NONDEPTH_TRANSPARENTDOUBLEFACE=10;
+		BaseMaterial.RENDERMODE_NONDEPTH_ADDTIVE=11;
+		BaseMaterial.RENDERMODE_NONDEPTH_ADDTIVEDOUBLEFACE=12;
+		return BaseMaterial;
 	})(EventDispatcher)
 
 
@@ -29448,29 +30853,6 @@ window.Laya=(function(window,document){
 	})(EventDispatcher)
 
 
-	//class com.gamepark.casino.model.PlayerInfo extends com.gamepark.casino.model.ErisGamePropertyObserver
-	var PlayerInfo1=(function(_super){
-		function PlayerInfo(){
-			this.id=0;
-			this.name=null;
-			this._chip=0;
-			PlayerInfo.__super.call(this);
-		}
-
-		__class(PlayerInfo,'com.gamepark.casino.model.PlayerInfo',_super,'PlayerInfo1');
-		var __proto=PlayerInfo.prototype;
-		__getset(0,__proto,'chip',function(){
-			return this._chip;
-			},function(value){
-			var old=this._chip;
-			this._chip=value;
-			this.validateProperty("chip",old,value);
-		});
-
-		return PlayerInfo;
-	})(ErisGamePropertyObserver)
-
-
 	/**
 	*<code>Transform3D</code> 类用于实现3D变换。
 	*/
@@ -29969,12 +31351,12 @@ window.Laya=(function(window,document){
 
 		/**
 		*销毁纹理（分直接销毁，跟计数销毁两种）
-		*@param foreDiposeTexture true为强制销毁主纹理，false是通过计数销毁纹理
+		*@param forceDispose true为强制销毁主纹理，false是通过计数销毁纹理
 		*/
-		__proto.destroy=function(foreDiposeTexture){
-			(foreDiposeTexture===void 0)&& (foreDiposeTexture=false);
+		__proto.destroy=function(forceDispose){
+			(forceDispose===void 0)&& (forceDispose=false);
 			if (this.bitmap && (this.bitmap).useNum > 0){
-				if (foreDiposeTexture){
+				if (forceDispose){
 					this.bitmap.dispose();
 					(this.bitmap).useNum=0;
 					}else {
@@ -30186,7 +31568,6 @@ window.Laya=(function(window,document){
 			//this.colorAdd=null;
 			//this.glTexture=null;
 			//this.u_mmat2=null;
-			this.u_pos=[0,0];
 			//this._inClassCache=null;
 			this._cacheID=0;
 			Value2D.__super.call(this);
@@ -30225,7 +31606,7 @@ window.Laya=(function(window,document){
 		}
 
 		__proto._ShaderWithCompile=function(){
-			return Shader.withCompile(0,this.mainID,this.defines.toNameDic(),this.mainID | this.defines._value,Shader2X.create);
+			return Shader.withCompile2D(0,this.mainID,this.defines.toNameDic(),this.mainID | this.defines._value,Shader2X.create);
 		}
 
 		__proto._withWorldShaderDefines=function(){
@@ -30237,7 +31618,7 @@ window.Laya=(function(window,document){
 				var name;
 				dic=this.defines.toNameDic();for (name in dic)def[name]="";
 				dic=defs.toNameDic();for (name in dic)def[name]="";
-				sd=Shader.withCompile(0,this.mainID,def,this.mainID | this.defines._value| defs.getValue(),Shader2X.create);
+				sd=Shader.withCompile2D(0,this.mainID,def,this.mainID | this.defines._value| defs.getValue(),Shader2X.create);
 			};
 			var worldFilters=RenderState2D.worldFilters;
 			if (!worldFilters)return sd;
@@ -30284,7 +31665,7 @@ window.Laya=(function(window,document){
 				return;
 			var n=value.length,f;
 			for (var i=0;i < n;i++){
-				f=value[i]
+				f=value[i];
 				if (f){
 					this.defines.add(f.type);
 					f.action.setValue(this);
@@ -30314,6 +31695,8 @@ window.Laya=(function(window,document){
 			Value2D._TEXCOORD=[2,0x1406,false,4 *CONST3D2D.BYTES_PE,2 *CONST3D2D.BYTES_PE];
 			Value2D._initone(0x02,Color2dSV);
 			Value2D._initone(0x04,PrimitiveSV);
+			Value2D._initone(0x100,FillTextureSV);
+			Value2D._initone(0x200,SkinSV);
 			Value2D._initone(0x01,TextureSV);
 			Value2D._initone(0x01 | 0x40,TextSV);
 			Value2D._initone(0x01 | 0x08,TextureSV);
@@ -30391,12 +31774,13 @@ window.Laya=(function(window,document){
 		*@param type 资源类型。
 		*@param priority 优先级，0-4，五个优先级，0优先级最高，默认为1。
 		*@param cache 是否缓存加载结果。
+		*@param group 分组。
 		*@return 此 LoaderManager 对象。
 		*/
-		__proto.load=function(url,complete,progress,type,priority,cache){
+		__proto.load=function(url,complete,progress,type,priority,cache,group){
 			(priority===void 0)&& (priority=1);
 			(cache===void 0)&& (cache=true);
-			if ((url instanceof Array))return this._loadAssets(url,complete,progress,type,priority,cache);
+			if ((url instanceof Array))return this._loadAssets(url,complete,progress,type,priority,cache,group);
 			url=Loader._parseURL(url);
 			var content=Loader.getRes(url);
 			if (content !=null){
@@ -30409,6 +31793,7 @@ window.Laya=(function(window,document){
 					info.url=url;
 					info.type=type;
 					info.cache=cache;
+					info.group=group;
 					complete && info.on("complete",complete.caller,complete.method,complete.args);
 					progress && info.on("progress",progress.caller,progress.method,progress.args);
 					this._resMap[url]=info;
@@ -30454,7 +31839,7 @@ window.Laya=(function(window,document){
 				_this._loaderCount--;
 				_this._next();
 			}
-			loader.load(resInfo.url,resInfo.type,resInfo.cache);
+			loader.load(resInfo.url,resInfo.type,resInfo.cache,resInfo.group);
 		}
 
 		__proto._endLoad=function(resInfo,content){
@@ -30479,9 +31864,11 @@ window.Laya=(function(window,document){
 		/**
 		*清理指定资源地址缓存。
 		*@param url 资源地址。
+		*@param forceDispose 是否强制销毁，有些资源是采用引用计数方式销毁，如果forceDispose=true，则忽略引用计数，直接销毁，比如Texture，默认为false
 		*/
-		__proto.clearRes=function(url){
-			Loader.clearRes(url);
+		__proto.clearRes=function(url,forceDispose){
+			(forceDispose===void 0)&& (forceDispose=false);
+			Loader.clearRes(url,forceDispose);
 		}
 
 		/**
@@ -30545,7 +31932,7 @@ window.Laya=(function(window,document){
 		*@private
 		*加载数组里面的资源。
 		*@param arr 简单：["a.png","b.png"]，复杂[{url:"a.png",type:Loader.IMAGE,size:100,priority:1},{url:"b.json",type:Loader.JSON,size:50,priority:1}]*/
-		__proto._loadAssets=function(arr,complete,progress,type,priority,cache){
+		__proto._loadAssets=function(arr,complete,progress,type,priority,cache,group){
 			(priority===void 0)&& (priority=1);
 			(cache===void 0)&& (cache=true);
 			var itemCount=arr.length;
@@ -30561,7 +31948,7 @@ window.Laya=(function(window,document){
 				totalSize+=item.size;
 				items.push(item);
 				var progressHandler=progress ? Handler.create(this,loadProgress,[item],false):null;
-				this.load(item.url,Handler.create(item,loadComplete,[item]),progressHandler,item.type,item.priority || 1,cache);
+				this.load(item.url,Handler.create(item,loadComplete,[item]),progressHandler,item.type,item.priority || 1,cache,item.group||group);
 			}
 			function loadComplete (item,content){
 				loadedSize++;
@@ -30597,6 +31984,7 @@ window.Laya=(function(window,document){
 					this.url=null;
 					this.type=null;
 					this.cache=false;
+					this.group=null;
 					ResInfo.__super.call(this);
 				}
 				__class(ResInfo,'',_super);
@@ -30878,11 +32266,15 @@ window.Laya=(function(window,document){
 				WebAudioSound.buffs.push({"buffer":me.data,"url":me.url});
 				WebAudioSound.decode();
 			};
+			request.onerror=function (e){
+				me._err();
+			}
 			request.send();
 		}
 
 		__proto._err=function(){
 			this._removeLoadEvents();
+			WebAudioSound.__loadingSound[this.url]=false;
 			this.event("error");
 		}
 
@@ -31178,8 +32570,9 @@ window.Laya=(function(window,document){
 		*@param url 地址
 		*@param type 类型，如果为null，则根据文件后缀，自动分析类型。
 		*@param cache 是否缓存数据。
+		*@param group 分组。
 		*/
-		__proto.load=function(url,type,cache){
+		__proto.load=function(url,type,cache,group){
 			(cache===void 0)&& (cache=true);
 			url=Loader._parseURL(url);
 			this._url=url;
@@ -31192,6 +32585,7 @@ window.Laya=(function(window,document){
 				this.event("complete",this._data);
 				return;
 			}
+			if (group)Loader.setGroup(url,group);
 			if (Loader.parserMap[type] !=null){
 				if (((Loader.parserMap[type])instanceof laya.utils.Handler ))Loader.parserMap[type].runWith(this);
 				else Loader.parserMap[type].call(null,this);
@@ -31427,14 +32821,15 @@ window.Laya=(function(window,document){
 			return url
 		}
 
-		Loader.clearRes=function(url){
+		Loader.clearRes=function(url,forceDispose){
+			(forceDispose===void 0)&& (forceDispose=false);
 			url=URL.formatURL(url);
 			var arr=Loader.atlasMap[url];
 			if (arr){
 				for (var i=0,n=arr.length;i < n;i++){
 					var resUrl=arr[i];
 					var tex=Loader.getRes(resUrl);
-					if (tex)tex.destroy();
+					if (tex)tex.destroy(forceDispose);
 					delete Loader.loadedMap[resUrl];
 				}
 				arr.length=0;
@@ -31443,7 +32838,7 @@ window.Laya=(function(window,document){
 				}else {
 				var res=Loader.loadedMap[url];
 				if (res){
-					if ((res instanceof laya.resource.Texture )&& res.bitmap)(res).destroy();
+					if ((res instanceof laya.resource.Texture )&& res.bitmap)(res).destroy(forceDispose);
 					delete Loader.loadedMap[url];
 				}
 			}
@@ -31461,6 +32856,20 @@ window.Laya=(function(window,document){
 			Loader.loadedMap[URL.formatURL(url)]=data;
 		}
 
+		Loader.setGroup=function(url,group){
+			if (!Loader.groupMap[group])Loader.groupMap[group]=[];
+			Loader.groupMap[group].push(url);
+		}
+
+		Loader.clearResByGroup=function(group){
+			if (!Loader.groupMap[group])return;
+			var arr=Loader.groupMap[group],i=0,len=arr.length;
+			for (i=0;i < len;i++){
+				Loader.clearRes(arr[i]);
+			}
+			arr.length=0;
+		}
+
 		Loader.TEXT="text";
 		Loader.JSON="json";
 		Loader.XML="xml";
@@ -31468,9 +32877,12 @@ window.Laya=(function(window,document){
 		Loader.IMAGE="image";
 		Loader.SOUND="sound";
 		Loader.ATLAS="atlas";
+		Loader.TEXTURE2D="texture2d";
+		Loader.TEXTURECUBE="texturecube";
 		Loader.typeMap={"png":"image","jpg":"image","jpeg":"image","txt":"text","json":"json","xml":"xml","als":"atlas","mp3":"sound","ogg":"sound","wav":"sound","part":"json"};
 		Loader.parserMap={};
 		Loader.loadedMap={};
+		Loader.groupMap={};
 		Loader.maxTimeOut=100;
 		Loader.atlasMap={};
 		Loader._loaders=[];
@@ -31496,6 +32908,7 @@ window.Laya=(function(window,document){
 			this._output=null;
 			this.timeout=0;
 			this.objectEncoding=0;
+			this.disableInput=false;
 			this._byteClass=null;
 			(port===void 0)&& (port=0);
 			Socket.__super.call(this);
@@ -31586,6 +32999,12 @@ window.Laya=(function(window,document){
 		*@param msg 数据。
 		*/
 		__proto._onMessage=function(msg){
+			if (!msg || !msg.data)return;
+			var data=msg.data;
+			if(this.disableInput&&data){
+				this.event("message",data);
+				return;
+			}
 			if (this._input.length > 0 && this._input.bytesAvailable < 1){
 				this._input.clear();
 				this._addInputPosition=0;
@@ -31593,8 +33012,6 @@ window.Laya=(function(window,document){
 			var pre=this._input.pos;
 			!this._addInputPosition && (this._addInputPosition=0);
 			this._input.pos=this._addInputPosition;
-			if (!msg || !msg.data)return;
-			var data=msg.data;
 			if (data){
 				if ((typeof data=='string')){
 					this._input.writeUTFBytes(data);
@@ -31706,8 +33123,7 @@ window.Laya=(function(window,document){
 			ShaderDefines3D.reg("REFLECTMAP",0x40000);
 			ShaderDefines3D.reg("PARTICLE3D",0x8000);
 			ShaderDefines3D.reg("COLOR",0x20);
-			ShaderDefines3D.reg("VERTEXSHADERING",0x1000);
-			ShaderDefines3D.reg("PIXELSHADERING",0x2000);
+			ShaderDefines3D.reg("UV",0x200000);
 			ShaderDefines3D.reg("SKINNED",0x400);
 			ShaderDefines3D.reg("DIRECTIONLIGHT",0x40);
 			ShaderDefines3D.reg("POINTLIGHT",0x80);
@@ -31743,6 +33159,7 @@ window.Laya=(function(window,document){
 		ShaderDefines3D.UVTRANSFORM=0x4000;
 		ShaderDefines3D.MIXUV=0x10000;
 		ShaderDefines3D.FOG=0x20000;
+		ShaderDefines3D.UV=0x200000;
 		ShaderDefines3D.COLOR=0x20;
 		ShaderDefines3D.DIRECTIONLIGHT=0x40;
 		ShaderDefines3D.POINTLIGHT=0x80;
@@ -31751,8 +33168,6 @@ window.Laya=(function(window,document){
 		ShaderDefines3D.SKINNED=0x400;
 		ShaderDefines3D.ALPHATEST=0x800;
 		ShaderDefines3D.PARTICLE3D=0x8000;
-		ShaderDefines3D.VERTEXSHADERING=0x1000;
-		ShaderDefines3D.PIXELSHADERING=0x2000;
 		ShaderDefines3D._name2int={};
 		ShaderDefines3D._int2name=[];
 		ShaderDefines3D._int2nameMap=[];
@@ -32661,8 +34076,7 @@ window.Laya=(function(window,document){
 		CSSStyle.ADDLAYOUTED=0x200;
 		CSSStyle._NEWFONT=0x1000;
 		CSSStyle._HEIGHT_SET=0x2000;
-		CSSStyle._BACKGROUND_SET=0x4000
-		;
+		CSSStyle._BACKGROUND_SET=0x4000;
 		CSSStyle._FLOAT_RIGHT=0x8000;
 		CSSStyle._LINE_ELEMENT=0x10000;
 		CSSStyle._NOWARP=0x20000;
@@ -32784,6 +34198,53 @@ window.Laya=(function(window,document){
 	})(Filter)
 
 
+	//class laya.webgl.shader.d2.ShaderDefines2D extends laya.webgl.shader.ShaderDefines
+	var ShaderDefines2D=(function(_super){
+		function ShaderDefines2D(){
+			ShaderDefines2D.__super.call(this,ShaderDefines2D.__name2int,ShaderDefines2D.__int2name,ShaderDefines2D.__int2nameMap);
+		}
+
+		__class(ShaderDefines2D,'laya.webgl.shader.d2.ShaderDefines2D',_super);
+		ShaderDefines2D.__init__=function(){
+			ShaderDefines2D.reg("TEXTURE2D",0x01);
+			ShaderDefines2D.reg("COLOR2D",0x02);
+			ShaderDefines2D.reg("PRIMITIVE",0x04);
+			ShaderDefines2D.reg("GLOW_FILTER",0x08);
+			ShaderDefines2D.reg("BLUR_FILTER",0x10);
+			ShaderDefines2D.reg("COLOR_FILTER",0x20);
+			ShaderDefines2D.reg("COLOR_ADD",0x40);
+			ShaderDefines2D.reg("WORLDMAT",0x80);
+		}
+
+		ShaderDefines2D.reg=function(name,value){
+			ShaderDefines._reg(name,value,ShaderDefines2D.__name2int,ShaderDefines2D.__int2name);
+		}
+
+		ShaderDefines2D.toText=function(value,int2name,int2nameMap){
+			return ShaderDefines._toText(value,int2name,int2nameMap);
+		}
+
+		ShaderDefines2D.toInt=function(names){
+			return ShaderDefines._toInt(names,ShaderDefines2D.__name2int);
+		}
+
+		ShaderDefines2D.TEXTURE2D=0x01;
+		ShaderDefines2D.COLOR2D=0x02;
+		ShaderDefines2D.PRIMITIVE=0x04;
+		ShaderDefines2D.FILTERGLOW=0x08;
+		ShaderDefines2D.FILTERBLUR=0x10;
+		ShaderDefines2D.FILTERCOLOR=0x20;
+		ShaderDefines2D.COLORADD=0x40;
+		ShaderDefines2D.WORLDMAT=0x80;
+		ShaderDefines2D.FILLTEXTURE=0x100;
+		ShaderDefines2D.SKINMESH=0x200;
+		ShaderDefines2D.__name2int={};
+		ShaderDefines2D.__int2name=[];
+		ShaderDefines2D.__int2nameMap=[];
+		return ShaderDefines2D;
+	})(ShaderDefines)
+
+
 	/**
 	*发光滤镜(也可以当成阴影滤使用）
 	*/
@@ -32860,51 +34321,6 @@ window.Laya=(function(window,document){
 
 		return GlowFilter;
 	})(Filter)
-
-
-	//class laya.webgl.shader.d2.ShaderDefines2D extends laya.webgl.shader.ShaderDefines
-	var ShaderDefines2D=(function(_super){
-		function ShaderDefines2D(){
-			ShaderDefines2D.__super.call(this,ShaderDefines2D.__name2int,ShaderDefines2D.__int2name,ShaderDefines2D.__int2nameMap);
-		}
-
-		__class(ShaderDefines2D,'laya.webgl.shader.d2.ShaderDefines2D',_super);
-		ShaderDefines2D.__init__=function(){
-			ShaderDefines2D.reg("TEXTURE2D",0x01);
-			ShaderDefines2D.reg("COLOR2D",0x02);
-			ShaderDefines2D.reg("PRIMITIVE",0x04);
-			ShaderDefines2D.reg("GLOW_FILTER",0x08);
-			ShaderDefines2D.reg("BLUR_FILTER",0x10);
-			ShaderDefines2D.reg("COLOR_FILTER",0x20);
-			ShaderDefines2D.reg("COLOR_ADD",0x40);
-			ShaderDefines2D.reg("WORLDMAT",0x80);
-		}
-
-		ShaderDefines2D.reg=function(name,value){
-			ShaderDefines._reg(name,value,ShaderDefines2D.__name2int,ShaderDefines2D.__int2name);
-		}
-
-		ShaderDefines2D.toText=function(value,int2name,int2nameMap){
-			return ShaderDefines._toText(value,int2name,int2nameMap);
-		}
-
-		ShaderDefines2D.toInt=function(names){
-			return ShaderDefines._toInt(names,ShaderDefines2D.__name2int);
-		}
-
-		ShaderDefines2D.TEXTURE2D=0x01;
-		ShaderDefines2D.COLOR2D=0x02;
-		ShaderDefines2D.PRIMITIVE=0x04;
-		ShaderDefines2D.FILTERGLOW=0x08;
-		ShaderDefines2D.FILTERBLUR=0x10;
-		ShaderDefines2D.FILTERCOLOR=0x20;
-		ShaderDefines2D.COLORADD=0x40;
-		ShaderDefines2D.WORLDMAT=0x80;
-		ShaderDefines2D.__name2int={};
-		ShaderDefines2D.__int2name=[];
-		ShaderDefines2D.__int2nameMap=[];
-		return ShaderDefines2D;
-	})(ShaderDefines)
 
 
 	/**
@@ -33115,7 +34531,6 @@ window.Laya=(function(window,document){
 			this._clipRect=WebGLContext2D.MAXCLIPRECT;
 			this._shader2D=new Shader2D();
 			this.mOutPoint
-			this.drawTexture=this._drawTextureM;
 			this._canvas=c;
 			this._curMat=Matrix.create();
 			if (Render.isFlash){
@@ -33319,20 +34734,50 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.drawTexture=function(tex,x,y,width,height,tx,ty){
-			this._drawTextureM(tex,x,y,width,height,tx,ty,null);
+			this._drawTextureM(tex,x,y,width,height,tx,ty,null,1);
 		}
 
-		__proto._drawTextureM=function(tex,x,y,width,height,tx,ty,m){
+		__proto.drawTextures=function(tex,pos,tx,ty){
 			if (!(tex.loaded && tex.bitmap && tex.source)){
 				if (this.sprite){
 					Laya.timer.callLater(this,this._repaintSprite);
 				}
 				return;
 			};
+			var pre=this._clipRect;
+			this._clipRect=WebGLContext2D.MAXCLIPRECT;
+			if (!this._drawTextureM(tex,pos[0],pos[1],tex.width,tex.height,tx,ty,null,1)){
+				alert("drawTextures err");
+				return;
+			}
+			this._clipRect=pre;
+			Stat.drawCall+=pos.length / 2;
+			if (pos.length < 4)return;
+			var finalVB=this._curSubmit._vb || this._vb;
+			var sx=this._curMat.a,sy=this._curMat.d;
+			for (var i=2,sz=pos.length;i < sz;i+=2){
+				GlUtils.copyPreImgVb(finalVB,(pos[i]-pos[i-2])*sx,(pos[i+1]-pos[i-1])*sy);
+				this._curSubmit._numEle+=6;
+			}
+			this._maxNumEle=Math.max(this._maxNumEle,this._curSubmit._numEle);
+		}
+
+		__proto._drawTextureM=function(tex,x,y,width,height,tx,ty,m,alpha){
+			if (!(tex.loaded && tex.bitmap && tex.source)){
+				if (this.sprite){
+					Laya.timer.callLater(this,this._repaintSprite);
+				}
+				return false;
+			};
 			var webGLImg=tex.bitmap;
 			var shader=this._shader2D;
+			var preAlpha=shader.ALPHA;
 			var curShader=this._curSubmit.shaderValue;
+			var finalVB=this._curSubmit._vb || this._vb;
 			this._drawCount++;
+			x+=tx;
+			y+=ty;
+			shader.ALPHA *=alpha;
 			if (this._curSubmit._renderType!==16 || shader.glTexture!==webGLImg || shader.ALPHA!==curShader.ALPHA){
 				shader.glTexture=webGLImg;
 				var vb=this._vb;
@@ -33344,14 +34789,17 @@ window.Laya=(function(window,document){
 				submit._renderType=16;
 				submit._preIsSameTextureShader=this._curSubmit._renderType===16 && shader.ALPHA===curShader.ALPHA;
 				this._curSubmit=submit;
-			};
-			var finalVB=this._curSubmit._vb || this._vb;
-			if (GlUtils.fillRectImgVb(finalVB,this._clipRect,x+tx,y+ty,width || tex.width,height || tex.height,tex.uv,m || this._curMat,this._x,this._y,0,0)){
+				finalVB=this._curSubmit._vb || this._vb;
+			}
+			shader.ALPHA=preAlpha;
+			if (GlUtils.fillRectImgVb(finalVB,this._clipRect,x,y,width || tex.width,height || tex.height,tex.uv,m || this._curMat,this._x,this._y,0,0)){
 				if (AtlasResourceManager.enabled && !this._isMain)
 					(this._curSubmit).addTexture(tex,(finalVB._byteLength >> 2)-16);
 				this._curSubmit._numEle+=6;
 				this._maxNumEle=Math.max(this._maxNumEle,this._curSubmit._numEle);
+				return true;
 			}
+			return false;
 		}
 
 		__proto._repaintSprite=function(){
@@ -33392,7 +34840,7 @@ window.Laya=(function(window,document){
 			}
 		}
 
-		__proto.drawTextureWithTransform=function(tex,x,y,width,height,transform,tx,ty){
+		__proto.drawTextureWithTransform=function(tex,x,y,width,height,transform,tx,ty,alpha){
 			var curMat=this._curMat;
 			(tx!==0 || ty!==0)&& (this._x=tx *curMat.a+ty *curMat.c,this._y=ty *curMat.d+tx *curMat.b);
 			if (transform && curMat.bTransform){
@@ -33403,7 +34851,7 @@ window.Laya=(function(window,document){
 				this._x+=curMat.tx;
 				this._y+=curMat.ty;
 			}
-			this._drawTextureM(tex,x,y,width,height,0,0,transform);
+			this._drawTextureM(tex,x,y,width,height,0,0,transform,alpha);
 			this._x=this._y=0;
 		}
 
@@ -33449,13 +34897,13 @@ window.Laya=(function(window,document){
 				}
 			}
 			if (alpha===1 && !blendMode)
-				this._drawTextureM(args[0],args[1]-pivotX,args[2]-pivotY,args[3],args[4],0,0,transform);
+				this._drawTextureM(args[0],args[1]-pivotX,args[2]-pivotY,args[3],args[4],0,0,transform,1);
 			else {
 				var preAlpha=this._shader2D.ALPHA;
 				var preblendType=this._nBlendType;
 				this._shader2D.ALPHA=alpha;
 				blendMode && (this._nBlendType=BlendMode.TOINT(blendMode));
-				this._drawTextureM(args[0],args[1]-pivotX,args[2]-pivotY,args[3],args[4],0,0,transform);
+				this._drawTextureM(args[0],args[1]-pivotX,args[2]-pivotY,args[3],args[4],0,0,transform,1);
 				this._shader2D.ALPHA=preAlpha;
 				this._nBlendType=preblendType;
 			}
@@ -33694,7 +35142,7 @@ window.Laya=(function(window,document){
 				var tPosArray=[this.mX,this.mY];
 				var tempSubmit=Submit.createShape(this,tPath.ib,tPath.vb,tPath.count,tPath.offset,Value2D.create(0x04,0));
 				tempSubmit.shaderValue.ALPHA=this._shader2D.ALPHA;
-				tempSubmit.shaderValue.u_pos=tPosArray;
+				(tempSubmit.shaderValue).u_pos=tPosArray;
 				tempSubmit.shaderValue.u_mmat2=tArray;
 				this._submits[this._submits._length++]=tempSubmit;
 			}
@@ -33892,7 +35340,7 @@ window.Laya=(function(window,document){
 				this.addRenderObject(submit);
 				tempSubmit=Submit.createShape(this,tPath.ib,tPath.vb,tPath.count,tPath.offset,Value2D.create(0x04,0));
 				tempSubmit.shaderValue.ALPHA=this._shader2D.ALPHA;
-				tempSubmit.shaderValue.u_pos=tPosArray;
+				(tempSubmit.shaderValue).u_pos=tPosArray;
 				tempSubmit.shaderValue.u_mmat2=tArray;
 				this._submits[this._submits._length++]=tempSubmit;
 				submit=SubmitStencil.create(5);
@@ -33900,7 +35348,7 @@ window.Laya=(function(window,document){
 			}
 			tempSubmit=Submit.createShape(this,tPath.ib,tPath.vb,tPath.count,tPath.offset,Value2D.create(0x04,0));
 			tempSubmit.shaderValue.ALPHA=this._shader2D.ALPHA;
-			tempSubmit.shaderValue.u_pos=tPosArray;
+			(tempSubmit.shaderValue).u_pos=tPosArray;
 			tempSubmit.shaderValue.u_mmat2=tArray;
 			this._submits[this._submits._length++]=tempSubmit;
 			if (!isConvexPolygon){
@@ -34818,6 +36266,7 @@ window.Laya=(function(window,document){
 			this.autoSize=false;
 			this.hitTestPrior=false;
 			this._optimizeScrollRect=false;
+			this.viewport=null;
 			Sprite.__super.call(this);
 			this._style=Style.EMPTY;
 		}
@@ -35785,6 +37234,7 @@ window.Laya=(function(window,document){
 			return this._style.scrollRect;
 			},function(value){
 			this.getStyle().scrollRect=value;
+			this.viewport=value;
 			this.repaint();
 			if (value){
 				this._renderType |=0x40;
@@ -35832,7 +37282,8 @@ window.Laya=(function(window,document){
 			this.repaint();
 		});
 
-		/**遮罩，可以设置一个对象或者图片，根据对象形状进行遮罩显示。*/
+		/**遮罩，可以设置一个对象或者图片，根据对象形状进行遮罩显示。
+		*【注意】遮罩对象坐标系是相对遮罩对象本身的，这个和flash机制不同*/
 		__getset(0,__proto,'mask',function(){
 			return this._$P._mask;
 			},function(value){
@@ -35928,7 +37379,6 @@ window.Laya=(function(window,document){
 			this.isStatic=false;
 			Sprite3D.__super.call(this);
 			this._components=[];
-			this._wvpMatrix=new Matrix4x4();
 			(name)? (this.name=name):(this.name="Sprite3D-"+Sprite3D._nameNumberCounter++);
 			this._enable=true;
 			this._id=Sprite3D._uniqueIDCounter;
@@ -35945,22 +37395,11 @@ window.Laya=(function(window,document){
 		/**
 		*@private
 		*/
-		__proto._changeSelfAndChildrenInStage=function(sprite3D,isInStage){
-			sprite3D._isInStage=isInStage;
-			sprite3D.event("instagechanged",isInStage);
-			var children=sprite3D._childs;
-			for (var i=0,n=children.length;i < n;i++)
-			this._changeSelfAndChildrenInStage(children[i],isInStage);
-		}
-
-		/**
-		*@private
-		*/
 		__proto._onAdded=function(){
 			this.transform.parent=(this._parent).transform;
-			this._addSelfAndChildrenRenderObjects();
 			var isInStage=Laya.stage.contains(this);
-			(isInStage)&& (this._changeSelfAndChildrenInStage(this,isInStage));
+			(isInStage)&& (this._addSelfAndChildrenRenderObjects());
+			(isInStage)&& (this._changeSelfAndChildrenInStage(true));
 		}
 
 		/**
@@ -35968,8 +37407,20 @@ window.Laya=(function(window,document){
 		*/
 		__proto._onRemoved=function(){
 			this.transform.parent=null;
-			this._clearSelfAndChildrenRenderObjects();
-			this._changeSelfAndChildrenInStage(this,false);
+			var isInStage=Laya.stage.contains(this);
+			(isInStage)&& (this._clearSelfAndChildrenRenderObjects());
+			(isInStage)&& (this._changeSelfAndChildrenInStage(false));
+		}
+
+		/**
+		*@private
+		*/
+		__proto._changeSelfAndChildrenInStage=function(isInStage){
+			this._isInStage=isInStage;
+			this.event("instagechanged",isInStage);
+			var children=this._childs;
+			for (var i=0,n=children.length;i < n;i++)
+			(this._childs [i])._changeSelfAndChildrenInStage(isInStage);
 		}
 
 		/**
@@ -36040,7 +37491,7 @@ window.Laya=(function(window,document){
 		*@param state 渲染相关状态。
 		*/
 		__proto._getSortID=function(renderElement,material){
-			return+renderElement.getVertexBuffer().vertexDeclaration.id+material.id *1000;
+			return+renderElement._getVertexBuffer().vertexDeclaration.id+material.id *1000;
 		}
 
 		/**
@@ -36189,14 +37640,6 @@ window.Laya=(function(window,document){
 		});
 
 		/**
-		*获得WorldViewProjection矩阵。
-		*@return 矩阵。
-		*/
-		__getset(0,__proto,'wvpMatrix',function(){
-			return this._wvpMatrix;
-		});
-
-		/**
 		*获取是否激活。
 		*@return 是否激活。
 		*/
@@ -36319,16 +37762,16 @@ window.Laya=(function(window,document){
 				throw gl.getProgramInfoLog(this._program);
 			};
 			var one,i=0,j=0,n=0,location;
-			var attribNum=this.customCompile?result.attributes.length:gl.getProgramParameter(this._program,0x8B89);
+			var attribNum=this.customCompile ? result.attributes.length :gl.getProgramParameter(this._program,0x8B89);
 			for (i=0;i < attribNum;i++){
-				var attrib=this.customCompile?result.attributes[i]:gl.getActiveAttrib(this._program,i);
+				var attrib=this.customCompile ? result.attributes[i] :gl.getActiveAttrib(this._program,i);
 				location=gl.getAttribLocation(this._program,attrib.name);
 				one={vartype:"attribute",ivartype:0,attrib:attrib,location:location,name:attrib.name,type:attrib.type,isArray:false,isSame:false,preValue:null,indexOfParams:0};
 				this._params.push(one);
 			};
-			var nUniformNum=this.customCompile?result.uniforms.length:gl.getProgramParameter(this._program,0x8B86);
+			var nUniformNum=this.customCompile ? result.uniforms.length :gl.getProgramParameter(this._program,0x8B86);
 			for (i=0;i < nUniformNum;i++){
-				var uniform=this.customCompile?result.uniforms[i]:gl.getActiveUniform(this._program,i);
+				var uniform=this.customCompile ? result.uniforms[i] :gl.getActiveUniform(this._program,i);
 				location=gl.getUniformLocation(this._program,uniform.name);
 				one={vartype:"uniform",ivartype:1,attrib:attrib,location:location,name:uniform.name,type:uniform.type,isArray:false,isSame:false,preValue:null,indexOfParams:0};
 				if (one.name.indexOf('[0]')> 0){
@@ -36347,7 +37790,7 @@ window.Laya=(function(window,document){
 				one.name=this._nameMap[one.codename] ? this._nameMap[one.codename] :one.codename;
 				this._paramsMap[one.name]=one;
 				one._this=this;
-				one.saveValue=[];
+				one.uploadedValue=[];
 				if (one.vartype==="attribute"){
 					one.fun=this._attribute;
 					continue ;
@@ -36404,70 +37847,171 @@ window.Laya=(function(window,document){
 			return 2;
 		}
 
-		__proto._uniformMatrix4fv=function(one,value){
-			WebGL.mainContext.uniformMatrix4fv(one.location,false,value);
-			return 1;
-		}
-
-		__proto._uniform1i=function(one,value){
-			var saveValue=one.saveValue;
-			if (saveValue[0]!==value){
-				WebGL.mainContext.uniform1i(one.location,saveValue[0]=value);
-				return 1;
-			}
-			return 0;
-		}
-
 		__proto._uniform1f=function(one,value){
-			var saveValue=one.saveValue;
-			if (saveValue[0]!==value){
-				WebGL.mainContext.uniform1f(one.location,saveValue[0]=value);
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value){
+				WebGL.mainContext.uniform1f(one.location,uploadedValue[0]=value);
 				return 1;
 			}
 			return 0;
 		}
 
 		__proto._uniform1fv=function(one,value){
-			var saveValue=one.saveValue;
-			if (saveValue[0]!==value){
-				WebGL.mainContext.uniform1fv(one.location,saveValue[0]=value);
+			if (value.length < 4){
+				var uploadedValue=one.uploadedValue;
+				if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2] || uploadedValue[3]!==value[3]){
+					WebGL.mainContext.uniform1fv(one.location,value);
+					uploadedValue[0]=value[0];
+					uploadedValue[1]=value[1];
+					uploadedValue[2]=value[2];
+					uploadedValue[3]=value[3];
+					return 1;
+				}
+				return 0;
+				}else {
+				WebGL.mainContext.uniform1fv(one.location,value);
 				return 1;
 			}
-			return 0;
 		}
 
 		__proto._uniform_vec2=function(one,value){
-			var saveValue=one.saveValue;
-			if (saveValue[0]!==value[0] || saveValue[1]!==value[1]){
-				WebGL.mainContext.uniform2f(one.location,saveValue[0]=value[0],saveValue[1]=value[1]);
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1]){
+				WebGL.mainContext.uniform2f(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1]);
 				return 1;
 			}
 			return 0;
 		}
 
+		__proto._uniform_vec2v=function(one,value){
+			if (value.length < 2){
+				var uploadedValue=one.uploadedValue;
+				if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2] || uploadedValue[3]!==value[3]){
+					WebGL.mainContext.uniform2fv(one.location,value);
+					uploadedValue[0]=value[0];
+					uploadedValue[1]=value[1];
+					uploadedValue[2]=value[2];
+					uploadedValue[3]=value[3];
+					return 1;
+				}
+				return 0;
+				}else {
+				WebGL.mainContext.uniform2fv(one.location,value);
+				return 1;
+			}
+		}
+
 		__proto._uniform_vec3=function(one,value){
-			WebGL.mainContext.uniform3f(one.location,value[0],value[1],value[2]);
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2]){
+				WebGL.mainContext.uniform3f(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1],uploadedValue[2]=value[2]);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform_vec3v=function(one,value){
+			WebGL.mainContext.uniform3fv(one.location,value);
 			return 1;
 		}
 
 		__proto._uniform_vec4=function(one,value){
-			WebGL.mainContext.uniform4f(one.location,value[0],value[1],value[2],value[3]);
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2] || uploadedValue[3]!==value[3]){
+				WebGL.mainContext.uniform4f(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1],uploadedValue[2]=value[2],uploadedValue[3]=value[3]);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform_vec4v=function(one,value){
+			WebGL.mainContext.uniform4fv(one.location,value);
+			return 1;
+		}
+
+		__proto._uniformMatrix2fv=function(one,value){
+			WebGL.mainContext.uniformMatrix2fv(one.location,false,value);
+			return 1;
+		}
+
+		__proto._uniformMatrix3fv=function(one,value){
+			WebGL.mainContext.uniformMatrix3fv(one.location,false,value);
+			return 1;
+		}
+
+		__proto._uniformMatrix4fv=function(one,value){
+			WebGL.mainContext.uniformMatrix4fv(one.location,false,value);
+			return 1;
+		}
+
+		__proto._uniform1i=function(one,value){
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value){
+				WebGL.mainContext.uniform1i(one.location,uploadedValue[0]=value);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform1iv=function(one,value){
+			WebGL.mainContext.uniform1iv(one.location,value);
+			return 1;
+		}
+
+		__proto._uniform_ivec2=function(one,value){
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1]){
+				WebGL.mainContext.uniform2i(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1]);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform_ivec2v=function(one,value){
+			WebGL.mainContext.uniform2iv(one.location,value);
+			return 1;
+		}
+
+		__proto._uniform_vec3i=function(one,value){
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2]){
+				WebGL.mainContext.uniform3i(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1],uploadedValue[2]=value[2]);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform_vec3vi=function(one,value){
+			WebGL.mainContext.uniform3iv(one.location,value);
+			return 1;
+		}
+
+		__proto._uniform_vec4i=function(one,value){
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]!==value[0] || uploadedValue[1]!==value[1] || uploadedValue[2]!==value[2] || uploadedValue[3]!==value[3]){
+				WebGL.mainContext.uniform4i(one.location,uploadedValue[0]=value[0],uploadedValue[1]=value[1],uploadedValue[2]=value[2],uploadedValue[3]=value[3]);
+				return 1;
+			}
+			return 0;
+		}
+
+		__proto._uniform_vec4vi=function(one,value){
+			WebGL.mainContext.uniform4iv(one.location,value);
 			return 1;
 		}
 
 		__proto._uniform_sampler2D=function(one,value){
 			var gl=WebGL.mainContext;
-			var saveValue=one.saveValue;
-			if (saveValue[0]==null){
-				saveValue[0]=this._curActTexIndex;
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]==null){
+				uploadedValue[0]=this._curActTexIndex;
 				gl.uniform1i(one.location,this._curActTexIndex);
 				gl.activeTexture(Shader._TEXTURES[this._curActTexIndex]);
 				WebGLContext.bindTexture(gl,0x0DE1,value);
 				this._curActTexIndex++;
 				return 1;
-			}
-			else{
-				gl.activeTexture(Shader._TEXTURES[saveValue[0]]);
+				}else {
+				gl.activeTexture(Shader._TEXTURES[uploadedValue[0]]);
 				WebGLContext.bindTexture(gl,0x0DE1,value);
 				return 0;
 			}
@@ -36475,17 +38019,16 @@ window.Laya=(function(window,document){
 
 		__proto._uniform_samplerCube=function(one,value){
 			var gl=WebGL.mainContext;
-			var saveValue=one.saveValue;
-			if (saveValue[0]==null){
-				saveValue[0]=this._curActTexIndex;
+			var uploadedValue=one.uploadedValue;
+			if (uploadedValue[0]==null){
+				uploadedValue[0]=this._curActTexIndex;
 				gl.uniform1i(one.location,this._curActTexIndex);
 				gl.activeTexture(Shader._TEXTURES[this._curActTexIndex]);
 				WebGLContext.bindTexture(gl,0x8513,value);
 				this._curActTexIndex++;
 				return 1;
-			}
-			else{
-				gl.activeTexture(Shader._TEXTURES[saveValue[0]]);
+				}else {
+				gl.activeTexture(Shader._TEXTURES[uploadedValue[0]]);
 				WebGLContext.bindTexture(gl,0x8513,value);
 				return 0;
 			}
@@ -36534,28 +38077,22 @@ window.Laya=(function(window,document){
 
 		/**
 		*按数组的定义提交
-		*@param shaderValue 数组格式[name,[value,id],...]
+		*@param shaderValue 数组格式[name,value,...]
 		*/
 		__proto.uploadArray=function(shaderValue,length,_bufferUsage){
 			Shader.activeShader=this;
 			this.activeResource();
-			var sameProgram=!WebGLContext.UseProgram(this._program);
+			WebGLContext.UseProgram(this._program);
 			var params=this._params,value;
-			var one,shaderCall=0,uploadArrayCount=Shader._uploadArrayCount++;
+			var one,shaderCall=0;
 			for (var i=length-2;i >=0;i-=2){
 				one=this._paramsMap[shaderValue[i]];
-				if (!one || one._uploadArrayCount===uploadArrayCount)
+				if (!one)
 					continue ;
-				one._uploadArrayCount=uploadArrayCount;
-				var v=shaderValue[i+1];
-				var uid=v[1];
-				if (sameProgram && one.ivartype===1 && uid > 0 && uid===one.__uploadid)
-					continue ;
-				value=v[0];
+				value=shaderValue[i+1];
 				if (value !=null){
 					_bufferUsage && _bufferUsage[one.name] && _bufferUsage[one.name].bind();
 					shaderCall+=one.fun.call(this,one,value);
-					one.__uploadid=uid;
 				}
 			}
 			Stat.shaderCall+=shaderCall;
@@ -36593,10 +38130,9 @@ window.Laya=(function(window,document){
 							word=words[++i];
 							definesName[word]=1;
 							continue ;
-						}
-						else if (word=="#ifdef"){
+							}else if (word=="#ifdef"){
 							tempelse=words[++i];
-							var def=definesInfo[tempelse]=definesInfo[tempelse]||[];
+							var def=definesInfo[tempelse]=definesInfo[tempelse] || [];
 							for (i++;i < n;i++){
 								word=words[i];
 								if (word !="attribute" && word !="uniform"){
@@ -36655,7 +38191,16 @@ window.Laya=(function(window,document){
 			return new Shader(vs,ps,saveName,nameMap);
 		}
 
-		Shader.withCompile=function(nameID,mainID,define,shaderName,createShader){
+		Shader.withCompile=function(nameID,define,shaderName,createShader){
+			if (shaderName && Shader.sharders[shaderName])
+				return Shader.sharders[shaderName];
+			var pre=Shader._preCompileShader[0.0002 *nameID];
+			if (!pre)
+				throw new Error("withCompile shader err!"+nameID);
+			return pre.createShader(define,shaderName,createShader);
+		}
+
+		Shader.withCompile2D=function(nameID,mainID,define,shaderName,createShader){
 			if (shaderName && Shader.sharders[shaderName])
 				return Shader.sharders[shaderName];
 			var pre=Shader._preCompileShader[0.0002 *nameID+mainID];
@@ -36672,7 +38217,12 @@ window.Laya=(function(window,document){
 			Shader._includeFiles[fileName]=txt;
 		}
 
-		Shader.preCompile=function(nameID,mainID,vs,ps,nameMap){
+		Shader.preCompile=function(nameID,vs,ps,nameMap){
+			var id=0.0002 *nameID;
+			Shader._preCompileShader[id]=new ShaderCompile(id,vs,ps,nameMap,Shader._includeFiles);
+		}
+
+		Shader.preCompile2D=function(nameID,mainID,vs,ps,nameMap){
 			var id=0.0002 *nameID+mainID;
 			Shader._preCompileShader[id]=new ShaderCompile(id,vs,ps,nameMap,Shader._includeFiles);
 		}
@@ -36691,7 +38241,6 @@ window.Laya=(function(window,document){
 		Shader._includeFiles={};
 		Shader._count=0;
 		Shader._preCompileShader={};
-		Shader._uploadArrayCount=1;
 		Shader.SHADERNAME2ID=0.0002;
 		Shader.activeShader=null
 		Shader.sharders=(Shader.sharders=[],Shader.sharders.length=0x20,Shader.sharders);
@@ -36726,6 +38275,7 @@ window.Laya=(function(window,document){
 			this.yReverseMatrix=null;
 			this.drawOrderAniArr=[];
 			this.eventAniArr=[];
+			this.attachmentNames=null;
 			this.deformAniArr=[];
 			this._rate=60;
 			this.aniSectionDic={};
@@ -36759,7 +38309,7 @@ window.Laya=(function(window,document){
 		*@param playbackRate 缓冲的帧率数据（会根据帧率去分帧）
 		*/
 		__proto.parseData=function(texture,skeletonData,playbackRate){
-			(playbackRate===void 0)&& (playbackRate=24);
+			(playbackRate===void 0)&& (playbackRate=60);
 			this._mainTexture=texture;
 			if (this._mainTexture){
 				if (Render.isWebGL && texture.bitmap){
@@ -36791,7 +38341,7 @@ window.Laya=(function(window,document){
 		*/
 		__proto.parse=function(data){
 			_super.prototype.parse.call(this,data);
-			if (!(this._aniVersion==KeyframesAniTemplet.LAYA_ANIMATION_VISION || this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.2")){
+			if (!(this._aniVersion==KeyframesAniTemplet.LAYA_ANIMATION_VISION || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.2")){
 				console.log("[Error] 版本不一致，请使用IDE版本（1.3.0）重新导出");
 				this._loaded=false;
 			}
@@ -36850,7 +38400,7 @@ window.Laya=(function(window,document){
 			for (var i=0,n=this._loadList.length;i < n;i++){
 				tTextureName=this._loadList[i];
 				tTexture=this._textureDic[tTextureName]=Loader.getRes(tTextureName);
-				if (Render.isWebGL && tTexture.bitmap){
+				if (Render.isWebGL && tTexture && tTexture.bitmap){
 					tTexture.bitmap.enableMerageInAtlas=false;
 				}
 			}
@@ -36895,7 +38445,7 @@ window.Laya=(function(window,document){
 				tFrameHeight=isNaN(tTempleData)? tHeight :tTempleData;
 				this.subTextureDic[tTextureName]=Texture.create(tTexture,tX,tY,tWidth,tHeight,-tFrameX,-tFrameY,tFrameWidth,tFrameHeight);
 			}
-			if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+			if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 				this._mainTexture=tTexture;
 			};
 			var tAniCount=tByte.getUint16();
@@ -36905,7 +38455,7 @@ window.Laya=(function(window,document){
 				tSectionArr.push(tByte.getUint16());
 				tSectionArr.push(tByte.getUint16());
 				tSectionArr.push(tByte.getUint16());
-				if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+				if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 					tSectionArr.push(tByte.getUint16());
 				}
 				this.aniSectionDic[i]=tSectionArr;
@@ -36916,12 +38466,18 @@ window.Laya=(function(window,document){
 			var tParentName;
 			var tBoneLen=tByte.getInt16();
 			var tBoneDic={};
+			var tRootBone;
 			for (i=0;i < tBoneLen;i++){
 				tBone=new Bone();
+				if (i==0){
+					tRootBone=tBone;
+					}else {
+					tBone.root=tRootBone;
+				}
 				tName=tByte.readUTFString();
 				tParentName=tByte.readUTFString();
 				tBone.length=tByte.getFloat32();
-				if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+				if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 					if (tByte.getByte()==1){
 						tBone.inheritRotation=false;
 					}
@@ -36976,7 +38532,7 @@ window.Laya=(function(window,document){
 				tIkConstraintData.mix=tByte.getFloat32();
 				this.ikArr.push(tIkConstraintData);
 			}
-			if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+			if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 				var tTfConstraintData;
 				var tTfLen=tByte.getUint16();
 				var tTfBoneLen=0;
@@ -37021,7 +38577,7 @@ window.Laya=(function(window,document){
 					tPathConstraintData.translateMix=tByte.getFloat32();
 					this.pathArr.push(tPathConstraintData);
 				}
-				if (this._aniVersion=="LAYAANIMATION:1.0.4"){
+				if (this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 					var tDeformSlotLen=0;
 					var tDeformSlotDisplayLen=0;
 					var tDSlotIndex=0;
@@ -37099,6 +38655,15 @@ window.Laya=(function(window,document){
 					}
 					this.eventAniArr.push(tEventArr);
 				}
+			}
+			if (this._aniVersion=="LAYAANIMATION:1.0.5"){
+				var tAttachmentLen=tByte.getInt16();
+				if (tAttachmentLen > 0){
+					this.attachmentNames=[];
+					for (i=0;i < tAttachmentLen;i++){
+						this.attachmentNames.push(tByte.getUTFString());
+					}
+				}
 			};
 			var tBoneSlotLen=tByte.getInt16();
 			var tDBBoneSlot;
@@ -37150,7 +38715,7 @@ window.Laya=(function(window,document){
 						tDisplayData.width=tByte.getFloat32();
 						tDisplayData.height=tByte.getFloat32();
 						tDisplayData.type=tByte.getUint8();
-						if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+						if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 							tDisplayData.verLen=tByte.getUint16();
 						}
 						tBoneLen=tByte.getUint16();
@@ -37189,7 +38754,7 @@ window.Laya=(function(window,document){
 								tDisplayData.vertices.push(tByte.getFloat32());
 							}
 						}
-						if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4"){
+						if (this._aniVersion=="LAYAANIMATION:1.0.3" || this._aniVersion=="LAYAANIMATION:1.0.4" || this._aniVersion=="LAYAANIMATION:1.0.5"){
 							tLengthLen=tByte.getUint16();
 							if (tLengthLen > 0){
 								tDisplayData.lengths=[];
@@ -37207,6 +38772,13 @@ window.Laya=(function(window,document){
 			var tReverse=tByte.getUint8();
 			if (tReverse==1){
 				this.yReverseMatrix=new Matrix(1,0,0,-1,0,0);
+				if (tRootBone){
+					tRootBone.setTempMatrix(this.yReverseMatrix);
+				}
+				}else {
+				if (tRootBone){
+					tRootBone.setTempMatrix(new Matrix());
+				}
 			}
 			this.showSkinByIndex(this.boneSlotDic,0);
 			this.event("complete",this);
@@ -37477,6 +39049,368 @@ window.Laya=(function(window,document){
 
 
 	/**
+	*...
+	*@author ...
+	*/
+	//class laya.d3.core.material.StandardMaterial extends laya.d3.core.material.BaseMaterial
+	var StandardMaterial=(function(_super){
+		function StandardMaterial(){
+			this._transformUV=null;
+			StandardMaterial.__super.call(this);
+			this._setColor(0,"MATERIALAMBIENT",StandardMaterial.AMBIENTCOLORVALUE);
+			this._setColor(1,"MATERIALDIFFUSE",StandardMaterial.DIFFUSECOLORVALUE);
+			this._setColor(2,"MATERIALSPECULAR",StandardMaterial.SPECULARCOLORVALUE);
+			this._setColor(3,"MATERIALREFLECT",StandardMaterial.REFLECTCOLORVALUE);
+			this._setColor(4,"ALBEDO",StandardMaterial.ALBEDO);
+			this._setNumber(0,"ALPHATESTVALUE",0.5);
+		}
+
+		__class(StandardMaterial,'laya.d3.core.material.StandardMaterial',_super);
+		var __proto=StandardMaterial.prototype;
+		/**
+		*禁用灯光。
+		*/
+		__proto.disableLight=function(){
+			this._addDisableShaderDefine(0x80 | 0x100 | 0x40);
+		}
+
+		/**
+		*禁用雾化。
+		*/
+		__proto.disableFog=function(){
+			this._addDisableShaderDefine(0x20000);
+		}
+
+		__proto._setLoopShaderParams=function(state,projectionView,worldMatrix,mesh,material){
+			(this._transformUV)&& (this._transformUV.matrix);
+			var pvw;
+			if (worldMatrix===Matrix4x4.DEFAULT){
+				pvw=projectionView;
+				}else {
+				pvw=StandardMaterial._tempMatrix4x40;
+				Matrix4x4.multiply(projectionView,worldMatrix,pvw);
+			}
+			state.shaderValue.pushValue("MATRIX1",worldMatrix.elements);
+			state.shaderValue.pushValue("MVPMATRIX",pvw.elements);
+		}
+
+		/*state.camera.transform._worldTransformModifyID+worldTransformModifyID+state.camera._projectionMatrixModifyID,从结构上应该在Mesh中更新*/
+		__proto.copy=function(dec){
+			var standMat=dec;
+			standMat._transformUV=this._transformUV;
+			return _super.prototype.copy.call(this,standMat);
+		}
+
+		/**
+		*设置环境光颜色。
+		*@param value 环境光颜色。
+		*/
+		__getset(0,__proto,'ambientColor',function(){
+			this._getColor(0);
+			},function(value){
+			this._setColor(0,"MATERIALAMBIENT",value);
+		});
+
+		/**
+		*设置漫反射光颜色。
+		*@param value 漫反射光颜色。
+		*/
+		__getset(0,__proto,'diffuseColor',function(){
+			this._getColor(1);
+			},function(value){
+			this._setColor(1,"MATERIALDIFFUSE",value);
+		});
+
+		/**
+		*设置法线贴图。
+		*@param value 法线贴图。
+		*/
+		/**
+		*获取法线贴图。
+		*@return 法线贴图。
+		*/
+		__getset(0,__proto,'normalTexture',function(){
+			return this._getTexture(1);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x2);
+				}else {
+				this._removeShaderDefine(0x2);
+			}
+			this._setTexture(value,1,"NORMALTEXTURE");
+		});
+
+		/**
+		*设置高光颜色。
+		*@param value 高光颜色。
+		*/
+		__getset(0,__proto,'specularColor',function(){
+			this._getColor(2);
+			},function(value){
+			this._setColor(2,"MATERIALSPECULAR",value);
+		});
+
+		/**
+		*设置反射颜色。
+		*@param value 反射颜色。
+		*/
+		__getset(0,__proto,'reflectColor',function(){
+			this._getColor(3);
+			},function(value){
+			this._setColor(3,"MATERIALREFLECT",value);
+		});
+
+		/**
+		*设置反射贴图。
+		*@param value 反射贴图。
+		*/
+		/**
+		*获取反射贴图。
+		*@return 反射贴图。
+		*/
+		__getset(0,__proto,'reflectTexture',function(){
+			return this._getTexture(5);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x40000);
+				}else {
+				this._removeShaderDefine(0x40000);
+			}
+			this._setTexture(value,5,"REFLECTTEXTURE");
+		});
+
+		/**
+		*设置高光贴图。
+		*@param value 高光贴图。
+		*/
+		/**
+		*获取高光贴图。
+		*@return 高光贴图。
+		*/
+		__getset(0,__proto,'specularTexture',function(){
+			return this._getTexture(2);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x4);
+				}else {
+				this._removeShaderDefine(0x4);
+			}
+			this._setTexture(value,2,"SPECULARTEXTURE");
+		});
+
+		/**
+		*设置反射率。
+		*@param value 反射率。
+		*/
+		__getset(0,__proto,'albedo',function(){
+			this._getColor(4);
+			},function(value){
+			this._setColor(4,"ALBEDO",value);
+		});
+
+		/**
+		*设置漫反射贴图。
+		*@param value 漫反射贴图。
+		*/
+		/**
+		*获取漫反射贴图。
+		*@return 漫反射贴图。
+		*/
+		__getset(0,__proto,'diffuseTexture',function(){
+			return this._getTexture(0);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x1);
+				}else {
+				this._removeShaderDefine(0x1);
+			}
+			this._setTexture(value,0,"DIFFUSETEXTURE");
+		});
+
+		/**
+		*设置透明测试模式裁剪值。
+		*@param value 透明测试模式裁剪值。
+		*/
+		/**
+		*获取透明测试模式裁剪值。
+		*@return 透明测试模式裁剪值。
+		*/
+		__getset(0,__proto,'alphaTestValue',function(){
+			return this._getNumber(0);
+			},function(value){
+			this._setNumber(0,"ALPHATESTVALUE",value);
+		});
+
+		/**
+		*设置放射贴图。
+		*@param value 放射贴图。
+		*/
+		/**
+		*获取放射贴图。
+		*@return 放射贴图。
+		*/
+		__getset(0,__proto,'emissiveTexture',function(){
+			return this._getTexture(3);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x8);
+				}else {
+				this._removeShaderDefine(0x8);
+			}
+			this._setTexture(value,3,"EMISSIVETEXTURE");
+		});
+
+		/**
+		*设置环境贴图。
+		*@param value 环境贴图。
+		*/
+		/**
+		*获取环境贴图。
+		*@return 环境贴图。
+		*/
+		__getset(0,__proto,'ambientTexture',function(){
+			return this._getTexture(4);
+			},function(value){
+			if (value){
+				this._addShaderDefine(0x10);
+				}else {
+				this._removeShaderDefine(0x10);
+			}
+			this._setTexture(value,4,"AMBIENTTEXTURE");
+		});
+
+		/**
+		*设置UV变换。
+		*@param value UV变换。
+		*/
+		/**
+		*获取UV变换。
+		*@return UV变换。
+		*/
+		__getset(0,__proto,'transformUV',function(){
+			return this._transformUV;
+			},function(value){
+			this._transformUV=value;
+			this._setMatrix4x4(0,"MATRIX2",value.matrix);
+			if (value)
+				this._addShaderDefine(0x4000);
+			else
+			this._removeShaderDefine(0x4000);
+		});
+
+		StandardMaterial._ambientColorIndex=0;
+		StandardMaterial._diffuseColorIndex=1;
+		StandardMaterial._speclarColorIndex=2;
+		StandardMaterial._reflectColorIndex=3;
+		StandardMaterial._albedoColorIndex=4;
+		StandardMaterial._alphaTestValueIndex=0;
+		StandardMaterial._diffuseTextureIndex=0;
+		StandardMaterial._normalTextureIndex=1;
+		StandardMaterial._specularTextureIndex=2;
+		StandardMaterial._emissiveTextureIndex=3;
+		StandardMaterial._ambientTextureIndex=4;
+		StandardMaterial._reflectTextureIndex=5;
+		StandardMaterial.TRANSFORMUV=0;
+		__static(StandardMaterial,
+		['_tempMatrix4x40',function(){return this._tempMatrix4x40=new Matrix4x4();},'defaultMaterial',function(){return this.defaultMaterial=new StandardMaterial();},'AMBIENTCOLORVALUE',function(){return this.AMBIENTCOLORVALUE=new Vector3(0.6,0.6,0.6);},'DIFFUSECOLORVALUE',function(){return this.DIFFUSECOLORVALUE=new Vector3(1.0,1.0,1.0);},'SPECULARCOLORVALUE',function(){return this.SPECULARCOLORVALUE=new Vector4(1.0,1.0,1.0,8.0);},'REFLECTCOLORVALUE',function(){return this.REFLECTCOLORVALUE=new Vector3(1.0,1.0,1.0);},'ALBEDO',function(){return this.ALBEDO=new Vector4(1.0,1.0,1.0,1.0);}
+		]);
+		return StandardMaterial;
+	})(BaseMaterial)
+
+
+	/**
+	*<code>BaseTexture</code> 纹理的父类，抽象类，不允许实例。
+	*/
+	//class laya.d3.resource.BaseTexture extends laya.resource.Resource
+	var BaseTexture=(function(_super){
+		function BaseTexture(){
+			this._width=0;
+			this._height=0;
+			this._size=null;
+			this._repeat=false;
+			this._mipmap=false;
+			this._minFifter=0;
+			this._magFifter=0;
+			this._source=null;
+			this._loaded=false;
+			BaseTexture.__super.call(this);
+			this._repeat=true;
+			this._mipmap=true;
+			this._minFifter=-1;
+			this._magFifter=-1;
+		}
+
+		__class(BaseTexture,'laya.d3.resource.BaseTexture',_super);
+		var __proto=BaseTexture.prototype;
+		/**
+		*放大过滤器
+		*/
+		__getset(0,__proto,'magFifter',function(){
+			return this._magFifter;
+		});
+
+		/**
+		*获取宽度。
+		*/
+		__getset(0,__proto,'width',function(){
+			return this._width;
+		});
+
+		/**
+		*是否使用重复模式纹理寻址
+		*/
+		__getset(0,__proto,'repeat',function(){
+			return this._repeat;
+		});
+
+		/**
+		*获取纹理资源。
+		*/
+		__getset(0,__proto,'source',function(){
+			this.activeResource();
+			return this._source;
+		});
+
+		/**
+		*获取高度。
+		*/
+		__getset(0,__proto,'height',function(){
+			return this._height;
+		});
+
+		/**
+		*表示是否加载成功，只能表示初次载入成功（通常包含下载和载入）,并不能完全表示资源是否可立即使用（资源管理机制释放影响等）。
+		*/
+		__getset(0,__proto,'loaded',function(){
+			return this._loaded;
+		});
+
+		/**
+		*获取尺寸。
+		*/
+		__getset(0,__proto,'size',function(){
+			return this._size;
+		});
+
+		/**
+		*是否使用mipLevel
+		*/
+		__getset(0,__proto,'mipmap',function(){
+			return this._mipmap;
+		});
+
+		/**\
+		*缩小过滤器
+		*/
+		__getset(0,__proto,'minFifter',function(){
+			return this._minFifter;
+		});
+
+		return BaseTexture;
+	})(Resource)
+
+
+	/**
 	*<code>BaseMesh</code> 类用于创建网格,抽象类,不允许实例。
 	*/
 	//class laya.d3.resource.models.BaseMesh extends laya.resource.Resource
@@ -37507,16 +39441,6 @@ window.Laya=(function(window,document){
 		*/
 		__proto.getRenderElement=function(index){
 			throw new Error("未Override,请重载该属性！");
-		}
-
-		/**@private 待开放。*/
-		__proto.Render=function(){
-			throw new Error("未Override,请重载该方法！");
-		}
-
-		/**@private 待开放。*/
-		__proto.RenderSubMesh=function(subMeshIndex){
-			throw new Error("未Override,请重载该方法！");
 		}
 
 		/**
@@ -37622,190 +39546,6 @@ window.Laya=(function(window,document){
 
 		return BaseMeshTemplet;
 	})(Resource)
-
-
-	/**
-	*<code>RenderTarget</code> 类用于创建渲染目标。
-	*/
-	//class laya.d3.resource.RenderTarget extends laya.resource.Texture
-	var RenderTarget=(function(_super){
-		function RenderTarget(width,height,surfaceFormat,surfaceType,depthStencilFormat,mipMap,repeat,minFifter,magFifter){
-			this._alreadyResolved=false;
-			this._looked=false;
-			this._surfaceFormat=0;
-			this._surfaceType=0;
-			this._depthStencilFormat=0;
-			this._mipMap=false;
-			this._repeat=false;
-			this._minFifter=0;
-			this._magFifter=0;
-			this._size=null;
-			RenderTarget.__super.call(this);
-			(surfaceFormat===void 0)&& (surfaceFormat=0x1908);
-			(surfaceType===void 0)&& (surfaceType=0x1401);
-			(depthStencilFormat===void 0)&& (depthStencilFormat=0x81A5);
-			(mipMap===void 0)&& (mipMap=false);
-			(repeat===void 0)&& (repeat=false);
-			(minFifter===void 0)&& (minFifter=-1);
-			(magFifter===void 0)&& (magFifter=-1);
-			this._w=width;
-			this._h=height;
-			this._surfaceFormat=surfaceFormat;
-			this._surfaceType=surfaceType;
-			this._depthStencilFormat=depthStencilFormat;
-			this._mipMap=mipMap;
-			this._repeat=repeat;
-			this._minFifter=minFifter;
-			this._magFifter=magFifter;
-			this._size=new Size(width,height);
-			this._createWebGLRenderTarget();
-			this.bitmap.lock=true;
-		}
-
-		__class(RenderTarget,'laya.d3.resource.RenderTarget',_super);
-		var __proto=RenderTarget.prototype;
-		Laya.imps(__proto,{"laya.resource.IDispose":true})
-		/**@private */
-		__proto._createWebGLRenderTarget=function(){
-			this.bitmap=new WebGLRenderTarget(this.width,this.height,this._surfaceFormat,this._surfaceType,this._depthStencilFormat,this._mipMap,this._repeat,this._minFifter,this._magFifter);
-			this.bitmap.activeResource();
-			this._alreadyResolved=true;
-		}
-
-		/**
-		*开始绑定。
-		*/
-		__proto.start=function(){
-			var gl=WebGL.mainContext;
-			gl.bindFramebuffer(0x8D40,(this.bitmap).frameBuffer);
-			RenderTarget._currentRenderTarget=this;
-			this._alreadyResolved=false;
-			RenderTarget._currentRenderTarget=this;
-		}
-
-		/**
-		*清理并着色。
-		*/
-		__proto.clear=function(r,g,b,a){
-			(r===void 0)&& (r=0.0);
-			(g===void 0)&& (g=0.0);
-			(b===void 0)&& (b=0.0);
-			(a===void 0)&& (a=1.0);
-			var gl=WebGL.mainContext;
-			gl.clearColor(r,g,b,a);
-			var clearFlag=0x00004000;
-			switch (this._depthStencilFormat){
-				case 0x81A5:
-					clearFlag |=0x00000100;
-					break ;
-				case 0x8D48:
-					clearFlag |=0x00000400;
-					break ;
-				case 0x84F9:
-					clearFlag |=0x00000100;
-					clearFlag |=0x00000400
-					break ;
-				}
-			gl.clear(clearFlag);
-		}
-
-		/**
-		*结束绑定。
-		*/
-		__proto.end=function(){
-			var gl=WebGL.mainContext;
-			gl.bindFramebuffer(0x8D40,null);
-			RenderTarget._currentRenderTarget=null;
-			this._alreadyResolved=true;
-		}
-
-		/**
-		*获得像素数据。
-		*@param x X像素坐标。
-		*@param y Y像素坐标。
-		*@param width 宽度。
-		*@param height 高度。
-		*@return 像素数据。
-		*/
-		__proto.getData=function(x,y,width,height){
-			var gl=WebGL.mainContext;
-			gl.bindFramebuffer(0x8D40,(this.bitmap).frameBuffer);
-			var canRead=(gl.checkFramebufferStatus(0x8D40)===0x8CD5);
-			if (!canRead){
-				gl.bindFramebuffer(0x8D40,null);
-				return null;
-			};
-			var pixels=new Uint8Array(this._w *this._h *4);
-			gl.readPixels(x,y,width,height,this._surfaceFormat,this._surfaceType,pixels);
-			gl.bindFramebuffer(0x8D40,null);
-			return pixels;
-		}
-
-		/**
-		*彻底清理资源,注意会强制解锁清理
-		*/
-		__proto.dispose=function(){
-			this.bitmap.dispose();
-		}
-
-		__getset(0,__proto,'size',function(){
-			return this._size;
-		});
-
-		/**
-		*获取表面格式。
-		*@return 表面格式。
-		*/
-		__getset(0,__proto,'surfaceFormat',function(){
-			return this._surfaceFormat;
-		});
-
-		//}
-		__getset(0,__proto,'minFifter',function(){
-			return this._minFifter;
-		});
-
-		/**
-		*获取表面类型。
-		*@return 表面类型。
-		*/
-		__getset(0,__proto,'surfaceType',function(){
-			return this._surfaceType;
-		});
-
-		/**
-		*获取深度格式。
-		*@return 深度格式。
-		*/
-		__getset(0,__proto,'depthStencilFormat',function(){
-			return this._depthStencilFormat;
-		});
-
-		/**
-		*获取是否为多级纹理。
-		*@return 是否为多级纹理。
-		*/
-		__getset(0,__proto,'mipMap',function(){
-			return this._mipMap;
-		});
-
-		__getset(0,__proto,'magFifter',function(){
-			return this._magFifter;
-		});
-
-		/**
-		*获取RenderTarget数据源。
-		*@return RenderTarget数据源。
-		*/
-		__getset(0,__proto,'source',function(){
-			if (this._alreadyResolved)
-				return _super.prototype._$get_source.call(this);
-			throw new Error("RenderTarget  还未准备好！");
-		});
-
-		RenderTarget._currentRenderTarget=null
-		return RenderTarget;
-	})(Texture)
 
 
 	/**
@@ -38082,47 +39822,39 @@ window.Laya=(function(window,document){
 	})(Texture)
 
 
-	//class laya.webgl.shader.d2.fillTexture.FillTextureShaderValue extends laya.webgl.shader.d2.value.Value2D
-	var FillTextureShaderValue=(function(_super){
-		function FillTextureShaderValue(){
+	//class laya.webgl.shader.d2.fillTexture.FillTextureSV extends laya.webgl.shader.d2.value.Value2D
+	var FillTextureSV=(function(_super){
+		function FillTextureSV(type){
 			this.texcoord=null;
 			this.u_texRange=[0,1,0,1];
 			this.u_offset=[0.5,0.5];
-			FillTextureShaderValue.__super.call(this,0,0);
+			FillTextureSV.__super.call(this,0x100,0);
 			var _vlen=8 *CONST3D2D.BYTES_PE;
 			this.position=[2,0x1406,false,_vlen,0];
 			this.texcoord=[2,0x1406,false,_vlen,2 *CONST3D2D.BYTES_PE];
 			this.color=[4,0x1406,false,_vlen,4 *CONST3D2D.BYTES_PE];
 		}
 
-		__class(FillTextureShaderValue,'laya.webgl.shader.d2.fillTexture.FillTextureShaderValue',_super);
-		FillTextureShaderValue.instance=function(){
-			return FillTextureShaderValue._fillTextureShaderValue=FillTextureShaderValue._fillTextureShaderValue|| new FillTextureShaderValue();
-		}
-
-		FillTextureShaderValue._fillTextureShaderValue=null
-		return FillTextureShaderValue;
+		__class(FillTextureSV,'laya.webgl.shader.d2.fillTexture.FillTextureSV',_super);
+		return FillTextureSV;
 	})(Value2D)
 
 
-	//class laya.webgl.shader.d2.skinAnishader.aniShaderValue extends laya.webgl.shader.d2.value.Value2D
-	var aniShaderValue1=(function(_super){
-		function aniShaderValue(){
+	//class laya.webgl.shader.d2.skinAnishader.SkinSV extends laya.webgl.shader.d2.value.Value2D
+	var SkinSV=(function(_super){
+		function SkinSV(type){
 			this.texcoord=null;
-			aniShaderValue.__super.call(this,0,0);
+			this.offsetX=300;
+			this.offsetY=0;
+			SkinSV.__super.call(this,0x200,0);
 			var _vlen=8 *CONST3D2D.BYTES_PE;
 			this.position=[2,0x1406,false,_vlen,0];
 			this.texcoord=[2,0x1406,false,_vlen,2 *CONST3D2D.BYTES_PE];
 			this.color=[4,0x1406,false,_vlen,4 *CONST3D2D.BYTES_PE];
 		}
 
-		__class(aniShaderValue,'laya.webgl.shader.d2.skinAnishader.aniShaderValue',_super,'aniShaderValue1');
-		aniShaderValue.instance=function(){
-			return aniShaderValue._aniShaderValue=aniShaderValue._aniShaderValue|| new aniShaderValue();
-		}
-
-		aniShaderValue._aniShaderValue=null
-		return aniShaderValue;
+		__class(SkinSV,'laya.webgl.shader.d2.skinAnishader.SkinSV',_super);
+		return SkinSV;
 	})(Value2D)
 
 
@@ -38177,6 +39909,7 @@ window.Laya=(function(window,document){
 	var PrimitiveSV=(function(_super){
 		function PrimitiveSV(args){
 			this.a_color=null;
+			this.u_pos=[0,0];
 			PrimitiveSV.__super.call(this,0x04,0);
 			this.position=[2,0x1406,false,5 *CONST3D2D.BYTES_PE,0];
 			this.a_color=[3,0x1406,false,5 *CONST3D2D.BYTES_PE,2 *CONST3D2D.BYTES_PE];
@@ -38484,8 +40217,7 @@ window.Laya=(function(window,document){
 		*@see #runCallLater()
 		*/
 		__proto.callLater=function(method,args){
-			Laya.timer.callLater(this
-			,method,args);
+			Laya.timer.callLater(this,method,args);
 		}
 
 		/**
@@ -39054,7 +40786,7 @@ window.Laya=(function(window,document){
 		__proto.addNormalLable=function($effectInfo){
 			this.refreshRoleView($effectInfo.targetRoleLogic);
 			this.refreshRoleView($effectInfo.sourceRoleLogic);
-			this.showRoleHpView($effectInfo.targetRoleLogic);
+			this.showRoleHpView($effectInfo);
 			var damageView=new DamageView();
 			damageView.showLableAndImage($effectInfo.damage,"I",$effectInfo,1);
 			damageView.pos($effectInfo.targetRoleLogic.view.x+$effectInfo.targetRoleLogic.view.aniContainer.x,$effectInfo.targetRoleLogic.view.y-100)
@@ -39069,13 +40801,13 @@ window.Laya=(function(window,document){
 			this.addChild(damageView)
 			this.refreshRoleView($effectInfo.targetRoleLogic);
 			this.refreshRoleView($effectInfo.sourceRoleLogic);
-			this.showRoleHpView($effectInfo.targetRoleLogic);
+			this.showRoleHpView($effectInfo);
 		}
 
 		__proto.addParrylLable=function($effectInfo){
 			this.refreshRoleView($effectInfo.targetRoleLogic);
 			this.refreshRoleView($effectInfo.sourceRoleLogic);
-			this.showRoleHpView($effectInfo.targetRoleLogic);
+			this.showRoleHpView($effectInfo);
 			var damageView=new DamageView();
 			damageView.showLableAndImage($effectInfo.damage,"I",$effectInfo,3,"buff/ZT_gedang_zhandouUI.png");
 			damageView.pos($effectInfo.targetRoleLogic.view.x+$effectInfo.targetRoleLogic.view.aniContainer.x ,$effectInfo.targetRoleLogic.view.y-100)
@@ -39083,11 +40815,22 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.showRoleHpView=function($effectInfo){
-			$effectInfo.view.roleLeftHpView.visible=true;
-			Tween.to($effectInfo.view.roleLeftHpView.img_hp,{
-				scaleX:$effectInfo.roleHp/$effectInfo.roleInfo.hpMax
-			},200,null);
-			$effectInfo.view.roleLeftHpView.refreshView();
+			var numberX=0
+			numberX=$effectInfo.damage / $effectInfo.targetRoleLogic.roleInfo.hpMax
+			if ($effectInfo.targetRoleLogic.group==0){
+				$effectInfo.targetRoleLogic.view.roleLeftHpView.visible=true;
+				Tween.to($effectInfo.targetRoleLogic.view.roleLeftHpView.img_hp,{
+					scaleX:$effectInfo.targetRoleLogic.roleHp/$effectInfo.targetRoleLogic.roleInfo.hpMax
+				},200,null);
+				$effectInfo.targetRoleLogic.view.roleLeftHpView.refreshView();
+			}
+			else if ($effectInfo.targetRoleLogic.group==1){
+				$effectInfo.targetRoleLogic.view.roleRightHpView.visible=true;
+				Tween.to($effectInfo.targetRoleLogic.view.roleRightHpView.img_hp,{
+					scaleX:$effectInfo.targetRoleLogic.roleHp/$effectInfo.targetRoleLogic.roleInfo.hpMax
+				},200,null);
+				$effectInfo.targetRoleLogic.view.roleRightHpView.refreshView();
+			}
 		}
 
 		//}
@@ -39095,7 +40838,7 @@ window.Laya=(function(window,document){
 			for (var i=0;i < $effectInfo.sourceRoleLogic.roleInfo.roleVO.roleInfoList.length;i++){
 				var roleInfo=$effectInfo.sourceRoleLogic.roleInfo.roleVO.roleInfoList[i];
 				if (roleInfo.isMe){
-					var mpNumber=roleInfo.roleItemLogic.roleMp *0.01;
+					var mpNumber=roleInfo.roleItemLogic.roleMp / 1000;
 					var roleView=GameContext.i.arenaContext.gameView.arenaFootView.roleListView["roleItemView"+(roleInfo.position+1)];
 					roleView.refreshHP(mpNumber);
 				}
@@ -39118,100 +40861,142 @@ window.Laya=(function(window,document){
 				var roleInfo=$roleLogic.roleInfo.roleVO.roleInfoList[i];
 				hpmax+=roleInfo.hpMax;
 				hp+=roleInfo.roleItemLogic.roleHp;
-				if (roleInfo.isMe){
-					var hpNumber=roleInfo.roleItemLogic.roleHp / roleInfo.hpMax;
-					var mpNumber=roleInfo.roleItemLogic.roleMp / 1000;
-					var roleView=GameContext.i.arenaContext.gameView.arenaFootView.roleListView["roleItemView"+(roleInfo.position+1)];
-					roleView.refreshView(hpNumber,mpNumber);
+				if (roleInfo.isMe && roleInfo==$roleLogic.roleInfo){
 				}
+			}
+			if ($roleLogic.roleInfo.isMe){
+				var hpNumber=$roleLogic.roleHp / $roleLogic.roleInfo.hpMax;
+				var mpNumber=$roleLogic.roleMp / 1000;
+				var roleView=GameContext.i.arenaContext.gameView.arenaFootView.roleListView["roleItemView"+($roleLogic.roleInfo.position+1)];
+				roleView.refreshView(hpNumber,mpNumber,$roleLogic.roleInfo);
 			}
 			if ($roleLogic.group==0){
-				var widthSprite2=GameContext.i.arenaContext.gameView.leftZhezhao2Sprite.width;
-				var posXNumber2=Math.ceil((1-(hp*1.0)/hpmax)*widthSprite2);
-				GameContext.i.arenaContext.gameView.leftZhezhao2Sprite.x=posXNumber2;
-				var widthSprite1=GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.width;
-				var posXNumber1=Math.ceil((1-(hp *1.0)/ hpmax)*widthSprite1);
-				Tween.to(GameContext.i.arenaContext.gameView.leftZhezhao1Sprite,{
-					x:posXNumber1
-				},300);
+				var widthSprite2=GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.width-17;
+				var posX=Math.ceil((1-(hp*1.0)/hpmax)*widthSprite2);
+				GameContext.i.arenaContext.gameView.leftZhezhao2Sprite.x=posX
+				GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.timer.frameLoop(1,this,this.moveMask,[posX]);
 				}else{
-				var widthSprites=GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.width;
+				var widthSprites=GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.width-17;
 				var posXNumbers=Math.ceil((1-(hp *1.0)/ hpmax)*widthSprites);
 				GameContext.i.arenaContext.gameView.rightZhezhao2Sprite.x=-posXNumbers;
-				Tween.to(GameContext.i.arenaContext.gameView.rightZhezhao1Sprite,{
-					x:-posXNumbers
-				},300,null);
+				GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.timer.frameLoop(1,this,this.moveRightMask,[posXNumbers]);
 			}
 		}
 
-		__proto.refreshSourceRoleView=function(){}
-		__proto.changeImage=function($comboImage){
-			$comboImage.timer.once(1000,this,this.removeComboImage,[$comboImage]);
+		/*
+		Tween.to(GameContext.i.arenaContext.gameView.rightZhezhao1Sprite,
+		{update :Handler.create()}
+	}
+
+
+	*/
+	__proto.moveRightMask=function($posXNumbers){
+		if (GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.x >-$posXNumbers){
+			GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.x-=1;
 		}
 
-		//$comboView.visible=false;
-		__proto.removeComboImage=function($comboImage){
-			$comboImage.removeSelf();
+		else{
+			GameContext.i.arenaContext.gameView.rightZhezhao1Sprite.timer.clearAll(GameContext.i.arenaContext.gameView.rightZhezhao1Sprite);
 		}
 
-		__proto.changeNormalImage=function($comboImage){
-			Tween.to($comboImage,{
-				scaleX:0.9,
-				scaleY:0.9
-			},150,null,Handler.create(this,this.delayRemove,[$comboImage]))
+	}
+
+
+	__proto.moveMask=function($posX){
+		if (GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.x < $posX){
+			GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.x+=1;
 		}
 
-		__proto.delayRemove=function($comboImage){
-			$comboImage.timer.once(500,this,this.removeImage,[$comboImage]);
+		else{
+			GameContext.i.arenaContext.gameView.leftZhezhao1Sprite.timer.clearAll(GameContext.i.arenaContext.gameView.leftZhezhao1Sprite);
 		}
 
-		__proto.removeImage=function($comboImage){
-			$comboImage.removeSelf();
-		}
+	}
 
-		__proto.removeLable=function($lable){
-			$lable.removeSelf();
-		}
 
-		__proto.changeComboView=function($comboView){
-			Tween.to($comboView,{
-				scaleX:1.2,
-				scaleY:1.2
-			},150,null,Handler.create(this,this.changeNomalComboView,[$comboView]))
-		}
+	__proto.refreshSourceRoleView=function(){}
+	__proto.changeImage=function($comboImage){
+		$comboImage.timer.once(1000,this,this.removeComboImage,[$comboImage]);
+	}
 
-		__proto.changeNomalComboView=function($comboView){
-			Tween.to($comboView,{
-				scaleX:1.0,
-				scaleY:1.0
-			},150,null,Handler.create(this,this.changeScComboView,[$comboView]))
-		}
 
-		__proto.changeScComboView=function($comboView){
-			$comboView.timer.once(700,this,this.removeComboView,[$comboView]);
-		}
+	//$comboView.visible=false;
+	__proto.removeComboImage=function($comboImage){
+		$comboImage.removeSelf();
+	}
 
-		__proto.removeComboView=function($comboView){
-			$comboView.removeSelf();
-		}
 
-		__proto.addEffectList=function(){}
-		__proto.clearAllView=function(){
-			for (var i=0;i < GameContext.i.arenaContext.gameView.roleView.roleItemViewList.length;i++){
-				var roleItemView=GameContext.i.arenaContext.gameView.roleView.roleItemViewList[i];
-				if (roleItemView.lableArray.length==0){
-					continue ;
-				}
-				for (var j=roleItemView.lableArray.length-1;j >=0;j--){
-					var damagameView=roleItemView.lableArray[j];
-					roleItemView.lableArray.splice(j,1);
-					this.removeChild(damagameView);
-					continue ;
-				}
+	__proto.changeNormalImage=function($comboImage){
+		Tween.to($comboImage,{
+			scaleX:0.9,
+			scaleY:0.9
+		},150,null,Handler.create(this,this.delayRemove,[$comboImage]))
+
+	}
+
+
+	__proto.delayRemove=function($comboImage){
+		$comboImage.timer.once(500,this,this.removeImage,[$comboImage]);
+	}
+
+
+	__proto.removeImage=function($comboImage){
+		$comboImage.removeSelf();
+	}
+
+
+	__proto.removeLable=function($lable){
+		$lable.removeSelf();
+	}
+
+
+	__proto.changeComboView=function($comboView){
+		Tween.to($comboView,{
+			scaleX:1.2,
+			scaleY:1.2
+		},150,null,Handler.create(this,this.changeNomalComboView,[$comboView]))
+
+	}
+
+
+	__proto.changeNomalComboView=function($comboView){
+		Tween.to($comboView,{
+			scaleX:1.0,
+			scaleY:1.0
+		},150,null,Handler.create(this,this.changeScComboView,[$comboView]))
+
+	}
+
+
+	__proto.changeScComboView=function($comboView){
+		$comboView.timer.once(700,this,this.removeComboView,[$comboView]);
+	}
+
+
+	__proto.removeComboView=function($comboView){
+		$comboView.removeSelf();
+	}
+
+
+	__proto.addEffectList=function(){}
+	__proto.clearAllView=function(){
+		for (var i=0;i < GameContext.i.arenaContext.gameView.roleView.roleItemViewList.length;i++){
+			var roleItemView=GameContext.i.arenaContext.gameView.roleView.roleItemViewList[i];
+			if (roleItemView.lableArray.length==0){
+				continue ;
+			}
+			for (var j=roleItemView.lableArray.length-1;j >=0;j--){
+				var damagameView=roleItemView.lableArray[j];
+				roleItemView.lableArray.splice(j,1);
+				this.removeChild(damagameView);
+				continue ;
 			}
 		}
 
-		return ArenaEffectView;
+	}
+
+
+	return ArenaEffectView;
 	})(Sprite)
 
 
@@ -39241,37 +41026,6 @@ window.Laya=(function(window,document){
 		var __proto=DamageView.prototype;
 		__proto.showLableAndImage=function($argss,$font,$effectInfo,$args,$url){
 			this.damageType=$args;
-			if ($url !=null){
-				this.damageImage=new Image();
-				this.damageImage.skin=$url;
-				this.damageImage.autoSize=true;
-				this.damageImage.pivot(this.damageImage.width*0.5,this.damageImage.height*0.5);
-				if ($effectInfo.targetRoleLogic !=null && $effectInfo.targetRoleLogic.roleInfo.roleItemLogic.group==0){
-					switch($args){
-						case 1:
-							break ;
-						case 2:
-							this.damageImage.pos(0,
-							0);
-							break ;
-						case 3:
-							this.damageImage.pos(0,0);
-							break ;
-						}
-					}else if($effectInfo.targetRoleLogic !=null && $effectInfo.targetRoleLogic.roleInfo.roleItemLogic.group==1){
-					switch($args){
-						case 1:
-							break ;
-						case 2:
-							this.damageImage.pos(0,0);
-							break ;
-						case 3:
-							this.damageImage.pos(0,0);
-							break ;
-						}
-				}
-				this.addChild(this.damageImage);
-			}
 			this.damageLable=new Label();
 			if($effectInfo.damage > 0){
 				this.damageLable.text="+"+$effectInfo.damage;
@@ -39291,10 +41045,10 @@ window.Laya=(function(window,document){
 						this.damageLable.pos(this.width*0.15,0);
 						break ;
 					case 2:
-						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						this.damageLable.pos(this.width*0.15,0);
 						break ;
 					case 3:
-						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						this.damageLable.pos(this.width*0.15,0);
 						break ;
 					}
 				}else if($effectInfo.targetRoleLogic !=null && $effectInfo.targetRoleLogic.roleInfo.roleItemLogic.group==1){
@@ -39304,10 +41058,10 @@ window.Laya=(function(window,document){
 						this.damageLable.pos(this.width*0.1,0);
 						break ;
 					case 2:
-						this.damageLable.pos(this.damageImage.width *0.5+this.damageLable.width*0.5,0);
+						this.damageLable.pos(this.width*0.2,0);
 						break ;
 					case 3:
-						this.damageLable.pos(this.damageImage.width*0.5+this.damageLable.width*0.5,0);
+						this.damageLable.pos(this.width*0.2,0);
 						break ;
 					}
 			}
@@ -39362,6 +41116,7 @@ window.Laya=(function(window,document){
 			this.aniContainer=null;
 			this.imgTouch=null;
 			this.roleLeftHpView=null;
+			this.roleRightHpView=null;
 			this.jixing1View=null;
 			this.jixing2View=null;
 			this.jixing3View=null;
@@ -39371,6 +41126,9 @@ window.Laya=(function(window,document){
 			this._effectAni=null;
 			this._superUniqueSkillFlyItemAni=null;
 			this._superUniqueSkillFlyItemEffectAni=null;
+			this._skillTargetBgEffectAni=null;
+			this._mannuEffectAni=null;
+			this._mannuEffectAniStatus=0;
 			this.logic=null;
 			this.lableArray=[];
 			this._hurtActionName=null;
@@ -39386,34 +41144,34 @@ window.Laya=(function(window,document){
 					this._childIndex=1;
 					break ;
 				case 1:
-					this._childIndex=3;
+					this._childIndex=5;
 					break ;
 				case 2:
-					this._childIndex=5;
+					this._childIndex=9;
 					break ;
 				case 3:
 					this._childIndex=0;
 					break ;
 				case 4:
-					this._childIndex=2;
-					break ;
-				case 5:
 					this._childIndex=4;
 					break ;
+				case 5:
+					this._childIndex=8;
+					break ;
 				case 6:
-					this._childIndex=7;
+					this._childIndex=3;
 					break ;
 				case 7:
-					this._childIndex=9;
+					this._childIndex=7;
 					break ;
 				case 8:
 					this._childIndex=11;
 					break ;
 				case 9:
-					this._childIndex=6;
+					this._childIndex=2;
 					break ;
 				case 10:
-					this._childIndex=8;
+					this._childIndex=6;
 					break ;
 				case 11:
 					this._childIndex=10;
@@ -39480,45 +41238,18 @@ window.Laya=(function(window,document){
 				this.showFlyItemView();
 			}
 			else{
-				if(this.group==0){
-					this.faceRight();
+				if(this.logic.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+					this.showSkillTargetBgEffectView();
 				}
 				else{
-					this.faceLeft();
+					this.showMannuView();
 				}
-				this.changeSpeed();
-				this.playIdle();
-				this.parent.setChildIndex(this,this._childIndex);
-				this.roleLeftHpView=new AreanRoleLeftHpView();
-				this.roleLeftHpView.pos(0,-140);
-				this.roleLeftHpView.autoSize=true;
-				this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
-				this.roleLeftHpView.visible=false;
-				this.aniContainer.addChild(this.roleLeftHpView);
 			}
 		}
 
-		/*
-		if (this.group==BattleGroupEnum.LEFT){
-			this.roleLeftHpView=new AreanRoleLeftHpView();
-			this.roleLeftHpView.pos(0,-140);
-			this.roleLeftHpView.autoSize=true;
-			this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
-			this.roleLeftHpView.visible=false;
-			this.aniContainer.addChild(roleLeftHpView);
-			}else if(this.group==BattleGroupEnum.RIGHT){
-			this.roleRightHpView=new AreanRoleRightHpView();
-			this.roleRightHpView.pos(0,-140);
-			this.roleRightHpView.autoSize=true;
-			this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
-			this.roleRightHpView.visible=false;
-			this.aniContainer.addChild(roleRightHpView);
-		}
-
-		*/
 		__proto.showFlyItemView=function(){
 			if(this._superUniqueSkillFlyItemAni !=null){
-				this.aniContainer.removeChild(this._superUniqueSkillFlyItemAni);
+				this._superUniqueSkillFlyItemAni.parent.removeChild(this._superUniqueSkillFlyItemAni);
 				this._superUniqueSkillFlyItemAni.off("enterframe",this,this.onFlyItemAnimationEnterFrameHandler);
 				this._superUniqueSkillFlyItemAni.off("stopped",this,this.onFlyItemAnimationFinish);
 				this._superUniqueSkillFlyItemAni.destroy();
@@ -39546,7 +41277,7 @@ window.Laya=(function(window,document){
 
 		__proto.showFlyItemEffectView=function(){
 			if(this._superUniqueSkillFlyItemEffectAni !=null){
-				this.aniContainer.removeChild(this._superUniqueSkillFlyItemEffectAni);
+				this._superUniqueSkillFlyItemEffectAni.parent.removeChild(this._superUniqueSkillFlyItemEffectAni);
 				this._superUniqueSkillFlyItemEffectAni.destroy();
 				this._superUniqueSkillFlyItemEffectAni=null;
 			};
@@ -39564,6 +41295,65 @@ window.Laya=(function(window,document){
 			this.aniContainer.addChild(this._superUniqueSkillFlyItemEffectAni);
 			this._superUniqueSkillFlyItemAni.visible=false;
 			this._superUniqueSkillFlyItemEffectAni.visible=false;
+			if(this.logic.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+				this.showSkillTargetBgEffectView();
+			}
+			else{
+				this.showMannuView();
+			}
+		}
+
+		__proto.showSkillTargetBgEffectView=function(){
+			if(this._skillTargetBgEffectAni !=null){
+				this._skillTargetBgEffectAni.parent.removeChild(this._skillTargetBgEffectAni);
+				this._skillTargetBgEffectAni.destroy();
+				this._skillTargetBgEffectAni=null;
+			}
+			console.log("resSkillTargetBgEffectAniTexture : ",this.roleInfo.meta.modelResMeta.resSkillTargetBgEffectAniTexture);
+			console.log("resSkillTargetBgEffectAniData : ",this.roleInfo.meta.modelResMeta.resSkillTargetBgEffectAniData);
+			var texture=Loader.getRes(this.roleInfo.meta.modelResMeta.resSkillTargetBgEffectAniTexture);
+			var data=Loader.getRes(this.roleInfo.meta.modelResMeta.resSkillTargetBgEffectAniData);
+			this.factory=new Templet();
+			this.factory.on("complete",this,this.onSkillTargetBgEffectSkeletonDataParsed);
+			this.factory.parseData(texture,data,24);
+		}
+
+		__proto.onSkillTargetBgEffectSkeletonDataParsed=function(){
+			this._skillTargetBgEffectAni=this.factory.buildArmature(0);
+			this._skillTargetBgEffectAni.scaleY=0.67;
+			this._skillTargetBgEffectAni.blendMode="add";
+			this.aniContainer.addChild(this._skillTargetBgEffectAni);
+			this._skillTargetBgEffectAni.visible=false;
+			this.showMannuView();
+		}
+
+		__proto.showMannuView=function(){
+			if(this._mannuEffectAni !=null){
+				this.aniContainer.removeChild(this._mannuEffectAni);
+				this._mannuEffectAni.off("stopped",this,this.onMannuEffectAnimationFinish);
+				this._mannuEffectAni.destroy();
+				this._mannuEffectAni=null;
+			};
+			var texture=Loader.getRes("res/skeleton/mannu/mannu.png");
+			var data=Loader.getRes("res/skeleton/mannu/mannu.sk");
+			this.factory=new Templet();
+			this.factory.on("complete",this,this.onMannuEffectSkeletonDataParsed);
+			this.factory.parseData(texture,data,24);
+		}
+
+		__proto.onMannuEffectSkeletonDataParsed=function(){
+			this._mannuEffectAni=this.factory.buildArmature(0);
+			this._mannuEffectAni.scaleX=0.67;
+			this._mannuEffectAni.scaleY=0.67;
+			this.aniContainer.addChild(this._mannuEffectAni);
+			this._mannuEffectAni.blendMode="add";
+			this._mannuEffectAni.on("stopped",this,this.onMannuEffectAnimationFinish);
+			this._mannuEffectAni.visible=false;
+			this._mannuEffectAniStatus=1;
+			this.initView();
+		}
+
+		__proto.initView=function(){
 			if(this.group==0){
 				this.faceRight();
 			}
@@ -39573,32 +41363,25 @@ window.Laya=(function(window,document){
 			this.changeSpeed();
 			this.playIdle();
 			this.parent.setChildIndex(this,this._childIndex);
-			this.roleLeftHpView=new AreanRoleLeftHpView();
-			this.roleLeftHpView.pos(0,-140);
-			this.roleLeftHpView.autoSize=true;
-			this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
-			this.roleLeftHpView.visible=false;
-			this.aniContainer.addChild(this.roleLeftHpView);
+			console.log("this._childIndex : ",this._childIndex);
+			console.log("viewChildIndex : ",this.parent.getChildIndex(this));
+			if (this.group==0){
+				this.roleLeftHpView=new AreanRoleLeftHpView();
+				this.roleLeftHpView.pos(0,-140);
+				this.roleLeftHpView.autoSize=true;
+				this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
+				this.roleLeftHpView.visible=false;
+				this.aniContainer.addChild(this.roleLeftHpView);
+				}else if(this.group==1){
+				this.roleRightHpView=new AreanRoleRightHpView();
+				this.roleRightHpView.pos(0,-140);
+				this.roleRightHpView.autoSize=true;
+				this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
+				this.roleRightHpView.visible=false;
+				this.aniContainer.addChild(this.roleRightHpView);
+			}
 		}
 
-		/*
-		if (this.group==BattleGroupEnum.LEFT){
-			this.roleLeftHpView=new AreanRoleLeftHpView();
-			this.roleLeftHpView.pos(0,-140);
-			this.roleLeftHpView.autoSize=true;
-			this.roleLeftHpView.pivot(this.roleLeftHpView.width *0.5,this.roleLeftHpView.height *0.5);
-			this.roleLeftHpView.visible=false;
-			this.aniContainer.addChild(roleLeftHpView);
-			}else if(this.group==BattleGroupEnum.RIGHT){
-			this.roleRightHpView=new AreanRoleRightHpView();
-			this.roleRightHpView.pos(0,-140);
-			this.roleRightHpView.autoSize=true;
-			this.roleRightHpView.pivot(this.roleRightHpView.width *0.5,this.roleRightHpView.height *0.5);
-			this.roleRightHpView.visible=false;
-			this.aniContainer.addChild(roleRightHpView);
-		}
-
-		*/
 		__proto.faceLeft=function(){
 			this._roleAni.scaleX=0-0.67;
 			this._effectAni.scaleX=0-0.67;
@@ -39616,6 +41399,9 @@ window.Laya=(function(window,document){
 				this._superUniqueSkillFlyItemAni.scaleX=0.67;
 				this._superUniqueSkillFlyItemEffectAni.scaleX=0.67;
 			}
+			if(this._skillTargetBgEffectAni !=null){
+				this._skillTargetBgEffectAni.scaleX=0.67;
+			}
 		}
 
 		// this.aniContainer.scaleX=BattleSetValueEnum.ROLE_VIEW_SCALE;
@@ -39625,6 +41411,11 @@ window.Laya=(function(window,document){
 		}
 
 		// trace("turnFace, scaleX is " ,this.aniContainer.scaleX);
+		__proto.initialize=function(){
+			this.parent.setChildIndex(this,this.childIndex);
+		}
+
+		// this._mannuEffectAni.visible=false;
 		__proto.changeSpeed=function(){
 			console.log(2,"GameContext.i.arenaContext.data.speed : ",GameContext.i.arenaContext.data.speed);
 			switch(GameContext.i.arenaContext.data.speed){
@@ -39720,8 +41511,10 @@ window.Laya=(function(window,document){
 								}
 								if(battleTargetRoleInfo.logic.roleInfo.roleVO.isAllDie()){
 									if(!hasShowDyingAnimation){
-										GameContext.i.arenaContext.manager.showResultEffect();
-										hasShowDyingAnimation=true;
+										if(this.logic.needCheckAllDie){
+											GameContext.i.arenaContext.manager.showResultEffect(this.logic);
+											hasShowDyingAnimation=true;
+										}
 									}
 								}
 							}
@@ -39748,8 +41541,14 @@ window.Laya=(function(window,document){
 					}
 					if(this.roleInfo.isMe){
 						effectInfo=new EffectItemInfo();
-						effectInfo.damage=(this.roleInfo.actionInfo.animationIndex+1)*this.logic.actionRoleInfo.targetRoleInfoList.length;
-						if(this.roleInfo.actionInfo.animationIndex==0){
+						if(this.logic.firstStatus==4){
+							effectInfo.damage=(this.roleInfo.actionInfo.animationIndex+1)*this.logic.actionRoleInfo.targetRoleInfoList.length;
+						}
+						else{
+							battleTargetRoleInfo.logic.hit++;
+							effectInfo.damage=battleTargetRoleInfo.logic.hit;
+						}
+						if(battleTargetRoleInfo.logic.hit==1){
 							effectInfo.type=5;
 						}
 						else{
@@ -39773,11 +41572,17 @@ window.Laya=(function(window,document){
 						}
 						this.roleInfo.actionInfo.animationIndex++;
 						if(this.roleInfo.actionInfo.animationIndex >=keyFrameList.length){
-							effectInfo=new EffectItemInfo();
-							effectInfo.damage=(this.roleInfo.actionInfo.animationIndex)*this.logic.actionRoleInfo.targetRoleInfoList.length;
-							effectInfo.type=7;
-							effectInfo.sourceRoleLogic=this.logic;
-							GameContext.i.arenaContext.gameView.effectView.addEffect(effectInfo);
+							if(this.logic.firstStatus==5){
+								if(!this.roleInfo.roleVO.hasNextAttackerByTarget(battleTargetRoleInfo.logic.roleInfo)){
+									console.log("clear all hit!");
+									battleTargetRoleInfo.logic.roleInfo.roleVO.clearAllHit();
+									effectInfo=new EffectItemInfo();
+									effectInfo.damage=(this.roleInfo.actionInfo.animationIndex)*this.logic.actionRoleInfo.targetRoleInfoList.length;
+									effectInfo.type=7;
+									effectInfo.sourceRoleLogic=this.logic;
+									GameContext.i.arenaContext.gameView.effectView.addEffect(effectInfo);
+								}
+							}
 							if(this.logic.firstStatus==4){
 								effectInfo=new EffectItemInfo();
 								effectInfo.damage=totalDamage;
@@ -39945,6 +41750,7 @@ window.Laya=(function(window,document){
 							if(this.logic.roleStatus==4){
 								console.log(43,"doDie");
 								this.logic.doDie();
+								this.playDie();
 							}
 							else{
 								this.logic.doRunBackHurt();
@@ -39972,22 +41778,11 @@ window.Laya=(function(window,document){
 							this.logic.doIdle();
 						}
 						else{
-							if(GameContext.i.arenaContext.data.battleVO.isManualMode()){
-								hasNextAttacker=GameContext.i.arenaContext.manager.roleListLogic.attackPlayer.roleVO.hasNextAttackerByTarget(this.logic.roleInfo);
+							if(this.logic.roleStatus==4){
+								this.logic.doFullFall();
 							}
 							else{
-								hasNextAttacker=ArenaUtil.hasNextAttackerByTarget(this.logic.attackerRoleInfo,this.logic.roleInfo.id);
-							}
-							if(hasNextAttacker !=null){
 								this.logic.doIdle();
-							}
-							else{
-								if(this.logic.roleStatus==4){
-									this.logic.doFullFall();
-								}
-								else{
-									this.logic.doIdle();
-								}
 							}
 						}
 						break ;
@@ -40045,6 +41840,7 @@ window.Laya=(function(window,document){
 					var changePropertyInfo;
 					var roleStatus=0;
 					var hasCritDamage=false;
+					var hasShowDyingAnimation=false;
 					for(i=0;i < this.logic.actionRoleInfo.targetRoleInfoList.length;i++){
 						battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[i];
 						if(battleTargetRoleInfo.damageType==2){
@@ -40073,6 +41869,12 @@ window.Laya=(function(window,document){
 								}
 								else{
 									GameContext.i.arenaContext.manager.onMyRoleDie(battleTargetRoleInfo.logic);
+								}
+								if(battleTargetRoleInfo.logic.roleInfo.roleVO.isAllDie()){
+									if(!hasShowDyingAnimation){
+										GameContext.i.arenaContext.manager.showResultEffect(this.logic);
+										hasShowDyingAnimation=true;
+									}
 								}
 							}
 							else{
@@ -40152,6 +41954,12 @@ window.Laya=(function(window,document){
 		}
 
 		// GameContext.i.camera2D.operateCamera(new Point(GameContext.i.uiService.screenWidth / 2,GameContext.i.uiService.screenHeight / 2),1,BattleSetValueEnum.RUN_TIME);
+		__proto.onMannuEffectAnimationFinish=function(){
+			if(this._mannuEffectAniStatus==2){
+				this._mannuEffectAni.play("nvqixunhuan",true);
+			}
+		}
+
 		__proto.initEnterPos=function(){
 			if(this.group==0){
 				this.aniContainer.x=-568;
@@ -40162,15 +41970,18 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.playIdle=function(){
-			console.log(1,"this.logic.roleHp : ",this.logic.roleHp);
-			console.log(2,"this.logic.roleInfo.meta.hp : ",this.logic.roleInfo.meta.hp);
 			if(this.logic.roleHp > (this.logic.roleInfo.meta.hp *0.3)){
-				console.log(3,"play idle");
 				this._roleAni.play("idle",true);
 			}
 			else{
-				console.log(4,"play injured idle");
 				this._roleAni.play("injuredidle",true);
+			}
+			if(this.logic.roleMp >=1000){
+				if(this._mannuEffectAniStatus==1){
+					this._mannuEffectAniStatus=2;
+					this._mannuEffectAni.play("nvqi",false);
+					this._mannuEffectAni.visible=true;
+				}
 			}
 		}
 
@@ -40183,6 +41994,13 @@ window.Laya=(function(window,document){
 			if(this.logic.firstStatus==4){
 				this._roleAni.play("superUniqueSkill",false);
 				this.playEffect("superUniqueSkill");
+				if(this.logic.roleMp < 1000){
+					if(this._mannuEffectAniStatus !=1){
+						this._mannuEffectAniStatus=1;
+						this._mannuEffectAni.stop();
+						this._mannuEffectAni.visible=false;
+					}
+				}
 			}
 			else{
 				if(this.logic.actionRoleInfo.useSkillFlag==0){
@@ -40193,6 +42011,8 @@ window.Laya=(function(window,document){
 					this._roleAni.play("skill",false);
 					this.playEffect("skill");
 					console.log("play skill animation");
+					if(this.logic.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+					}
 				}
 			}
 		}
@@ -40200,10 +42020,9 @@ window.Laya=(function(window,document){
 		//
 		__proto.playFlyItem=function(){
 			var battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[0];
-			this._superUniqueSkillFlyItemAni.x=battleTargetRoleInfo.logic.view.x-this.x;
-			this._superUniqueSkillFlyItemAni.y=battleTargetRoleInfo.logic.view.y-this.y;
-			this._superUniqueSkillFlyItemEffectAni.x=battleTargetRoleInfo.logic.view.x-this.x;
-			this._superUniqueSkillFlyItemEffectAni.y=battleTargetRoleInfo.logic.view.y-this.y;
+			var targetView=battleTargetRoleInfo.logic.view;
+			targetView.aniContainer.addChild(this._superUniqueSkillFlyItemAni);
+			targetView.aniContainer.addChild(this._superUniqueSkillFlyItemEffectAni);
 			this._superUniqueSkillFlyItemAni.visible=true;
 			this._superUniqueSkillFlyItemEffectAni.visible=true;
 			this._superUniqueSkillFlyItemAni.play("superUniqueSkill",false);
@@ -40211,6 +42030,7 @@ window.Laya=(function(window,document){
 			GameContext.i.camera2D.operateCamera(new Point(GameContext.i.uiService.screenWidth / 2,GameContext.i.uiService.screenHeight / 2),1,3);
 		}
 
+		// }
 		__proto.isCompleteEntering=function(){
 			if(this.logic.firstStatus==1){
 				if(this.logic.secondStatus==103){
@@ -40271,9 +42091,9 @@ window.Laya=(function(window,document){
 			this._hurtActionName=actionName;
 			this._roleAni.play(actionName,false);
 			this.playEffect(actionName);
-			console.log(1,"ready to playHurt _hurtActionName : ",this._hurtActionName);
 		}
 
+		// trace(1,"ready to playHurt _hurtActionName : ",_hurtActionName);
 		__proto.playHurtIdle=function(){
 			switch(this.logic.secondStatus){
 				case 801:
@@ -40297,7 +42117,11 @@ window.Laya=(function(window,document){
 
 		__proto.playDie=function(){
 			console.log("enter function playDie");
-			this._roleAni.play("hurtidle2",false);
+			if(this._mannuEffectAniStatus !=1){
+				this._mannuEffectAniStatus=1;
+				this._mannuEffectAni.stop();
+			}
+			this._mannuEffectAni.visible=false;
 		}
 
 		__proto.playResult=function(){
@@ -40308,8 +42132,22 @@ window.Laya=(function(window,document){
 		__proto.playEffect=function($aniName){
 			this._effectAni.play($aniName,false);
 			this._effectAni.visible=true;
+			if($aniName=="skill"){
+				if(this.logic.roleInfo.meta.modelResMeta.hasSkillTargetBgEffect==1){
+					console.log(111,"play SkillTargetBgEffect!!");
+					var battleTargetRoleInfo=this.logic.actionRoleInfo.targetRoleInfoList[0];
+					var targetView=battleTargetRoleInfo.logic.view;
+					targetView.addChildAt(this._skillTargetBgEffectAni,0);
+					this._skillTargetBgEffectAni.x=targetView.aniContainer.x;
+					this._skillTargetBgEffectAni.y=targetView.aniContainer.y;
+					this._skillTargetBgEffectAni.visible=true;
+					this._skillTargetBgEffectAni.play("skill",false);
+					console.log("target finish distanceX : ",targetView.x);
+				}
+			}
 		}
 
+		// this._skillTargetBgEffectAni.visible=true;
 		__proto.hideEffect=function(){
 			this._effectAni.stop();
 			this._effectAni.visible=false;
@@ -40320,12 +42158,34 @@ window.Laya=(function(window,document){
 			if(this._effectAni.aniClipIndex !=-1){
 				this._effectAni.paused();
 			}
+			if(this._superUniqueSkillFlyItemAni !=null){
+				if(this._superUniqueSkillFlyItemAni.aniClipIndex !=-1){
+					this._superUniqueSkillFlyItemAni.paused();
+					this._superUniqueSkillFlyItemEffectAni.paused();
+				}
+			}
+			if(this._skillTargetBgEffectAni !=null){
+				if(this._skillTargetBgEffectAni.aniClipIndex !=-1){
+					this._skillTargetBgEffectAni.paused();
+				}
+			}
 		}
 
 		__proto.resume=function(){
 			this._roleAni.resume();
 			if(this._effectAni.aniClipIndex !=-1){
 				this._effectAni.resume();
+			}
+			if(this._superUniqueSkillFlyItemAni !=null){
+				if(this._superUniqueSkillFlyItemAni.aniClipIndex !=-1){
+					this._superUniqueSkillFlyItemAni.resume();
+					this._superUniqueSkillFlyItemEffectAni.resume();
+				}
+			}
+			if(this._skillTargetBgEffectAni !=null){
+				if(this._skillTargetBgEffectAni.aniClipIndex !=-1){
+					this._skillTargetBgEffectAni.resume();
+				}
 			}
 		}
 
@@ -40501,6 +42361,76 @@ window.Laya=(function(window,document){
 				this.texiaoziSelectAnmation.removeSelf();
 			}
 		}
+
+		/*
+		public function playAnmation($args:int,$last:int,$delayTime:int):void{
+			trace("play animation");
+			var texture:Texture=Loader.getRes("res/skeleton/qteORfight/wuyunlv/wuyunlv.png");
+			var data:ArrayBuffer=Loader.getRes("res/skeleton/qteORfight/wuyunlv/wuyunlv.sk");
+			var factory:Templet=new Templet();
+			factory.on(Event.COMPLETE,this,delayBeginAnmation,[factory,$args,$last,$delayTime]);
+			factory.parseData(texture,data,24);
+		}
+
+		public function delayBeginAnmation($factory:Templet,$args:int,$last:int,$delayTime:int):void{
+			this.timerOnce($delayTime*290,this,onSkeletonPlayAnmation,[$factory,$args,$last,$delayTime]);
+		}
+
+		private function onSkeletonPlayAnmation($factory:Templet,$args:int,$last:int,$delayTime:int):void{
+			this.swordmanAnmation=$factory.buildArmature(0);
+			this.swordmanAnmation.play("Wuyunlv"+$args+"_begin",false);
+			this.aniContainer.addChild(this.swordmanAnmation);
+			this.swordmanAnmation.pos(0,-170);
+			this.swordmanAnmation.on(Event.STOPPED,this,delayEndAnmation,[$args,$last,$delayTime]);
+		}
+
+		public function delayEndAnmation($args:int,$last:int,$delayTime:int):void{
+			this.timerOnce(($last-$delayTime)*290,this,onBeginAnimationFinish,[$args,$last,$delayTime]);
+		}
+
+		private function onBeginAnimationFinish($args:int,$last:int,$delayTime:int):void{
+			this.swordmanAnmation.offAll();
+			this.swordmanAnmation.play("Wuyunlv"+$args+"_end",false);
+			this.swordmanAnmation.on(Event.STOPPED,this,onEndAnimationFinish,[$last,$delayTime]);
+		}
+
+		private function onEndAnimationFinish($last:int,$delayTime):void{
+			if ($last==$delayTime){
+				GameContext.i.arenaContext.manager.onFinishPlayLucky();
+			}
+			this.swordmanAnmation.removeSelf();
+		}
+
+		*/
+		__proto.changeViewIndexToAttack=function($targetView){
+			if(this.logic.firstStatus==4){
+				if(this.logic.roleInfo.meta.modelResMeta.superUniqueSkillType==2){
+					return;
+				}
+			};
+			var myGrid=Math.floor(this._childIndex / 4);
+			var targetGrid=Math.floor($targetView.childIndex / 4);
+			var isSameGrid=(myGrid==targetGrid)
+			var nextChildIndex=0;
+			console.log("myChildIndex : ",this._childIndex);
+			console.log("targetChildIndex : ",$targetView.childIndex);
+			console.log("myGrid : ",myGrid);
+			console.log("targetGrid : ",targetGrid);
+			console.log("myViewChildIndex : ",this.parent.getChildIndex(this));
+			console.log("targetViewChildIndex : ",$targetView.parent.getChildIndex($targetView));
+			if(myGrid <=targetGrid){
+				nextChildIndex=(targetGrid+1)*4-1;
+			}
+			else{
+				nextChildIndex=(targetGrid+1)*4;
+			}
+			console.log("nextChildIndex : ",nextChildIndex);
+			this.parent.setChildIndex(this,nextChildIndex);
+		}
+
+		__getset(0,__proto,'childIndex',function(){
+			return this._childIndex;
+		});
 
 		return RoleItemView;
 	})(Sprite)
@@ -40880,18 +42810,20 @@ window.Laya=(function(window,document){
 		*传递STOP事件
 		*/
 		__proto._onStop=function(){
-			this.event("stopped");
 			var tEventData;
 			var tEventAniArr=this._templet.eventAniArr;
 			var tEventArr=tEventAniArr[this._aniClipIndex];
 			if (tEventArr && this._eventIndex < tEventArr.length){
 				for (;this._eventIndex < tEventArr.length;this._eventIndex++){
 					tEventData=tEventArr[this._eventIndex];
-					this.event("label",tEventData);
+					if (tEventData.time >=this._player.playStart && tEventData.time <=this._player.playEnd){
+						this.event("label",tEventData);
+					}
 				}
 			}
 			this._eventIndex=0;
 			this._drawOrder=null;
+			this.event("stopped");
 		}
 
 		/**
@@ -40956,9 +42888,11 @@ window.Laya=(function(window,document){
 			var tEventArr=tEventAniArr[this._aniClipIndex];
 			if (tEventArr && this._eventIndex < tEventArr.length){
 				tEventData=tEventArr[this._eventIndex];
-				if (this._player.currentPlayTime > tEventData.time){
-					this.event("label",tEventData);
-					this._eventIndex++;
+				if (tEventData.time >=this._player.playStart && tEventData.time <=this._player.playEnd){
+					if (this._player.currentPlayTime >=tEventData.time){
+						this.event("label",tEventData);
+						this._eventIndex++;
+					}
 				}
 			}
 			if (this._aniClipIndex==-1)return;
@@ -40996,7 +42930,7 @@ window.Laya=(function(window,document){
 			if (tDrawOrderArr && tDrawOrderArr.length > 0){
 				this._drawOrderIndex=0;
 				tDrawOrderData=tDrawOrderArr[this._drawOrderIndex];
-				while (this._player.currentPlayTime > tDrawOrderData.time){
+				while (this._player.currentPlayTime >=tDrawOrderData.time){
 					this._drawOrder=tDrawOrderData.drawOrder;
 					this._drawOrderIndex++;
 					if (this._drawOrderIndex >=tDrawOrderArr.length){
@@ -41152,8 +43086,9 @@ window.Laya=(function(window,document){
 					}
 				}
 			};
-			var tSlotData2=NaN;
-			var tSlotData3=NaN;
+			var tSlotData2;
+			var tSlotData3;
+			var tObject;
 			if (this._drawOrder){
 				for (i=0,n=this._drawOrder.length;i < n;i++){
 					tDBBoneSlot=this._boneSlotArray[this._drawOrder[i]];
@@ -41164,10 +43099,14 @@ window.Laya=(function(window,document){
 						tGraphics.alpha(tSlotData3);
 					}
 					if (!isNaN(tSlotData2)){
-						tDBBoneSlot.showDisplayByIndex(tSlotData2);
+						if (this._templet.attachmentNames){
+							tDBBoneSlot.showDisplayByName(this._templet.attachmentNames[tSlotData2]);
+							}else {
+							tDBBoneSlot.showDisplayByIndex(tSlotData2);
+						}
 					}
 					if (tDeformDic[this._drawOrder[i]]){
-						var tObject=tDeformDic[this._drawOrder[i]];
+						tObject=tDeformDic[this._drawOrder[i]];
 						if (tDBBoneSlot.currDisplayData && tObject[tDBBoneSlot.currDisplayData.attachmentName]){
 							tDBBoneSlot.deformData=tObject[tDBBoneSlot.currDisplayData.attachmentName];
 							}else {
@@ -41195,10 +43134,14 @@ window.Laya=(function(window,document){
 						tGraphics.alpha(tSlotData3);
 					}
 					if (!isNaN(tSlotData2)){
-						tDBBoneSlot.showDisplayByIndex(tSlotData2);
+						if (this._templet.attachmentNames){
+							tDBBoneSlot.showDisplayByName(this._templet.attachmentNames[tSlotData2]);
+							}else {
+							tDBBoneSlot.showDisplayByIndex(tSlotData2);
+						}
 					}
 					if (tDeformDic[i]){
-						var tObject=tDeformDic[i];
+						tObject=tDeformDic[i];
 						if (tDBBoneSlot.currDisplayData && tObject[tDBBoneSlot.currDisplayData.attachmentName]){
 							tDBBoneSlot.deformData=tObject[tDBBoneSlot.currDisplayData.attachmentName];
 							}else {
@@ -41262,6 +43205,9 @@ window.Laya=(function(window,document){
 		*@param skinIndex 皮肤索引
 		*/
 		__proto.showSkinByIndex=function(skinIndex){
+			for (var i=0;i < this._boneSlotArray.length;i++){
+				(this._boneSlotArray [i]).showDisplayByIndex(-1);
+			}
 			if (this._templet.showSkinByIndex(this._boneSlotDic,skinIndex)){
 				this._skinIndex=skinIndex;
 			}
@@ -41312,14 +43258,18 @@ window.Laya=(function(window,document){
 		*@param nameOrIndex 动画名字或者索引
 		*@param loop 是否循环播放
 		*@param force false,如果要播的动画跟上一个相同就不生效,true,强制生效
+		*@param start 起始时间
+		*@param end 结束时间
 		*/
-		__proto.play=function(nameOrIndex,loop,force){
+		__proto.play=function(nameOrIndex,loop,force,start,end){
 			(force===void 0)&& (force=true);
+			(start===void 0)&& (start=0);
+			(end===void 0)&& (end=0);
 			this._indexControl=false;
 			var index=-1;
 			var duration=NaN;
 			if (loop){
-				duration=Number.MAX_VALUE;
+				duration=2147483647;
 				}else {
 				duration=0;
 			}
@@ -41339,7 +43289,7 @@ window.Laya=(function(window,document){
 					this._currAniIndex=index;
 					this._curOriginalData=new Float32Array(this._templet.getTotalkeyframesLength(index));
 					this._drawOrder=null;
-					this._player.play(index,this._player.playbackRate,duration);
+					this._player.play(index,this._player.playbackRate,duration,start,end);
 					this._templet.showSkinByIndex(this._boneSlotDic,this._skinIndex);
 					if (this._pause){
 						this._pause=false;
@@ -41502,26 +43452,33 @@ window.Laya=(function(window,document){
 	//class laya.d3.core.scene.BaseScene extends laya.display.Sprite
 	var BaseScene=(function(_super){
 		function BaseScene(){
+			this._invertYProjectionMatrix=null;
+			this._invertYProjectionViewMatrix=null;
+			this._invertYScaleMatrix=null;
+			this._isInStage=false;
 			this._boundFrustum=null;
 			this._enableLightCount=3;
 			this._renderTargetTexture=null;
 			this._customRenderQueneIndex=11;
 			this._lastCurrentTime=NaN;
+			this._staticBatchManager=null;
+			this._dynamicBatchManager=null;
 			this.enableFog=false;
 			this.fogStart=NaN;
 			this.fogRange=NaN;
 			this.fogColor=null;
 			this.enableLight=true;
-			this.currentCamera=null;
-			this._staticBatchManager=null;
-			this._dynamicBatchManager=null;
 			BaseScene.__super.call(this);
 			this._renderState=new RenderState();
 			this._lights=new Array;
-			this._shadingMode=0x2000;
 			this._renderConfigs=[];
 			this._frustumCullingObjects=[];
 			this._quenes=[];
+			this._cameraPool=[];
+			this._invertYProjectionMatrix=new Matrix4x4();
+			this._invertYProjectionViewMatrix=new Matrix4x4();
+			this._invertYScaleMatrix=new Matrix4x4();
+			Matrix4x4.createScaling(new Vector3(1,-1,1),this._invertYScaleMatrix);
 			this._staticBatchManager=new StaticBatchManager();
 			this._dynamicBatchManager=new DynamicBatchManager();
 			this._boundFrustum=new BoundFrustum(Matrix4x4.DEFAULT);
@@ -41595,6 +43552,8 @@ window.Laya=(function(window,document){
 			renderConfig.depthTest=false;
 			renderConfig.sFactor=0x0302;
 			renderConfig.dFactor=1;
+			this.on("added",this,this._onAdded);
+			this.on("removed",this,this._onRemoved);
 		}
 
 		__class(BaseScene,'laya.d3.core.scene.BaseScene',_super);
@@ -41602,13 +43561,47 @@ window.Laya=(function(window,document){
 		Laya.imps(__proto,{"laya.webgl.submit.ISubmit":true})
 		/**
 		*@private
-		*清除背景色。
-		*@param gl WebGL上下文。
 		*/
-		__proto._clearColor=function(gl){
-			var clearColore=this.currentCamera.clearColor.elements;
-			gl.clearColor(clearColore[0],clearColore[1],clearColore[2],clearColore[3]);
-			gl.clear(0x00004000 | 0x00000100);
+		__proto._onAdded=function(){
+			var isInStage=Laya.stage.contains(this);
+			(isInStage)&& (this._addSelfAndChildrenRenderObjects());
+			(isInStage)&& (this._changeSelfAndChildrenInStage(true));
+		}
+
+		/**
+		*@private
+		*/
+		__proto._onRemoved=function(){
+			var isInStage=Laya.stage.contains(this);
+			(isInStage)&& (this._clearSelfAndChildrenRenderObjects());
+			(isInStage)&& (this._changeSelfAndChildrenInStage(false));
+		}
+
+		/**
+		*@private
+		*/
+		__proto._changeSelfAndChildrenInStage=function(isInStage){
+			this._isInStage=isInStage;
+			this.event("instagechanged",isInStage);
+			var children=this._childs;
+			for (var i=0,n=children.length;i < n;i++)
+			(this._childs [i])._changeSelfAndChildrenInStage(isInStage);
+		}
+
+		/**
+		*清理自身和子节点渲染物体,重写此函数。
+		*/
+		__proto._clearSelfAndChildrenRenderObjects=function(){
+			for (var i=0,n=this._childs.length;i < n;i++)
+			(this._childs [i])._clearSelfAndChildrenRenderObjects();
+		}
+
+		/**
+		*添加自身和子节点渲染物体,重写此函数。
+		*/
+		__proto._addSelfAndChildrenRenderObjects=function(){
+			for (var i=0,n=this._childs.length;i < n;i++)
+			(this._childs [i])._addSelfAndChildrenRenderObjects();
 		}
 
 		/**
@@ -41617,19 +43610,18 @@ window.Laya=(function(window,document){
 		*@param gl WebGL上下文。
 		*@return state 渲染状态。
 		*/
-		__proto._prepareScene=function(gl,state){
-			Layer._currentCameraCullingMask=this.currentCamera.cullingMask;
+		__proto._prepareScene=function(gl,camera,state){
+			Layer._currentCameraCullingMask=camera.cullingMask;
 			state.context=WebGL.mainContext;
 			state.elapsedTime=this._lastCurrentTime ? this.timer.currTimer-this._lastCurrentTime :0;
 			this._lastCurrentTime=this.timer.currTimer;
 			state.reset();
 			state.loopCount=Stat.loopCount;
-			state.shadingMode=this._shadingMode;
 			state.scene=this;
-			state.camera=this.currentCamera;
-			var shaderValue=state.worldShaderValue;
+			state.camera=camera;
+			var worldShaderValue=state.worldShaderValue;
 			var loopCount=Stat.loopCount;
-			this.currentCamera && shaderValue.pushValue("CAMERAPOS",this.currentCamera.transform.position.elements,loopCount);
+			camera && worldShaderValue.pushValue("CAMERAPOS",camera.transform.position.elements);
 			if (this._lights.length > 0){
 				var lightCount=0;
 				for (var i=0;i < this._lights.length;i++){
@@ -41642,10 +43634,13 @@ window.Laya=(function(window,document){
 				}
 			}
 			if (this.enableFog){
-				state.worldShaderValue.pushValue("FOGSTART",this.fogStart,loopCount);
-				state.worldShaderValue.pushValue("FOGRANGE",this.fogRange,loopCount);
-				state.worldShaderValue.pushValue("FOGCOLOR",this.fogColor.elements,loopCount);
+				worldShaderValue.pushValue("FOGSTART",this.fogStart);
+				worldShaderValue.pushValue("FOGRANGE",this.fogRange);
+				worldShaderValue.pushValue("FOGCOLOR",this.fogColor.elements);
 			}
+			state.shaderValue.pushArray(worldShaderValue);
+			var shaderDefs=state.shaderDefs;
+			(this.enableFog)&& (shaderDefs._value=shaderDefs._value |=0x20000);
 		}
 
 		/**
@@ -41675,32 +43670,98 @@ window.Laya=(function(window,document){
 			(this._quenes[i])&& (this._quenes[i]._preRender(state));
 		}
 
+		__proto._clear=function(gl,state){
+			var viewport=state.viewport;
+			var camera=state.camera;
+			var renderTargetHeight=camera.renderTargetSize.height;
+			gl.viewport(viewport.x,renderTargetHeight-viewport.y-viewport.height,viewport.width,viewport.height);
+			var clearFlag=0;
+			switch (camera.clearFlag){
+				case 0:
+					if (camera.clearColor){
+						gl.enable(0x0C11);
+						gl.scissor(viewport.x,renderTargetHeight-viewport.y-viewport.height,viewport.width,viewport.height);
+						var clearColorE=camera.clearColor.elements;
+						gl.clearColor(clearColorE[0],clearColorE[1],clearColorE[2],clearColorE[3]);
+						clearFlag=0x00004000;
+						if (camera.renderTarget){
+						switch (camera.renderTarget.depthStencilFormat){
+							case 0x81A5:
+								clearFlag |=0x00000100;
+								break ;
+							case 0x8D48:
+								clearFlag |=0x00000400;
+								break ;
+							case 0x84F9:
+								clearFlag |=0x00000100;
+								clearFlag |=0x00000400
+								break ;
+							}
+						}else {
+						clearFlag |=0x00000100;
+					}
+					gl.clear(clearFlag);
+					gl.disable(0x0C11);
+					}else {
+					gl.clear(0x00000100);
+				}
+				break ;
+				case 1:
+				case 2:
+				if (camera.renderTarget){
+					switch (camera.renderTarget.depthStencilFormat){
+						case 0x81A5:
+							clearFlag |=0x00000100;
+							break ;
+						case 0x8D48:
+							clearFlag |=0x00000400;
+							break ;
+						case 0x84F9:
+							clearFlag |=0x00000100;
+							clearFlag |=0x00000400
+							break ;
+						}
+					}else {
+					clearFlag |=0x00000100;
+				}
+				break ;
+				case 3:
+				break ;
+				default :
+				throw new Error("BaseScene:camera clearFlag invalid.");
+			}
+		}
+
 		/**
 		*@private
 		*/
 		__proto._renderScene=function(gl,state){
-			var viewport=state.viewport;
-			gl.viewport(viewport.x,RenderState.clientHeight-viewport.y-viewport.height,viewport.width,viewport.height);
+			var camera=state.camera;
 			var i=0,n=0;
 			var queue;
 			for (i=0;i < 3;i++){
-				if (this._quenes[i]){
-					queue=this._quenes[i];
-					queue._setState(gl);
+				queue=this._quenes[i];
+				if (queue){
+					queue._setState(gl,state);
 					queue._render(state);
 				}
 			}
-			WebGLContext.setCullFace(gl,false);
-			WebGLContext.setDepthFunc(gl,0x0203);
-			WebGLContext.setDepthMask(gl,0);
-			var sky=state.camera.sky;
-			(sky)&& (sky._render(state));
-			WebGLContext.setDepthFunc(gl,0x0201);
-			WebGLContext.setDepthMask(gl,1);
+			if (camera.clearFlag===1){
+				var sky=camera.sky;
+				if (sky){
+					WebGLContext.setCullFace(gl,false);
+					WebGLContext.setDepthFunc(gl,0x0203);
+					WebGLContext.setDepthMask(gl,0);
+					sky._render(state);
+					WebGLContext.setDepthFunc(gl,0x0201);
+					WebGLContext.setDepthMask(gl,1);
+				}
+			}
 			for (i=3,n=this._quenes.length;i < n;i++){
-				if (this._quenes[i]){
-					queue=this._quenes[i];
-					queue._setState(gl);
+				queue=this._quenes[i];
+				if (queue){
+					queue._sortAlpha(state.camera.transform.position);
+					queue._setState(gl,state);
 					queue._render(state);
 				}
 			}
@@ -41732,8 +43793,7 @@ window.Laya=(function(window,document){
 			WebGLContext.setBlend(gl,true);
 			WebGLContext.setBlendFunc(gl,0x0302,0x0303);
 			WebGLContext.setDepthTest(gl,false);
-			WebGLContext.setCullFace(gl
-			,false);
+			WebGLContext.setCullFace(gl,false);
 			WebGLContext.setDepthMask(gl,1);
 			WebGLContext.setFrontFaceCCW(gl,0x0901);
 			gl.viewport(0,0,RenderState2D.width,RenderState2D.height);
@@ -41849,22 +43909,13 @@ window.Laya=(function(window,document){
 		});
 
 		/**
-		*设置着色模式。
-		*@param value 着色模式。
+		*获取是否在场景树。
+		*@return 是否在场景树。
 		*/
-		/**
-		*获取着色模式。
-		*@return 着色模式。
-		*/
-		__getset(0,__proto,'shadingMode',function(){
-			return this._shadingMode==0x1000 ? 0 :0x2000;
-			},function(value){
-			if (value!==0 && value!==1)throw Error("Scene set shadingMode,must:0 or 1,value="+value);
-			this._shadingMode=value===0 ? 0x1000 :0x2000;
+		__getset(0,__proto,'isInStage',function(){
+			return this._isInStage;
 		});
 
-		BaseScene.VERTEX_SHADING=0;
-		BaseScene.PIXEL_SHADING=1;
 		return BaseScene;
 	})(Sprite)
 
@@ -42389,7 +44440,7 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'width',function(){
 			if (this._width)
 				return this._width;
-			return this.textWidth;
+			return this.textWidth+this.padding[1]+this.padding[3];
 			},function(value){
 			if (value !=this._width){
 				_super.prototype._$set_width.call(this,value);
@@ -42421,7 +44472,7 @@ window.Laya=(function(window,document){
 		*/
 		__getset(0,__proto,'height',function(){
 			if (this._height)return this._height;
-			return this.textHeight;
+			return this.textHeight+this.padding[0]+this.padding[2];
 			},function(value){
 			if (value !=this._height){
 				_super.prototype._$set_height.call(this,value);
@@ -42719,8 +44770,6 @@ window.Laya=(function(window,document){
 			//this._up=null;
 			//this._forward=null;
 			//this._right=null;
-			//this._masterCamera=null;
-			//this._slavesCameras=null;
 			//this._renderTarget=null;
 			//this._renderingOrder=0;
 			//this._renderTargetSize=null;
@@ -42732,7 +44781,7 @@ window.Laya=(function(window,document){
 			//this._useUserProjectionMatrix=false;
 			//this._viewportExpressedInClipSpace=false;
 			this._projectionMatrixModifyID=0;
-			//this._partialRenderTarget=null;
+			//this.clearFlag=0;
 			//this.clearColor=null;
 			//this.cullingMask=0;
 			//this.sky=null;
@@ -42747,20 +44796,37 @@ window.Laya=(function(window,document){
 			this._useUserProjectionMatrix=false;
 			this._orthographic=false;
 			this._viewportExpressedInClipSpace=true;
-			this._slavesCameras=[];
 			this._renderTargetSize=Size.fullScreen;
 			this._orthographicVerticalSize=10;
 			this.renderingOrder=0;
 			this._nearPlane=nearPlane;
 			this._farPlane=farPlane;
 			this.cullingMask=2147483647;
-			this.clearColor=new Vector4(100.0 / 255.0,149.0 / 255.0,237.0 / 255.0,255.0 / 255.0);
+			this.clearColor=new Vector4(0.26,0.26,0.26,1.0);
+			this.clearFlag=0;
 			this._calculateProjectionMatrix();
 			Laya.stage.on("resize",this,this._onScreenSizeChanged);
 		}
 
 		__class(BaseCamera,'laya.d3.core.BaseCamera',_super);
 		var __proto=BaseCamera.prototype;
+		/**
+		*通过RenderingOrder属性对摄像机机型排序。
+		*/
+		__proto._sortCamerasByRenderingOrder=function(){
+			if (this.isInStage){
+				var cameraPool=this.scene._cameraPool;
+				var n=cameraPool.length-1;
+				for (var i=0;i < n;i++){
+					if (cameraPool[i].renderingOrder > cameraPool[n].renderingOrder){
+						var tempCamera=cameraPool[i];
+						cameraPool[i]=cameraPool[n];
+						cameraPool[n]=tempCamera;
+					}
+				}
+			}
+		}
+
 		__proto._calculateProjectionMatrix=function(){}
 		__proto._onScreenSizeChanged=function(){
 			this._calculateProjectionMatrix();
@@ -42807,7 +44873,7 @@ window.Laya=(function(window,document){
 
 		__proto.destroy=function(destroyChild){
 			(destroyChild===void 0)&& (destroyChild=true);
-			this.masterCamera=null;
+			this.sky=null;
 			this.renderTarget=null;
 			Laya.stage.off("resize",this,this._onScreenSizeChanged);
 			laya.display.Node.prototype.destroy.call(this,destroyChild);
@@ -42843,6 +44909,27 @@ window.Laya=(function(window,document){
 			this.transform.translate(this._tempVector3,false);
 		}
 
+		//}// BoundingFrustumWorldSpace
+		__proto._addSelfRenderObjects=function(){
+			var cameraPool=this.scene._cameraPool;
+			var cmaeraCount=cameraPool.length;
+			if (cmaeraCount > 0){
+				for (var i=cmaeraCount-1;i >=0;i--){
+					if (this.renderingOrder <=cameraPool[i].renderingOrder){
+						cameraPool.splice(i+1,0,this);
+						break ;
+					}
+				}
+				}else {
+				cameraPool.push(this);
+			}
+		}
+
+		__proto._clearSelfRenderObjects=function(){
+			var cameraPool=this.scene._cameraPool;
+			cameraPool.splice(cameraPool.indexOf(this),1);
+		}
+
 		/**获取位置。*/
 		__getset(0,__proto,'position',function(){
 			var worldMatrixe=this.transform.worldMatrix.elements;
@@ -42862,12 +44949,8 @@ window.Laya=(function(window,document){
 		*@return 渲染目标的尺寸。
 		*/
 		__getset(0,__proto,'renderTargetSize',function(){
-			if (this._masterCamera !=null)
-				return this._masterCamera.renderTargetSize;
 			return this._renderTargetSize;
 			},function(value){
-			if (this._masterCamera !=null)
-				return;
 			if (this.renderTarget !=null && this._renderTargetSize !=value){}
 				this._renderTargetSize=value;
 			this._calculateProjectionMatrix();
@@ -42928,73 +45011,6 @@ window.Laya=(function(window,document){
 		});
 
 		/**
-		*设置主人摄像机，渲染类型、清除颜色和渲染目标值均来自主人摄像机。
-		*@param 主人摄像机。
-		*/
-		/**
-		*获取主人摄像机，渲染类型、清除颜色和渲染目标值均来自主人摄像机。
-		*@return 主人摄像机。
-		*/
-		__getset(0,__proto,'masterCamera',function(){
-			return this._masterCamera;
-			},function(value){
-			if (this._slavesCameras.length !=0 || (value !=null && value.masterCamera !=null))
-				throw new Error("BaseCamera: A camera can't be master and slave simultaneity.");
-			if (this.masterCamera !=null){
-				var slavesCameras=this.masterCamera._slavesCameras;
-				slavesCameras.splice(slavesCameras.indexOf(this),1);
-			}
-			this.masterCamera=value;
-			if (value !=null){
-				value._slavesCameras.push(this);
-				for (var i=0;i < value._slavesCameras.length;i++){
-					var count=value._slavesCameras.length;
-					if (value._slavesCameras[i].renderingOrder > value._slavesCameras[count-1].renderingOrder){
-						var temp=value._slavesCameras[count-1];
-						value._slavesCameras[count-1]=value._slavesCameras[i];
-						value._slavesCameras[i]=temp;
-					}
-				}
-				this._renderTarget=null;
-			}
-		});
-
-		/**
-		*设置渲染场景的渲染目标，渲染目标同时存储主人相机和奴隶相机的结果。
-		*@param value 渲染场景的渲染目标。
-		*/
-		/**
-		*获取渲染场景的渲染目标，渲染目标同时存储主人相机和奴隶相机的结果。
-		*@return 渲染场景的渲染目标。
-		*/
-		__getset(0,__proto,'renderTarget',function(){
-			if (this._masterCamera !=null)
-				return this._masterCamera.renderTarget;
-			return this._renderTarget;
-			},function(value){
-			if (this._masterCamera !=null)
-				return;
-			this._renderTarget=value;
-			if (value !=null)
-				this._renderTargetSize=value.size;
-		});
-
-		/**
-		*设置近裁面。
-		*@param value 近裁面。
-		*/
-		/**
-		*获取近裁面。
-		*@return 近裁面。
-		*/
-		__getset(0,__proto,'nearPlane',function(){
-			return this._nearPlane;
-			},function(value){
-			this._nearPlane=value;
-			this._calculateProjectionMatrix();
-		});
-
-		/**
 		*设置远裁面。
 		*@param value 远裁面。
 		*/
@@ -43013,6 +45029,38 @@ window.Laya=(function(window,document){
 			return this._renderingOrder;
 			},function(value){
 			this._renderingOrder=value;
+			this._sortCamerasByRenderingOrder();
+		});
+
+		/**
+		*设置渲染场景的渲染目标。
+		*@param value 渲染场景的渲染目标。
+		*/
+		/**
+		*获取渲染场景的渲染目标。
+		*@return 渲染场景的渲染目标。
+		*/
+		__getset(0,__proto,'renderTarget',function(){
+			return this._renderTarget;
+			},function(value){
+			this._renderTarget=value;
+			if (value !=null)
+				this._renderTargetSize=value.size;
+		});
+
+		/**
+		*设置近裁面。
+		*@param value 近裁面。
+		*/
+		/**
+		*获取近裁面。
+		*@return 近裁面。
+		*/
+		__getset(0,__proto,'nearPlane',function(){
+			return this._nearPlane;
+			},function(value){
+			this._nearPlane=value;
+			this._calculateProjectionMatrix();
 		});
 
 		/**
@@ -43045,34 +45093,12 @@ window.Laya=(function(window,document){
 			this._calculateProjectionMatrix();
 		});
 
-		/**
-		*获取主摄像机，确保已经使用RenderingOrder排序。
-		*@return 主摄像机。
-		*/
-		__getset(1,BaseCamera,'mainCamera',function(){
-			for (var i=BaseCamera._cameraPool.length-1;i >=0;i--){
-				if (BaseCamera._cameraPool[i].masterCamera==null && BaseCamera._cameraPool[i].enable)
-					return BaseCamera._cameraPool[i];
-			}
-			return null;
-		},laya.d3.core.Sprite3D._$SET_mainCamera);
-
-		BaseCamera._sortCamerasByRenderingOrder=function(){
-			var n=BaseCamera._cameraPool.length-1;
-			for (var i=0;i < n;i++){
-				if (BaseCamera._cameraPool[i].renderingOrder > BaseCamera._cameraPool[n].renderingOrder){
-					var tempCamera=BaseCamera._cameraPool[i];
-					BaseCamera._cameraPool[i]=BaseCamera._cameraPool[n];
-					BaseCamera._cameraPool[n]=tempCamera;
-				}
-			}
-		}
-
 		BaseCamera.RENDERINGTYPE_DEFERREDLIGHTING="DEFERREDLIGHTING";
 		BaseCamera.RENDERINGTYPE_FORWARDRENDERING="FORWARDRENDERING";
-		__static(BaseCamera,
-		['_cameraPool',function(){return this._cameraPool=__newvec(2,null);}
-		]);
+		BaseCamera.CLEARFLAG_SOLIDCOLOR=0;
+		BaseCamera.CLEARFLAG_SKY=1;
+		BaseCamera.CLEARFLAG_DEPTHONLY=2;
+		BaseCamera.CLEARFLAG_NONE=3;
 		return BaseCamera;
 	})(Sprite3D)
 
@@ -43383,8 +45409,9 @@ window.Laya=(function(window,document){
 			var renderObjects=this._meshRender.renderCullingObject._renderElements;
 			var renderElement=renderObjects[index];
 			(renderElement)|| (renderElement=renderObjects[index]=new RenderElement());
+			renderElement._renderObject=this._meshRender.renderCullingObject;
 			var material=this._meshRender.sharedMaterials[index];
-			(material)|| (material=Material.defaultMaterial);
+			(material)|| (material=StandardMaterial.defaultMaterial);
 			var element=this._meshFilter.sharedMesh.getRenderElement(index);
 			renderElement._mainSortID=this._getSortID(element,material);
 			renderElement._sprite3D=this;
@@ -43439,7 +45466,7 @@ window.Laya=(function(window,document){
 
 		/**@private */
 		__proto._addSelfRenderObjects=function(){
-			(this.scene)&& (this.scene.addFrustumCullingObject(this._meshRender.renderCullingObject));
+			this.scene.addFrustumCullingObject(this._meshRender.renderCullingObject);
 		}
 
 		/**
@@ -43493,6 +45520,8 @@ window.Laya=(function(window,document){
 			this._isPlaying=false;
 			this._labels=null;
 			this._controlNode=null;
+			this.wrapMode=0;
+			this._isReverse=false;
 			AnimationPlayerBase.__super.call(this);
 			this._interval=Config.animationInterval;
 		}
@@ -43512,6 +45541,7 @@ window.Laya=(function(window,document){
 			this._isPlaying=true;
 			this.index=((typeof start=='string'))?this._getFrameByLabel(start):start;
 			this.loop=loop;
+			this._isReverse=this.wrapMode==1;
 			if (this.interval > 0){
 				this.timerLoop(this.interval,this,this._frameLoop,null,true);
 			}
@@ -43528,16 +45558,41 @@ window.Laya=(function(window,document){
 
 		/**@private */
 		__proto._frameLoop=function(){
-			this._index++;
-			if (this._index >=this._count){
-				if (this.loop){
-					this._index=0;
-					this.event("complete");
-					}else {
-					this._index--;
-					this.stop();
-					this.event("complete");
-					return;
+			if (this._isReverse){
+				this._index--;
+				if (this._index < 0){
+					if(this.loop){
+						if(this.wrapMode==2){
+							this._index=this._count > 0?1:0;
+							this._isReverse=false;
+							}else{
+							this._index=this._count-1;
+						}
+						this.event("complete");
+						}else{
+						this._index=0;
+						this.stop();
+						this.event("complete");
+						return;
+					}
+				}
+				}else{
+				this._index++;
+				if (this._index >=this._count){
+					if(this.loop){
+						if(this.wrapMode==2){
+							this._index=this._count-2 >=0?this._count-2:0;
+							this._isReverse=true;
+							}else{
+							this._index=0;
+						}
+						this.event("complete");
+						}else{
+						this._index--;
+						this.stop();
+						this.event("complete");
+						return;
+					}
 				}
 			}
 			this.index=this._index;
@@ -43685,9 +45740,12 @@ window.Laya=(function(window,document){
 			this._mouseMoveTime=0;
 			this._renderCount=0;
 			this._safariOffsetY=0;
+			this._frameStartTime=NaN;
+			this._previousOrientation=0;
 			Stage.__super.call(this);
 			this.offset=new Point();
 			this._canvasTransform=new Matrix();
+			var _$this=this;
 			this.mouseEnabled=true;
 			this.hitTestPrior=true;
 			this._displayedInStage=true;
@@ -43725,17 +45783,21 @@ window.Laya=(function(window,document){
 				}
 			}
 			window.addEventListener("resize",function(){
+				var orientation=Browser.window.orientation;
+				if (orientation !=null && orientation !=_$this._previousOrientation && _this._isInputting()){
+					Input["inputElement"].target.focus=false;
+				}
+				_$this._previousOrientation=orientation;
 				if (_this._isInputting())return;
 				if (Browser.onSafari)
 					_this._safariOffsetY=(Browser.document.body.clientHeight || Browser.document.documentElement.clientHeight)-Browser.window.innerHeight;
 				_this._resetCanvas();
 			});
 			window.addEventListener("orientationchange",function(e){
-				if (_this._isInputting())Input["inputElement"].target.focus=false;
 				_this._resetCanvas();
 			});
 			this.on("mousemove",this,this._onmouseMove);
-			if(Browser.onMobile)this.on("mousedown",this,this._onmouseMove);
+			if (Browser.onMobile)this.on("mousedown",this,this._onmouseMove);
 		}
 
 		__class(Stage,'laya.display.Stage',_super);
@@ -43758,7 +45820,7 @@ window.Laya=(function(window,document){
 			var canvasStyle=canvas.source.style;
 			canvas.size(1,1);
 			canvasStyle.transform=canvasStyle.webkitTransform=canvasStyle.msTransform=canvasStyle.mozTransform=canvasStyle.oTransform="";
-			this.renderingEnabled=false;
+			this._style.visible=false;
 			Laya.timer.once(100,this,this._changeCanvasSize);
 		}
 
@@ -43870,9 +45932,14 @@ window.Laya=(function(window,document){
 			if (mat.ty < 0.00000000000001)mat.ty=0;
 			canvasStyle.transformOrigin=canvasStyle.webkitTransformOrigin=canvasStyle.msTransformOrigin=canvasStyle.mozTransformOrigin=canvasStyle.oTransformOrigin="0px 0px 0px";
 			canvasStyle.transform=canvasStyle.webkitTransform=canvasStyle.msTransform=canvasStyle.mozTransform=canvasStyle.oTransform="matrix("+mat.toString()+")";
-			this.renderingEnabled=true;
+			this._style.visible=true;
 			this._repaint=1;
 			this.event("resize");
+		}
+
+		/**@inheritDoc */
+		__proto.getMousePoint=function(){
+			return Point.TEMP.setTo(this.mouseX,this.mouseY);
 		}
 
 		/**@inheritDoc */
@@ -43893,22 +45960,20 @@ window.Laya=(function(window,document){
 			this._mouseMoveTime=Browser.now();
 		}
 
+		/**获得距当前帧开始后，过了多少时间，单位为毫秒
+		*可以用来判断函数内时间消耗，控制每帧函数处理消耗的时间过长，导致帧率下降*/
+		__proto.getTimeFromFrameStart=function(){
+			return Browser.now()-this._frameStartTime;
+		}
+
 		/**@inheritDoc */
 		__proto.render=function(context,x,y){
+			this._frameStartTime=Browser.now();
 			Render.isFlash && this.repaint();
 			this._renderCount++;
-			var frameMode=this.frameRate==="mouse" ? (((Browser.now()-this._mouseMoveTime)< 2000)? "fast" :"slow"):this.frameRate;
-			if(frameMode=="slow"){
-				if(this.frameRate=="slow"){
-					frameMode="slow";
-				}
-				else{
-					frameMode="frameTen";
-				}
-			};
-			var isFastMode=((frameMode!=="slow")&& (frameMode!=="frameTen"));
+			var frameMode=this.frameRate==="mouse" ? (((this._frameStartTime-this._mouseMoveTime)< 2000)? "fast" :"slow"):this.frameRate;
+			var isFastMode=(frameMode!=="slow");
 			var isDoubleLoop=(this._renderCount % 2===0);
-			var isSixthLoop=(this._renderCount % 6===0);
 			var ctx=context;
 			Stat.renderSlow=!isFastMode;
 			if (isFastMode || isDoubleLoop){
@@ -43922,33 +45987,17 @@ window.Laya=(function(window,document){
 					}
 					return;
 				}
-				if (this.renderingEnabled){
+				if (this.renderingEnabled && this._style.visible){
 					Render.isWebGL ? ctx.clear():RunDriver.clear(this._bgColor);
 					_super.prototype.render.call(this,context,x,y);
 				}
 			}
 			if (Render.isConchNode)return;
-			if (this.renderingEnabled){
-				if(isFastMode){
-					Render.isWebGL && RunDriver.clear(this._bgColor);
-					RunDriver.beginFlush();
-					context.flush();
-					RunDriver.endFinish();
-				}
-				else{
-					if(frameMode=="frameTen"){
-						Render.isWebGL && RunDriver.clear(this._bgColor);
-						RunDriver.beginFlush();
-						context.flush();
-						RunDriver.endFinish();
-					}
-					else if(!isDoubleLoop){
-						Render.isWebGL && RunDriver.clear(this._bgColor);
-						RunDriver.beginFlush();
-						context.flush();
-						RunDriver.endFinish();
-					}
-				}
+			if (this.renderingEnabled && this._style.visible && (isFastMode || !isDoubleLoop)){
+				Render.isWebGL && RunDriver.clear(this._bgColor);
+				RunDriver.beginFlush();
+				context.flush();
+				RunDriver.endFinish();
 			}
 			VectorGraphManager.instance && VectorGraphManager.getInstance().endDispose();
 		}
@@ -44134,7 +46183,6 @@ window.Laya=(function(window,document){
 		Stage.FRAME_FAST="fast";
 		Stage.FRAME_SLOW="slow";
 		Stage.FRAME_MOUSE="mouse";
-		Stage.FRAME_TEN="frameTen";
 		return Stage;
 	})(Sprite)
 
@@ -44430,17 +46478,14 @@ window.Laya=(function(window,document){
 	*/
 	//class laya.d3.resource.models.Mesh extends laya.d3.resource.models.BaseMesh
 	var Mesh1=(function(_super){
-		function Mesh(url){
+		function Mesh(){
 			this._materials=null;
 			this._subMeshes=null;
-			this._useFullBone=true;
-			this._url=null;
 			this._bindPoses=null;
 			this._inverseBindPoses=null;
 			Mesh.__super.call(this);
 			this._subMeshes=[];
 			this._materials=[];
-			this._url=url;
 			if (this._loaded)
 				this._generateBoundingObject();
 			else
@@ -44462,7 +46507,7 @@ window.Laya=(function(window,document){
 		*@param subMesh 子网格。
 		*/
 		__proto._add=function(subMesh){
-			subMesh._indexOfHost=this._subMeshes.length;
+			subMesh._indexInMesh=this._subMeshes.length;
 			this._subMeshes.push(subMesh);
 			this._subMeshCount++;
 		}
@@ -44497,21 +46542,6 @@ window.Laya=(function(window,document){
 			return this._subMeshes.length;
 		}
 
-		/**
-		*清除子网格。
-		*@return 子网格。
-		*/
-		__proto.clear=function(){
-			this._subMeshes.length=0;
-			this._subMeshCount=0;
-			return this;
-		}
-
-		/**@private */
-		__proto.disableUseFullBone=function(){
-			this._useFullBone=false;
-		}
-
 		__proto.getRenderElementsCount=function(){
 			return this._subMeshes.length;
 		}
@@ -44542,7 +46572,7 @@ window.Laya=(function(window,document){
 			var submesheCount=this._subMeshes.length;
 			for (var i=0;i < submesheCount;i++){
 				var subMesh=this._subMeshes[i];
-				var vertexBuffer=subMesh.getVertexBuffer();
+				var vertexBuffer=subMesh._getVertexBuffer();
 				var positionElement;
 				var vertexElements=vertexBuffer.vertexDeclaration.getVertexElements();
 				var j=0;
@@ -44591,7 +46621,7 @@ window.Laya=(function(window,document){
 			url=URL.formatURL(url);
 			var mesh=Resource.meshCache[url];
 			if (!mesh){
-				mesh=Resource.meshCache[url]=new Mesh(url);
+				mesh=Resource.meshCache[url]=new Mesh();
 				var loader=new Loader();
 				loader.once("complete",null,function(data){
 					new LoadModel(data,mesh,mesh._materials,url);
@@ -44605,6 +46635,438 @@ window.Laya=(function(window,document){
 
 		return Mesh;
 	})(BaseMesh)
+
+
+	/**
+	*<code>RenderTarget</code> 类用于创建渲染目标。
+	*/
+	//class laya.d3.resource.RenderTexture extends laya.d3.resource.BaseTexture
+	var RenderTexture=(function(_super){
+		function RenderTexture(width,height,surfaceFormat,surfaceType,depthStencilFormat,mipMap,repeat,minFifter,magFifter){
+			this._alreadyResolved=false;
+			this._surfaceFormat=0;
+			this._surfaceType=0;
+			this._depthStencilFormat=0;
+			this._frameBuffer=null;
+			this._depthStencilBuffer=null;
+			(surfaceFormat===void 0)&& (surfaceFormat=0x1908);
+			(surfaceType===void 0)&& (surfaceType=0x1401);
+			(depthStencilFormat===void 0)&& (depthStencilFormat=0x81A5);
+			(mipMap===void 0)&& (mipMap=false);
+			(repeat===void 0)&& (repeat=false);
+			(minFifter===void 0)&& (minFifter=-1);
+			(magFifter===void 0)&& (magFifter=-1);
+			RenderTexture.__super.call(this);
+			this._width=width;
+			this._height=height;
+			this._size=new Size(width,height);
+			this._surfaceFormat=surfaceFormat;
+			this._surfaceType=surfaceType;
+			this._depthStencilFormat=depthStencilFormat;
+			this._mipmap=mipMap;
+			this._repeat=repeat;
+			this._minFifter=minFifter;
+			this._magFifter=magFifter;
+			this.activeResource();
+			this._loaded=true;
+			this._alreadyResolved=true;
+		}
+
+		__class(RenderTexture,'laya.d3.resource.RenderTexture',_super);
+		var __proto=RenderTexture.prototype;
+		__proto.recreateResource=function(){
+			this.startCreate();
+			var gl=WebGL.mainContext;
+			this._frameBuffer=gl.createFramebuffer();
+			this._source=gl.createTexture();
+			var preTarget=WebGLContext.curBindTexTarget;
+			var preTexture=WebGLContext.curBindTexValue;
+			WebGLContext.bindTexture(gl,0x0DE1,this._source);
+			gl.texImage2D(0x0DE1,0,0x1908,this._width,this._height,0,this._surfaceFormat,this._surfaceType,null);
+			var minFifter=this._minFifter;
+			var magFifter=this._magFifter;
+			var repeat=this._repeat ? 0x2901 :0x812F;
+			var isPot=Arith.isPOT(this._width,this._height);
+			if (isPot){
+				if (this._mipmap)
+					(minFifter!==-1)|| (minFifter=0x2703);
+				else
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,repeat);
+				gl.texParameteri(0x0DE1,0x2803,repeat);
+				this._mipmap && gl.generateMipmap(0x0DE1);
+				}else {
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,0x812F);
+				gl.texParameteri(0x0DE1,0x2803,0x812F);
+			}
+			gl.bindFramebuffer(0x8D40,this._frameBuffer);
+			gl.framebufferTexture2D(0x8D40,0x8CE0,0x0DE1,this._source,0);
+			if (this._depthStencilFormat){
+				this._depthStencilBuffer=gl.createRenderbuffer();
+				gl.bindRenderbuffer(0x8D41,this._depthStencilBuffer);
+				gl.renderbufferStorage(0x8D41,this._depthStencilFormat,this._width,this._height);
+				switch (this._depthStencilFormat){
+					case 0x81A5:
+						gl.framebufferRenderbuffer(0x8D40,0x8D00,0x8D41,this._depthStencilBuffer);
+						break ;
+					case 0x8D48:
+						gl.framebufferRenderbuffer(0x8D40,0x8D20,0x8D41,this._depthStencilBuffer);
+						break ;
+					case 0x84F9:
+						gl.framebufferRenderbuffer(0x8D40,0x821A,0x8D41,this._depthStencilBuffer);
+						break ;
+					}
+			}
+			gl.bindFramebuffer(0x8D40,null);
+			(preTarget && preTexture)&& (WebGLContext.bindTexture(gl,preTarget,preTexture));
+			gl.bindRenderbuffer(0x8D41,null);
+			this.memorySize=this._width *this._height *4;
+			this.completeCreate();
+		}
+
+		/**
+		*开始绑定。
+		*/
+		__proto.start=function(){
+			WebGL.mainContext.bindFramebuffer(0x8D40,this.frameBuffer);
+			RenderTexture._currentRenderTarget=this;
+			this._alreadyResolved=false;
+		}
+
+		/**
+		*结束绑定。
+		*/
+		__proto.end=function(){
+			WebGL.mainContext.bindFramebuffer(0x8D40,null);
+			RenderTexture._currentRenderTarget=null;
+			this._alreadyResolved=true;
+		}
+
+		/**
+		*获得像素数据。
+		*@param x X像素坐标。
+		*@param y Y像素坐标。
+		*@param width 宽度。
+		*@param height 高度。
+		*@return 像素数据。
+		*/
+		__proto.getData=function(x,y,width,height){
+			var gl=WebGL.mainContext;
+			gl.bindFramebuffer(0x8D40,this._frameBuffer);
+			var canRead=(gl.checkFramebufferStatus(0x8D40)===0x8CD5);
+			if (!canRead){
+				gl.bindFramebuffer(0x8D40,null);
+				return null;
+			};
+			var pixels=new Uint8Array(this._width *this._height *4);
+			gl.readPixels(x,y,width,height,this._surfaceFormat,this._surfaceType,pixels);
+			gl.bindFramebuffer(0x8D40,null);
+			return pixels;
+		}
+
+		/**
+		*销毁资源。
+		*/
+		__proto.detoryResource=function(){
+			if (this._frameBuffer){
+				var gl=WebGL.mainContext;
+				gl.deleteTexture(this._source);
+				gl.deleteFramebuffer(this._frameBuffer);
+				gl.deleteRenderbuffer(this._depthStencilBuffer);
+				this._source=null;
+				this._frameBuffer=null;
+				this._depthStencilBuffer=null;
+				this.memorySize=0;
+			}
+		}
+
+		__getset(0,__proto,'depthStencilBuffer',function(){
+			return this._depthStencilBuffer;
+		});
+
+		/**
+		*获取表面格式。
+		*@return 表面格式。
+		*/
+		__getset(0,__proto,'surfaceFormat',function(){
+			return this._surfaceFormat;
+		});
+
+		/**
+		*获取表面类型。
+		*@return 表面类型。
+		*/
+		__getset(0,__proto,'surfaceType',function(){
+			return this._surfaceType;
+		});
+
+		/**
+		*获取深度格式。
+		*@return 深度格式。
+		*/
+		__getset(0,__proto,'depthStencilFormat',function(){
+			return this._depthStencilFormat;
+		});
+
+		__getset(0,__proto,'frameBuffer',function(){
+			return this._frameBuffer;
+		});
+
+		/**
+		*获取RenderTarget数据源,如果alreadyResolved等于false，则返回null。
+		*@return RenderTarget数据源。
+		*/
+		__getset(0,__proto,'source',function(){
+			if (this._alreadyResolved)
+				return _super.prototype._$get_source.call(this);
+			else
+			return null;
+		});
+
+		RenderTexture._currentRenderTarget=null
+		return RenderTexture;
+	})(BaseTexture)
+
+
+	/**
+	*<code>SolidColorTexture2D</code> 二维纯色纹理。
+	*/
+	//class laya.d3.resource.SolidColorTexture2D extends laya.d3.resource.BaseTexture
+	var SolidColorTexture2D=(function(_super){
+		function SolidColorTexture2D(color){
+			this._color=null;
+			this._pixels=null;
+			SolidColorTexture2D.__super.call(this);
+			this._width=1;
+			this._height=1;
+			this._size=new Size(this.width,this.height);
+			this._color=color;
+			this._pixels=new Uint8Array([color.x *255,color.y *255,color.z *255,color.w *255]);
+		}
+
+		__class(SolidColorTexture2D,'laya.d3.resource.SolidColorTexture2D',_super);
+		var __proto=SolidColorTexture2D.prototype;
+		/**
+		*@private
+		*/
+		__proto._createWebGlTexture=function(){
+			var gl=WebGL.mainContext;
+			var glTex=this._source=gl.createTexture();
+			var w=this._width;
+			var h=this._height;
+			var preTarget=WebGLContext.curBindTexTarget;
+			var preTexture=WebGLContext.curBindTexValue;
+			WebGLContext.bindTexture(gl,0x0DE1,glTex);
+			gl.texImage2D(0x0DE1,0,0x1908,w,h,0,0x1908,0x1401,this._pixels);
+			var minFifter=this._minFifter;
+			var magFifter=this._magFifter;
+			var repeat=this._repeat ? 0x2901 :0x812F;
+			var isPot=Arith.isPOT(w,h);
+			if (isPot){
+				if (this._mipmap)
+					(minFifter!==-1)|| (minFifter=0x2703);
+				else
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,repeat);
+				gl.texParameteri(0x0DE1,0x2803,repeat);
+				this._mipmap && gl.generateMipmap(0x0DE1);
+				}else {
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,0x812F);
+				gl.texParameteri(0x0DE1,0x2803,0x812F);
+			}
+			(preTarget && preTexture)&& (WebGLContext.bindTexture(gl,preTarget,preTexture));
+			if (isPot)
+				this.memorySize=w *h *4 *(1+1 / 3);
+			else
+			this.memorySize=w *h *4;
+		}
+
+		/**
+		*重新创建资源，如果异步创建中被强制释放再创建，则需等待释放完成后再重新加载创建。
+		*/
+		__proto.recreateResource=function(){
+			this.startCreate();
+			this._createWebGlTexture();
+			this.completeCreate();
+		}
+
+		/**
+		*销毁资源。
+		*/
+		__proto.detoryResource=function(){
+			if (this._source){
+				WebGL.mainContext.deleteTexture(this._source);
+				this._source=null;
+				this.memorySize=0;
+			}
+		}
+
+		__getset(0,__proto,'source',function(){
+			return _super.prototype._$get_source.call(this);
+		});
+
+		__static(SolidColorTexture2D,
+		['pickTexture',function(){return this.pickTexture=new SolidColorTexture2D(new Vector4(1.0,0.0,1.0,1.0));}
+		]);
+		return SolidColorTexture2D;
+	})(BaseTexture)
+
+
+	/**
+	*<code>Texture2D</code> 二维纹理。
+	*/
+	//class laya.d3.resource.Texture2D extends laya.d3.resource.BaseTexture
+	var Texture2D=(function(_super){
+		function Texture2D(src){
+			this._src=null;
+			this._image=null;
+			this._recreateLock=false;
+			this._needReleaseAgain=false;
+			Texture2D.__super.call(this);
+			this._src=src;
+			this._image=new Browser.window.Image();
+			this._image.crossOrigin="";
+			var loader=new Loader();
+			loader.once("complete",this,this._onTextureLoaded);
+			loader.load(src,"nativeimage",false);
+		}
+
+		__class(Texture2D,'laya.d3.resource.Texture2D',_super);
+		var __proto=Texture2D.prototype;
+		/**
+		*@private
+		*/
+		__proto._onTextureLoaded=function(img){
+			this._image=img;
+			var w=img.width;
+			var h=img.height;
+			this._width=w;
+			this._height=h;
+			this._size=new Size(w,h);
+			this._loaded=true;
+			this.event("loaded",this);
+		}
+
+		/**
+		*@private
+		*/
+		__proto._createWebGlTexture=function(){
+			if (!this._image){
+				throw "create GLTextur err:no data:"+this._image;
+			};
+			var gl=WebGL.mainContext;
+			var glTex=this._source=gl.createTexture();
+			var w=this._width;
+			var h=this._height;
+			var preTarget=WebGLContext.curBindTexTarget;
+			var preTexture=WebGLContext.curBindTexValue;
+			WebGLContext.bindTexture(gl,0x0DE1,glTex);
+			gl.texImage2D(0x0DE1,0,0x1908,0x1908,0x1401,this._image);
+			var minFifter=this._minFifter;
+			var magFifter=this._magFifter;
+			var repeat=this._repeat ? 0x2901 :0x812F;
+			var isPot=Arith.isPOT(w,h);
+			if (isPot){
+				if (this._mipmap)
+					(minFifter!==-1)|| (minFifter=0x2703);
+				else
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,repeat);
+				gl.texParameteri(0x0DE1,0x2803,repeat);
+				this._mipmap && gl.generateMipmap(0x0DE1);
+				}else {
+				(minFifter!==-1)|| (minFifter=0x2601);
+				(magFifter!==-1)|| (magFifter=0x2601);
+				gl.texParameteri(0x0DE1,0x2801,minFifter);
+				gl.texParameteri(0x0DE1,0x2800,magFifter);
+				gl.texParameteri(0x0DE1,0x2802,0x812F);
+				gl.texParameteri(0x0DE1,0x2803,0x812F);
+			}
+			(preTarget && preTexture)&& (WebGLContext.bindTexture(gl,preTarget,preTexture));
+			this._image.onload=null;
+			this._image=null;
+			if (isPot)
+				this.memorySize=w *h *4 *(1+1 / 3);
+			else
+			this.memorySize=w *h *4;
+			this._recreateLock=false;
+		}
+
+		/**
+		*重新创建资源，如果异步创建中被强制释放再创建，则需等待释放完成后再重新加载创建。
+		*/
+		__proto.recreateResource=function(){
+			if (this._src==null || this._src==="")
+				return;
+			this._needReleaseAgain=false;
+			if (!this._image){
+				this._recreateLock=true;
+				this.startCreate();
+				var _this=this;
+				this._image=new Browser.window.Image();
+				this._image.crossOrigin="";
+				this._image.onload=function (){
+					if (_this._needReleaseAgain){
+						_this._needReleaseAgain=false;
+						_this._image.onload=null;
+						_this._image=null;
+						return;
+					}
+					_this._createWebGlTexture();
+					_this.completeCreate();
+				};
+				this._image.src=this._src;
+				}else {
+				if (this._recreateLock){
+					return;
+				}
+				this.startCreate();
+				this._createWebGlTexture();
+				this.completeCreate();
+			}
+		}
+
+		/**
+		*销毁资源。
+		*/
+		__proto.detoryResource=function(){
+			if (this._recreateLock){
+				this._needReleaseAgain=true;
+			}
+			if (this._source){
+				WebGL.mainContext.deleteTexture(this._source);
+				this._source=null;
+				this._image=null;
+				this.memorySize=0;
+			}
+		}
+
+		/**
+		*获取文件路径全名。
+		*/
+		__getset(0,__proto,'src',function(){
+			return this._src;
+		});
+
+		return Texture2D;
+	})(BaseTexture)
 
 
 	/**
@@ -44734,24 +47196,6 @@ window.Laya=(function(window,document){
 	})(Shader)
 
 
-	//class laya.webgl.shader.d2.fillTexture.FillTextureShader extends laya.webgl.shader.Shader
-	var FillTextureShader=(function(_super){
-		function FillTextureShader(){
-			var vs="attribute vec2 position;\nattribute vec2 texcoord;\nattribute vec4 color;\nuniform vec2 size;\nuniform mat4 mmat;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nvoid main() {\n  vec4 pos=mmat*vec4(position.x,position.y,0,1 );\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  v_color = color;\n  v_texcoord = texcoord;  \n}";
-			var ps="precision mediump float;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nuniform sampler2D texture;\nuniform vec4 u_texRange;\nuniform vec2 u_offset;\nvoid main() {\n	vec2 newTexCoord;\n	newTexCoord.x = mod(((u_offset.x + v_texcoord.x) * u_texRange.y),u_texRange.y) + u_texRange.x;\n	newTexCoord.y = mod(((u_offset.y + v_texcoord.y) * u_texRange.w),u_texRange.w) + u_texRange.z;\n	vec4 t_color = texture2D(texture, newTexCoord);\n	gl_FragColor = t_color * v_color;\n}";
-			FillTextureShader.__super.call(this,vs,ps,"fillTextureShader");
-		}
-
-		__class(FillTextureShader,'laya.webgl.shader.d2.fillTexture.FillTextureShader',_super);
-		FillTextureShader.getInstance=function(){
-			return FillTextureShader._instance=FillTextureShader._instance|| new FillTextureShader();
-		}
-
-		FillTextureShader._instance=null
-		return FillTextureShader;
-	})(Shader)
-
-
 	//class laya.webgl.shader.d2.Shader2X extends laya.webgl.shader.Shader
 	var Shader2X=(function(_super){
 		function Shader2X(vs,ps,saveName,nameMap){
@@ -44811,24 +47255,6 @@ window.Laya=(function(window,document){
 		}
 
 		return Shader2X;
-	})(Shader)
-
-
-	//class laya.webgl.shader.d2.skinAnishader.SkinAniShader extends laya.webgl.shader.Shader
-	var SkinAniShader1=(function(_super){
-		function SkinAniShader(){
-			var vs="attribute vec2 position;\nattribute vec2 texcoord;\nattribute vec4 color;\nuniform vec2 size;\nuniform mat4 mmat;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nvoid main() {\n  vec4 pos=mmat*vec4(position.x,position.y,0,1 );\n  gl_Position = vec4((pos.x/size.x-0.5)*2.0,(0.5-pos.y/size.y)*2.0,pos.z,1.0);\n  v_color = color;\n  v_texcoord = texcoord;  \n}";
-			var ps="precision mediump float;\nvarying vec2 v_texcoord;\nvarying vec4 v_color;\nuniform sampler2D texture;\nvoid main() {\n	vec4 t_color = texture2D(texture, v_texcoord);\n	gl_FragColor = t_color.rgba * v_color;\n}";
-			SkinAniShader.__super.call(this,vs,ps,"SpineShader");
-		}
-
-		__class(SkinAniShader,'laya.webgl.shader.d2.skinAnishader.SkinAniShader',_super,'SkinAniShader1');
-		SkinAniShader.getInstance=function(){
-			return SkinAniShader._instance=SkinAniShader._instance|| new SkinAniShader();
-		}
-
-		SkinAniShader._instance=null
-		return SkinAniShader;
 	})(Shader)
 
 
@@ -46033,7 +48459,7 @@ window.Laya=(function(window,document){
 			this.createText();
 			if (this._text.text !=value){
 				value && !this._text.displayedInStage && this.addChild(this._text);
-				this._text.text=value;
+				this._text.text=(value+"").replace(/\\n/g,"\n");
 				this._setStateChanged();
 			}
 		});
@@ -46256,6 +48682,249 @@ window.Laya=(function(window,document){
 
 
 	/**
+	*<code>Camera</code> 类用于创建摄像机。
+	*/
+	//class laya.d3.core.Camera extends laya.d3.core.BaseCamera
+	var Camera1=(function(_super){
+		function Camera(aspectRatio,nearPlane,farPlane){
+			//this._aspectRatio=NaN;
+			//this._viewport=null;
+			//this._normalizedViewport=null;
+			//this._viewMatrix=null;
+			//this._projectionMatrix=null;
+			//this._projectionViewMatrix=null;
+			(aspectRatio===void 0)&& (aspectRatio=0);
+			(nearPlane===void 0)&& (nearPlane=0.1);
+			(farPlane===void 0)&& (farPlane=1000);
+			this._viewMatrix=new Matrix4x4();
+			this._projectionMatrix=new Matrix4x4();
+			this._projectionViewMatrix=new Matrix4x4();
+			this._viewport=new Viewport(0,0,0,0);
+			this._normalizedViewport=new Viewport(0,0,1,1);
+			this._aspectRatio=aspectRatio;
+			Camera.__super.call(this,nearPlane,farPlane);
+		}
+
+		__class(Camera,'laya.d3.core.Camera',_super,'Camera1');
+		var __proto=Camera.prototype;
+		/**
+		*@private
+		*计算投影矩阵。
+		*/
+		__proto._calculateProjectionMatrix=function(){
+			if (!this._useUserProjectionMatrix){
+				if (this.orthographicProjection){
+					var halfWidth=this.orthographicVerticalSize *this.aspectRatio *0.5;
+					var halfHeight=this.orthographicVerticalSize *0.5;
+					Matrix4x4.createOrthogonal(-halfWidth,halfWidth,-halfHeight,halfHeight,this.nearPlane,this.farPlane,this._projectionMatrix);
+					}else {
+					Matrix4x4.createPerspective(3.1416 *this.fieldOfView / 180.0,this.aspectRatio,this.nearPlane,this.farPlane,this._projectionMatrix);
+				}
+			}
+			this._projectionMatrixModifyID+=0.01 / this.id;
+		}
+
+		/**
+		*计算从屏幕空间生成的射线。
+		*@param point 屏幕空间的位置位置。
+		*@return out 输出射线。
+		*/
+		__proto.viewportPointToRay=function(point,out){
+			Picker.calculateCursorRay(point,this.viewport,this._projectionMatrix,this.viewMatrix,null,out);
+		}
+
+		/**
+		*计算从裁切空间生成的射线。
+		*@param point 裁切空间的位置。。
+		*@return out 输出射线。
+		*/
+		__proto.normalizedViewportPointToRay=function(point,out){
+			var finalPoint=Camera._tempVector2;
+			var vp=this.viewport;
+			var nVpPosE=point.elements;
+			var vpPosE=finalPoint.elements;
+			vpPosE[0]=nVpPosE[0] *vp.width;
+			vpPosE[1]=nVpPosE[1] *vp.height;
+			Picker.calculateCursorRay(finalPoint,this.viewport,this._projectionMatrix,this.viewMatrix,null,out);
+		}
+
+		/**
+		*计算从世界空间准换三维坐标到屏幕空间。
+		*@param position 世界空间的位置。
+		*@return out 输出位置。
+		*/
+		__proto.worldToViewportPoint=function(position,out){
+			Matrix4x4.multiply(this._projectionMatrix,this._viewMatrix,this._projectionViewMatrix);
+			this.viewport.project(position,this._projectionViewMatrix,out);
+			if (out.z < 0.0 || out.z > 1.0){
+				var outE=out.elements;
+				outE[0]=outE[1]=outE[2]=NaN;
+			}
+		}
+
+		/**
+		*计算从世界空间准换三维坐标到裁切空间。
+		*@param position 世界空间的位置。
+		*@return out 输出位置。
+		*/
+		__proto.worldToNormalizedViewportPoint=function(position,out){
+			Matrix4x4.multiply(this._projectionMatrix,this._viewMatrix,this._projectionViewMatrix);
+			this.normalizedViewport.project(position,this._projectionViewMatrix,out);
+			if (out.z < 0.0 || out.z > 1.0){
+				var outE=out.elements;
+				outE[0]=outE[1]=outE[2]=NaN;
+			}
+		}
+
+		/**
+		*设置横纵比。
+		*@param value 横纵比。
+		*/
+		/**
+		*获取横纵比。
+		*@return 横纵比。
+		*/
+		__getset(0,__proto,'aspectRatio',function(){
+			if (this._aspectRatio===0){
+				var vp=this.viewport;
+				return vp.width / vp.height;
+			}
+			return this._aspectRatio;
+			},function(value){
+			if (value < 0)
+				throw new Error("Camera: the aspect ratio has to be a positive real number.");
+			this._aspectRatio=value;
+			this._calculateProjectionMatrix();
+		});
+
+		/**
+		*设置裁剪空间的视口。
+		*@return 裁剪空间的视口。
+		*/
+		/**
+		*获取裁剪空间的视口。
+		*@return 裁剪空间的视口。
+		*/
+		__getset(0,__proto,'normalizedViewport',function(){
+			if (!this._viewportExpressedInClipSpace){
+				var vp=this._viewport;
+				var size=this.renderTargetSize;
+				var sizeW=size.width;
+				var sizeH=size.height;
+				this._normalizedViewport.x=vp.x / sizeW;
+				this._normalizedViewport.y=vp.y / sizeH;
+				this._normalizedViewport.width=vp.width / sizeW;
+				this._normalizedViewport.height=vp.height / sizeH;
+			}
+			return this._normalizedViewport;
+			},function(value){
+			if (value.x < 0 || value.y < 0 || (value.x+value.width)> 1 || (value.x+value.height)> 1)
+				throw new Error("Camera: viewport size invalid.","value");
+			this._viewportExpressedInClipSpace=true;
+			this._normalizedViewport=value;
+			this._calculateProjectionMatrix();
+		});
+
+		/**
+		*设置屏幕空间的视口。
+		*@param 屏幕空间的视口。
+		*/
+		/**
+		*获取屏幕空间的视口。
+		*@return 屏幕空间的视口。
+		*/
+		__getset(0,__proto,'viewport',function(){
+			if (this._viewportExpressedInClipSpace){
+				var nVp=this._normalizedViewport;
+				var size=this.renderTargetSize;
+				var sizeW=size.width;
+				var sizeH=size.height;
+				this._viewport.x=nVp.x *sizeW;
+				this._viewport.y=nVp.y *sizeH;
+				this._viewport.width=nVp.width *sizeW;
+				this._viewport.height=nVp.height *sizeH;
+			}
+			return this._viewport;
+			},function(value){
+			if (this.renderTarget !=null && (value.x < 0 || value.y < 0 || value.width==0 || value.height==0))
+				throw new Error("Camera: viewport size invalid.","value");
+			this._viewportExpressedInClipSpace=false;
+			this._viewport=value;
+			this._calculateProjectionMatrix();
+		});
+
+		__getset(0,__proto,'needViewport',function(){
+			var nVp=this.normalizedViewport;
+			return nVp.x===0 && nVp.y===0 && nVp.width===1 && nVp.height===1;
+		});
+
+		/**
+		*获取视图矩阵。
+		*@return 视图矩阵。
+		*/
+		__getset(0,__proto,'viewMatrix',function(){
+			this.transform.worldMatrix.invert(this._viewMatrix);
+			return this._viewMatrix;
+		});
+
+		/**设置投影矩阵。*/
+		/**获取投影矩阵。*/
+		__getset(0,__proto,'projectionMatrix',function(){
+			return this._projectionMatrix;
+			},function(value){
+			this._projectionMatrix=value;
+			this._useUserProjectionMatrix=true;
+		});
+
+		/**
+		*获取视图投影矩阵。
+		*@return 视图投影矩阵。
+		*/
+		__getset(0,__proto,'projectionViewMatrix',function(){
+			Matrix4x4.multiply(this.projectionMatrix,this.viewMatrix,this._projectionViewMatrix);
+			return this._projectionViewMatrix;
+		});
+
+		__static(Camera,
+		['_tempVector2',function(){return this._tempVector2=new Vector2();}
+		]);
+		return Camera;
+	})(BaseCamera)
+
+
+	/**
+	*<code>SkyMesh</code> 类用于创建网格天空。
+	*/
+	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
+	var SkyMesh=(function(_super){
+		/**
+		*创建一个 <code>SkyMesh</code> 实例。
+		*/
+		function SkyMesh(){
+			SkyMesh.__super.call(this);
+		}
+
+		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
+		var __proto=SkyMesh.prototype;
+		/**
+		*@private
+		*/
+		__proto._addToRenderQuene=function(state,material){
+			return state.scene.getRenderObject(0)
+		}
+
+		/**
+		*@private
+		*/
+		__proto._praseSubMeshTemplet=function(subMeshTemplet){
+			return new SkySubMesh(subMeshTemplet);
+		}
+
+		return SkyMesh;
+	})(Mesh)
+
+
+	/**
 	*<p> <code>Clip</code> 类是位图切片动画。</p>
 	*<p> <code>Clip</code> 可将一张图片，按横向分割数量 <code>clipX</code> 、竖向分割数量 <code>clipY</code> ，
 	*或横向分割每个切片的宽度 <code>clipWidth</code> 、竖向分割每个切片的高度 <code>clipHeight</code> ，
@@ -46371,6 +49040,7 @@ window.Laya=(function(window,document){
 			this._isPlaying=false;
 			this._index=0;
 			this._clipChanged=false;
+			this._group=null;
 			Clip.__super.call(this);
 			(clipX===void 0)&& (clipX=1);
 			(clipY===void 0)&& (clipY=1);
@@ -46425,6 +49095,7 @@ window.Laya=(function(window,document){
 		*/
 		__proto.changeClip=function(){
 			this._clipChanged=false;
+			if (!this._skin)return;
 			var img=Loader.getRes(this._skin);
 			if (img){
 				this.loadComplete(this._skin,img);
@@ -46524,8 +49195,14 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'skin',function(){
 			return this._skin;
 			},function(value){
-			this._skin=value;
-			this._setClipChanged()
+			if (this._skin !=value){
+				this._skin=value;
+				if (value){
+					this._setClipChanged()
+					}else {
+					this._bitmap.source=null;
+				}
+			}
 		});
 
 		/**
@@ -46557,12 +49234,6 @@ window.Laya=(function(window,document){
 			this._setClipChanged()
 		});
 
-		/**@inheritDoc */
-		__getset(0,__proto,'measureWidth',function(){
-			this.runCallLater(this.changeClip);
-			return this._bitmap.width;
-		});
-
 		/**
 		*竖向分割时每个切片的高度，与 <code>clipY</code> 同时设置时优先级高于 <code>clipY</code> 。
 		*/
@@ -46571,6 +49242,16 @@ window.Laya=(function(window,document){
 			},function(value){
 			this._clipHeight=value;
 			this._setClipChanged()
+		});
+
+		/**
+		*资源分组。
+		*/
+		__getset(0,__proto,'group',function(){
+			return this._group;
+			},function(value){
+			if (value && this._skin)Loader.setGroup(this._skin,value);
+			this._group=value;
 		});
 
 		/**
@@ -46591,6 +49272,12 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'height',_super.prototype._$get_height,function(value){
 			_super.prototype._$set_height.call(this,value);
 			this._bitmap.height=value;
+		});
+
+		/**@inheritDoc */
+		__getset(0,__proto,'measureWidth',function(){
+			this.runCallLater(this.changeClip);
+			return this._bitmap.width;
 		});
 
 		/**@inheritDoc */
@@ -47968,38 +50655,6 @@ window.Laya=(function(window,document){
 
 
 	/**
-	*<code>SkyMesh</code> 类用于创建网格天空。
-	*/
-	//class laya.d3.core.fileModel.SkyMesh extends laya.d3.core.fileModel.Mesh
-	var SkyMesh=(function(_super){
-		/**
-		*创建一个 <code>SkyMesh</code> 实例。
-		*/
-		function SkyMesh(){
-			SkyMesh.__super.call(this);
-		}
-
-		__class(SkyMesh,'laya.d3.core.fileModel.SkyMesh',_super);
-		var __proto=SkyMesh.prototype;
-		/**
-		*@private
-		*/
-		__proto._addToRenderQuene=function(state,material){
-			return state.scene.getRenderObject(0)
-		}
-
-		/**
-		*@private
-		*/
-		__proto._praseSubMeshTemplet=function(subMeshTemplet){
-			return new SkySubMesh(subMeshTemplet);
-		}
-
-		return SkyMesh;
-	})(Mesh)
-
-
-	/**
 	*使用 <code>Slider</code> 控件，用户可以通过在滑块轨道的终点之间移动滑块来选择值。
 	*<p>滑块的当前值由滑块端点（对应于滑块的最小值和最大值）之间滑块的相对位置确定。</p>
 	*<p>滑块允许最小值和最大值之间特定间隔内的值。滑块还可以使用数据提示显示其当前值。</p>
@@ -48405,6 +51060,7 @@ window.Laya=(function(window,document){
 		function Image(skin){
 			this._bitmap=null;
 			this._skin=null;
+			this._group=null;
 			Image.__super.call(this);
 			this.skin=skin;
 		}
@@ -48437,9 +51093,11 @@ window.Laya=(function(window,document){
 		*@private
 		*设置皮肤资源。
 		*/
-		__proto.setSource=function(url,value){
-			url===this._skin && (this.source=value);
-			this.onCompResize();
+		__proto.setSource=function(url,img){
+			if (url===this._skin && img){
+				this.source=img
+				this.onCompResize();
+			}
 		}
 
 		/**
@@ -48457,7 +51115,7 @@ window.Laya=(function(window,document){
 					if (source){
 						this.source=source;
 						this.onCompResize();
-					}else Laya.loader.load(this._skin,Handler.create(this,this.setSource,[this._skin]),null,"image");
+					}else Laya.loader.load(this._skin,Handler.create(this,this.setSource,[this._skin]),null,"image",1,true,this._group);
 					}else {
 					this.source=null;
 				}
@@ -48480,6 +51138,16 @@ window.Laya=(function(window,document){
 		__getset(0,__proto,'width',_super.prototype._$get_width,function(value){
 			_super.prototype._$set_width.call(this,value);
 			this._bitmap.width=value==0 ? 0.0000001 :value;
+		});
+
+		/**
+		*资源分组。
+		*/
+		__getset(0,__proto,'group',function(){
+			return this._group;
+			},function(value){
+			if (value && this._skin)Loader.setGroup(this._skin,value);
+			this._group=value;
 		});
 
 		/**@inheritDoc */
@@ -49246,12 +51914,19 @@ window.Laya=(function(window,document){
 				ty *=sy;
 				tx+=m.tx;
 				ty=m.ty-ty;
-			}
-			sx *=(perpendicular ? rec.height :rec.width);
-			sy *=(perpendicular ? rec.width :rec.height);
+			};
+			var quarter=0.785;
+			var r=Math.atan2(rec.height,rec.width)-quarter;
+			var sin=Math.sin(r),cos=Math.cos(r);
+			var tsx=cos *rec.width+sin *rec.height;
+			var tsy=cos *rec.height-sin *rec.width;
+			sx *=(perpendicular ? tsy :tsx);
+			sy *=(perpendicular ? tsx :tsy);
 			m.tx=0;
 			m.ty=0;
-			Input.inputContainer.style.transform="scale("+sx+","+sy+") rotate("+Laya.stage.canvasDegree+"deg)";
+			r *=180 / 3.1415;
+			Input.inputContainer.style.transform="scale("+sx+","+sy+") rotate("+(Laya.stage.canvasDegree+r)+"deg)";
+			Input.inputContainer.style.webkitTransform="scale("+sx+","+sy+") rotate("+(Laya.stage.canvasDegree+r)+"deg)";
 			Input.inputContainer.setPos(tx,ty);
 			m.destroy();
 			var inputWid=this._width-this.padding[1]-this.padding[3];
@@ -49714,6 +52389,7 @@ window.Laya=(function(window,document){
 		function Animation(){
 			this._frames=null;
 			this._url=null;
+			this._actionName=null;
 			Animation.__super.call(this);
 			this._setControlNode(this);
 		}
@@ -49739,16 +52415,19 @@ window.Laya=(function(window,document){
 			(start===void 0)&& (start=0);
 			(loop===void 0)&& (loop=true);
 			(name===void 0)&& (name="");
-			if (name)this._setFramesFromCache(this._url?this._url+"#"+name:name);
+			if (name)this._setFramesFromCache(name);
 			this._isPlaying=true;
 			this.index=((typeof start=='string'))? this._getFrameByLabel(start):start;
 			this.loop=loop;
+			this._actionName=name;
+			this._isReverse=this.wrapMode==1;
 			if (this._frames && this._frames.length > 1 && this.interval > 0){
 				this.timerLoop(this.interval,this,this._frameLoop,null,true);
 			}
 		}
 
 		__proto._setFramesFromCache=function(name){
+			if (this._url)name=this._url+"#"+name;
 			if (name && Animation.framesMap[name]){
 				this._frames=Animation.framesMap[name];
 				this._count=this._frames.length;
@@ -49785,7 +52464,7 @@ window.Laya=(function(window,document){
 			(cacheName===void 0)&& (cacheName="");
 			this._url="";
 			if (!this._setFramesFromCache(cacheName)){
-				this.frames=Animation.createFrames(urls,!Animation.framesMap["#"+cacheName] ? cacheName :"");
+				this.frames=Animation.framesMap[cacheName] ? Animation.framesMap[cacheName] :Animation.createFrames(urls,cacheName);
 			}
 			return this;
 		}
@@ -49799,12 +52478,12 @@ window.Laya=(function(window,document){
 		*/
 		__proto.loadAtlas=function(url,loaded,cacheName){
 			(cacheName===void 0)&& (cacheName="");
+			this._url="";
 			var _this=this;
-			this._url=url;
 			if (!_this._setFramesFromCache(cacheName)){
 				function onLoaded (loadUrl){
 					if (url===loadUrl){
-						_this.frames=Animation.createFrames(url,!Animation.framesMap[url+"#"+cacheName] ? cacheName :"");
+						_this.frames=Animation.framesMap[cacheName] ? Animation.framesMap[cacheName] :Animation.createFrames(url,cacheName);
 						if (loaded)loaded.run();
 					}
 				}
@@ -49821,18 +52500,29 @@ window.Laya=(function(window,document){
 		*@return 返回动画本身。
 		*/
 		__proto.loadAnimation=function(url,loaded){
-			var _this=this;
 			this._url=url;
-			if (!_this._setFramesFromCache(url)){
+			var _this=this;
+			if (!_this._setFramesFromCache("")){
 				function onLoaded (loadUrl){
 					if (url===loadUrl){
-						var aniData=_this._parseGraphicAnimation(Loader.getRes(url));
-						if (!aniData)return;
-						var obj=aniData.animationDic;
-						for (var name in obj){
-							Animation.framesMap[url+"#"+name]=obj[name];
+						if (!Animation.framesMap[url+"#"]){
+							var aniData=_this._parseGraphicAnimation(Loader.getRes(url));
+							if (!aniData)return;
+							var obj=aniData.animationDic;
+							var flag=true;
+							for (var name in obj){
+								var arr=obj[name];
+								if (arr.length){
+									Animation.framesMap[url+"#"+name]=arr;
+									}else {
+									flag=false;
+								}
+							}
+							_this.frames=aniData.animationList[0];
+							if (flag)Animation.framesMap[url+"#"]=_this.frames;
+							}else {
+							_this.frames=Animation.framesMap[url+"#"];
 						}
-						Animation.framesMap[url]=_this.frames=aniData.animationList[0];
 						if (loaded)loaded.run();
 					}
 				}
@@ -49855,7 +52545,7 @@ window.Laya=(function(window,document){
 			this._frames=value;
 			if (value){
 				this._count=value.length;
-				if (this._isPlaying)this.play(this._index,this.loop);
+				if (this._isPlaying)this.play(this._index,this.loop,this._actionName);
 				else this.index=this._index;
 			}
 		});
@@ -49895,6 +52585,17 @@ window.Laya=(function(window,document){
 			}
 			if (name)Animation.framesMap[name]=arr;
 			return arr;
+		}
+
+		Animation.clearCache=function(key){
+			var cache=Animation.framesMap;
+			var val;
+			var key2=key+"#";
+			for (val in cache){
+				if (val===key || val.indexOf(key2)==0){
+					delete Animation.framesMap[val];
+				}
+			}
 		}
 
 		Animation.framesMap={};
@@ -50329,7 +53030,7 @@ window.Laya=(function(window,document){
 					tAni._setUp(this._idMap,tAniO);
 					this[tAniO.name]=tAni;
 					tAni._setControlNode(this);
-					switch(tAniO.action){
+					switch (tAniO.action){
 						case 1:
 							tAni.play(0,false);
 							break ;
@@ -50362,27 +53063,28 @@ window.Laya=(function(window,document){
 
 		View.createComp=function(uiView,comp,view){
 			comp=comp || View.getCompInstance(uiView);
+			if (!comp){
+				console.log("can not create:"+uiView.type);
+				return null;
+			};
 			var child=uiView.child;
 			if (child){
 				for (var i=0,n=child.length;i < n;i++){
 					var node=child[i];
-					if (comp.hasOwnProperty("itemRender")&& (node.props.name=="render"||node.props.renderType==="render")){
+					if (comp.hasOwnProperty("itemRender")&& (node.props.name=="render" || node.props.renderType==="render")){
 						(comp).itemRender=node;
-					}else
-					if (node.type=="Graphic"){
+						}else if (node.type=="Graphic"){
 						ClassUtils.addGraphicsToSprite(node,comp);
-					}else
-					if (ClassUtils.isDrawType(node.type)){
+						}else if (ClassUtils.isDrawType(node.type)){
 						ClassUtils.addGraphicToSprite(node,comp,true);
-						}else{
+						}else {
 						var tChild=View.createComp(node,null,view);
-						if(node.type=="Script"){
+						if (node.type=="Script"){
 							tChild["owner"]=comp;
-						}else
-						if (node.props.renderType=="mask"||node.props.name=="mask"){
+							}else if (node.props.renderType=="mask" || node.props.name=="mask"){
 							comp.mask=tChild;
-							}else{
-							comp.addChild(tChild);
+							}else {(
+							tChild instanceof laya.display.Sprite )&& comp.addChild(tChild);
 						}
 					}
 				}
@@ -50393,7 +53095,7 @@ window.Laya=(function(window,document){
 				View.setCompValue(comp,prop,value,view);
 			}
 			if (Laya.__typeof(comp,'laya.ui.IItem'))(comp).initItems();
-			if (uiView.compId&&view&&view._idMap){
+			if (uiView.compId && view && view._idMap){
 				view._idMap[uiView.compId]=comp;
 			}
 			return comp;
@@ -50407,14 +53109,14 @@ window.Laya=(function(window,document){
 				comp[prop]=parseFloat(value);
 			}
 			else {
-				comp[prop]=(value==="true" ? true :(value==="false" ? false :value));
+				comp[prop]=(value==="true" ? true :(value==="false" ? false :value))
 			}
 		}
 
 		View.getCompInstance=function(json){
 			var runtime=json.props ? json.props.runtime :"";
 			var compClass;
-			compClass=runtime ? (View.viewClassMap[runtime] || Laya["__classmap"][runtime]):View.uiClassMap[json.type];
+			compClass=runtime ? (View.viewClassMap[runtime] || View.uiClassMap[runtime]|| Laya["__classmap"][runtime]):View.uiClassMap[json.type];
 			return compClass ? new compClass():null;
 		}
 
@@ -50685,8 +53387,8 @@ window.Laya=(function(window,document){
 				this._cells.length=0;
 				this.scrollBar=this.getChildByName("scrollBar");
 				var cell=this.createItem();
-				var cellWidth=cell.width+this._spaceX;
-				var cellHeight=cell.height+this._spaceY;
+				var cellWidth=(cell.width+this._spaceX)|| 1;
+				var cellHeight=(cell.height+this._spaceY)|| 1;
 				if (this._width > 0)this._repeatX2=this._isVertical ? Math.round(this._width / cellWidth):Math.ceil(this._width / cellWidth);
 				if (this._height > 0)this._repeatY2=this._isVertical ? Math.ceil(this._height / cellHeight):Math.round(this._height / cellHeight);
 				var listWidth=this._width ? this._width :(cellWidth *this.repeatX-this._spaceX);
@@ -50755,7 +53457,7 @@ window.Laya=(function(window,document){
 		*初始化单元格信息。
 		*/
 		__proto.initItems=function(){
-			if (!this._itemRender){
+			if (!this._itemRender && this.getChildByName("item0")!=null){
 				this.repeatX=1;
 				var count=0;
 				count=0;
@@ -50784,7 +53486,7 @@ window.Laya=(function(window,document){
 			if (this._scrollBar){
 				this._content.scrollRect || (this._content.scrollRect=new Rectangle());
 				this._content.scrollRect.setTo(0,0,width,height);
-				this._content.model&&this._content.model.scrollRect(0,0,width,height);
+				this._content.model && this._content.model.scrollRect(0,0,width,height);
 				this.event("resize");
 			}
 		}
@@ -50881,11 +53583,10 @@ window.Laya=(function(window,document){
 			var r=this._content.scrollRect;
 			if (this._isVertical){
 				r.y=scrollValue;
-			}
-			else{
+				}else {
 				r.x=scrollValue;
 			}
-			this._content.model&&this._content.model.scrollRect(r.x,r.y,r.width,r.height);
+			this._content.model && this._content.model.scrollRect(r.x,r.y,r.width,r.height);
 			this.repaint();
 		}
 
@@ -53453,38 +56154,17 @@ window.Laya=(function(window,document){
 		__proto.createChildren=function(){
 			this.addChild(this._tf=new Input());
 			this._tf.padding=Styles.inputLabelPadding;
-			this._tf.on("input",this,this.onInput);
-			this._tf.on("enter",this,this.onEnter);
-			this._tf.on("blur",this,this.onBlur);
-			this._tf.on("focus",this,this.onFocus);
+			this._tf.on("input",this,this._onEvents);
+			this._tf.on("enter",this,this._onEvents);
+			this._tf.on("blur",this,this._onEvents);
+			this._tf.on("focus",this,this._onEvents);
 		}
 
 		/**
 		*@private
 		*/
-		__proto.onFocus=function(e){
-			this.event("focus",this);
-		}
-
-		/**
-		*@private
-		*/
-		__proto.onBlur=function(e){
-			this.event("blur",this);
-		}
-
-		/**
-		*@private
-		*/
-		__proto.onInput=function(e){
-			this.event("input",this);
-		}
-
-		/**
-		*@private
-		*/
-		__proto.onEnter=function(e){
-			this.event("enter",this);
+		__proto._onEvents=function(e){
+			this.event(e.type,this);
 		}
 
 		/**@inheritDoc */
@@ -53496,6 +56176,10 @@ window.Laya=(function(window,document){
 		/**选中输入框内的文本。*/
 		__proto.select=function(){
 			(this._tf).select();
+		}
+
+		__proto.setSelection=function(startIndex,endIndex){
+			(this._tf).setSelection(startIndex,endIndex);
 		}
 
 		/**
@@ -53625,6 +56309,24 @@ window.Laya=(function(window,document){
 			return (this._tf).focus;
 			},function(value){
 			(this._tf).focus=value;
+		});
+
+		/**
+		*@copy laya.display.Input#type
+		*/
+		__getset(0,__proto,'type',function(){
+			return (this._tf).type;
+			},function(value){
+			(this._tf).type=value;
+		});
+
+		/**
+		*@copy laya.display.Input#asPassword
+		*/
+		__getset(0,__proto,'asPassword',function(){
+			return (this._tf).asPassword;
+			},function(value){
+			(this._tf).asPassword=value;
 		});
 
 		return TextInput;
@@ -53855,9 +56557,14 @@ window.Laya=(function(window,document){
 				return;
 			var frameData=node.frames;
 			var params=this._getParams(frameData,GraphicAnimation._drawTextureCmd,frame,this._nodeDefaultProps[nodeID]);
-			if (params[0]=="")
+			var url=params[0];
+			if (!url)return;
+			params[0]=this._getTextureByUrl(url);
+			if (!params[0]){
+				console.log("lost:",url);
+				throw new Error("texture not loaded:"+url);
 				return;
-			params[0]=this._getTextureByUrl(params[0]);
+			};
 			var m;
 			var px=params[5],py=params[6];
 			if (px !=0 || py !=0){
@@ -53891,6 +56598,7 @@ window.Laya=(function(window,document){
 		__proto.setAniData=function(uiView){
 			if (uiView.animations){
 				this._nodeDefaultProps={};
+				if (this._nodeList)this._nodeList.length=0;
 				this._parseNodeList(uiView);
 				var aniDic={};
 				var anilist=[];
@@ -53899,13 +56607,28 @@ window.Laya=(function(window,document){
 				var tAniO;
 				for (i=0;i < len;i++){
 					tAniO=animations[i];
-					this._calGraphicData(tAniO);
+					try{
+						this._calGraphicData(tAniO);
+						}catch (e){
+						console.log("parse animation fail:"+tAniO.name+",empty animation created");
+						this._gList=[];
+					}
 					anilist.push(this._gList);
 					aniDic[tAniO.name]=this._gList;
 				}
 				this.animationList=anilist;
 				this.animationDic=aniDic;
 			}
+			GraphicAnimation._temParam.length=0;
+		}
+
+		/**
+		*@private
+		*/
+		__proto._clear=function(){
+			this.animationList=null;
+			this.animationDic=null;
+			this._gList=null;
 		}
 
 		GraphicAnimation.parseAnimationData=function(aniData){
@@ -53916,6 +56639,7 @@ window.Laya=(function(window,document){
 			rst={};
 			rst.animationList=GraphicAnimation._I.animationList;
 			rst.animationDic=GraphicAnimation._I.animationDic;
+			GraphicAnimation._I._clear();
 			return rst;
 		}
 
@@ -53968,7 +56692,7 @@ window.Laya=(function(window,document){
 				def.onerror && (this.onerror=def.onerror);
 				def.onCreate && def.onCreate(this);
 			}
-			this._image.crossOrigin="";
+			this._image.crossOrigin=(src && (src.indexOf("data:")==0))? null :"";
 			(src)&& (this._image.src=src);
 			this._enableMerageInAtlas=true;
 		}
@@ -54031,7 +56755,7 @@ window.Laya=(function(window,document){
 				this.startCreate();
 				var _this=this;
 				this._image=new Browser.window.Image();
-				this._image.crossOrigin="";
+				this._image.crossOrigin=this._src.indexOf("data:")==0 ? null :"";
 				this._image.onload=function (){
 					if (_this._needReleaseAgain){
 						_this._needReleaseAgain=false;
@@ -54156,7 +56880,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(LoadingSceneUI,
-		['uiView',function(){return this.uiView={"type":"View","child":[{"props":{"x":0,"y":0,"skin":"loading/img_loading_bg.jpg"},"type":"Image"},{"props":{"x":361,"y":305,"skin":"comp/progress.png","width":431,"height":14,"var":"pbLoading","name":"pbLoading"},"type":"ProgressBar"},{"props":{"x":420,"y":329,"text":"加载中...0%","color":"#ffffff","fontSize":22,"font":"微软雅黑","width":339,"height":34,"align":"center","stroke":2,"var":"lbProgress","name":"lbProgress"},"type":"Label"}],"props":{"width":1136,"height":640}};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"skin":"loading/img_loading_bg.jpg"}},{"type":"ProgressBar","props":{"y":305,"x":361,"width":431,"var":"pbLoading","skin":"comp/progress.png","name":"pbLoading","height":14}},{"type":"Label","props":{"y":329,"x":420,"width":339,"var":"lbProgress","text":"加载中...0%","stroke":2,"name":"lbProgress","height":34,"fontSize":22,"font":"微软雅黑","color":"#ffffff","align":"center"}}]};}
 		]);
 		return LoadingSceneUI;
 	})(View)
@@ -54602,7 +57326,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(AreanResultViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":-4,"x":0,"var":"img_bg","skin":"result/img_win_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":277,"x":295,"width":52,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":25,"fontSize":20,"color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]},{"type":"Button","props":{"y":388,"x":763,"var":"btn_goon","stateNum":"1","skin":"result/btn_goon.png","name":"btn_goon"}},{"type":"Image","props":{"y":320,"x":568,"width":1136,"var":"img_red","skin":"res/img_redbg.png","sizeGrid":"12,12,12,12","pivotY":320,"pivotX":568,"name":"img_red","height":640}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_bg","skin":"res/img_back_bg.png","sizeGrid":"1,1,1,1","name":"img_bg","height":640}},{"type":"Image","props":{"y":140,"x":0,"var":"img_bg1","skin":"res/img_result_bg1.png","name":"img_bg1"}},{"type":"Box","props":{"y":13,"x":62,"var":"win_1","name":"win_1"},"child":[{"type":"Image","props":{"y":49,"var":"img_win_bg_1","skin":"res/img_result_win_bg1.png","name":"img_win_bg_1"}},{"type":"Image","props":{"x":373,"var":"img_win_bg_2","skin":"res/img_result_win_bg2.png","name":"img_win_bg_2"}},{"type":"AreanResultRoleView","props":{"y":101,"x":52,"var":"per_role_1","name":"per_role_1","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":209,"var":"per_role_2","name":"per_role_2","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":98,"x":367,"var":"per_role_3","name":"per_role_3","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":100,"x":526,"var":"per_role_4","name":"per_role_4","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":685,"var":"per_role_5","name":"per_role_5","runtime":"ui.game.AreanResultRoleViewUI"}},{"type":"AreanResultRoleView","props":{"y":101,"x":843,"var":"per_role_6","name":"per_role_6","runtime":"ui.game.AreanResultRoleViewUI"}}]},{"type":"Box","props":{"y":1,"x":0,"var":"win_2","name":"win_2"},"child":[{"type":"AreanResultGoods","props":{"y":352,"x":236,"var":"per_goods_1","name":"per_goods_1","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":354,"x":342,"var":"per_goods_2","name":"per_goods_2","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":352,"x":443,"var":"per_goods_3","name":"per_goods_3","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":450,"x":234,"var":"per_goods_4","name":"per_goods_4","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":448,"x":341,"var":"per_goods_5","name":"per_goods_5","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"AreanResultGoods","props":{"y":447,"x":446,"var":"per_goods_6","name":"per_goods_6","runtime":"ui.game.AreanResultGoodsUI"}},{"type":"Image","props":{"y":201,"var":"img_win2_bg","skin":"res/img_result_win2_bg.png","name":"img_win2_bg"}},{"type":"Image","props":{"y":59,"x":218,"var":"img_win2","skin":"res/img_result_win2.png","name":"img_win2"}},{"type":"Image","props":{"y":165,"x":244,"var":"img_star_bg1","skin":"res/img_result_star_bg.png","name":"img_star_bg1"}},{"type":"Image","props":{"y":164,"x":348,"var":"img_star_bg2","skin":"res/img_result_star_bg.png","name":"img_star_bg2"}},{"type":"Image","props":{"y":161,"x":448,"var":"img_star_bg3","skin":"res/img_result_star_bg.png","name":"img_star_bg3"}},{"type":"Image","props":{"y":141,"x":215,"var":"img_star_1","skin":"res/img_result_star.png","name":"img_star_1"}},{"type":"Image","props":{"y":136,"x":320,"var":"img_star_2","skin":"res/img_result_star.png","name":"img_star_2"}},{"type":"Image","props":{"y":135,"x":419,"var":"img_star_3","skin":"res/img_result_star.png","name":"img_star_3"}},{"type":"Image","props":{"y":258,"x":68,"var":"img_bg_2","skin":"res/img_result_bg2.png","name":"img_bg_2"}},{"type":"Image","props":{"y":277,"x":213,"var":"img_exp","skin":"res/img_exp.png","name":"img_exp"}},{"type":"Image","props":{"y":278,"x":395,"var":"img_glod","skin":"res/img_gold.png","name":"img_glod"}},{"type":"Label","props":{"y":278,"x":248,"text":"exp","fontSize":20,"color":"#00e142"}},{"type":"Label","props":{"y":277,"x":295,"width":52,"var":"lab_exp_text","text":"+200","name":"lab_exp_text","height":25,"fontSize":20,"color":"#fffdfd"}},{"type":"Label","props":{"y":284,"x":454,"text":"label"}},{"type":"Label","props":{"y":280,"x":430,"width":38,"text":"金币","height":20,"fontSize":20,"color":"#e1e0af"}},{"type":"Label","props":{"y":280,"x":483,"var":"lab_gold_text","text":"+1200","name":"lab_gold_text","fontSize":20,"color":"#ffffff"}},{"type":"Image","props":{"x":713,"skin":"res/img_result_renwu.png"}}]},{"type":"Button","props":{"y":388,"x":763,"var":"btn_goon","stateNum":"1","skin":"result/btn_goon.png","name":"btn_goon"}},{"type":"Image","props":{"y":320,"x":568,"width":1136,"var":"img_red","skin":"res/img_redbg.png","sizeGrid":"12,12,12,12","pivotY":320,"pivotX":568,"name":"img_red","height":640}}]};}
 		]);
 		return AreanResultViewUI;
 	})(View)
@@ -54623,9 +57347,30 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaLeftHpViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"skin":"res/img_battle_bg.png"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_zhandouxuetiao.png","name":"img_hp"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":90,"height":7},"child":[{"type":"Image","props":{"y":-1,"x":-1,"skin":"res/img_battle_bg.png"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_hp","skin":"res/img_battle_green.png","name":"img_hp"}}]};}
 		]);
 		return ArenaLeftHpViewUI;
+	})(View)
+
+
+	//class ui.game.ArenaRightHpViewUI extends laya.ui.View
+	var ArenaRightHpViewUI=(function(_super){
+		function ArenaRightHpViewUI(){
+			this.img_hp=null;
+			ArenaRightHpViewUI.__super.call(this);
+		}
+
+		__class(ArenaRightHpViewUI,'ui.game.ArenaRightHpViewUI',_super);
+		var __proto=ArenaRightHpViewUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(ArenaRightHpViewUI.uiView);
+		}
+
+		__static(ArenaRightHpViewUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"y":0,"x":0,"width":90,"height":7},"child":[{"type":"Image","props":{"y":-2,"x":-3,"width":92,"skin":"res/img_battle_bg.png","height":9}},{"type":"Image","props":{"y":-1,"x":-2,"var":"img_hp","skin":"res/img_zhandouxuetiao.png","pivotY":0,"pivotX":0,"name":"img_hp"}}]};}
+		]);
+		return ArenaRightHpViewUI;
 	})(View)
 
 
@@ -54645,7 +57390,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaStarViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":291,"x":566,"var":"img_go","skin":"combo/img_go.png","pivotY":71,"pivotX":124,"name":"img_go"}},{"type":"Image","props":{"y":337,"x":578,"var":"img_fight","skin":"combo/img_fight.png","pivotY":75.5,"pivotX":156.5,"name":"img_fight"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":291,"x":566,"var":"img_go","skin":"combo/img_go.png","pivotY":71,"pivotX":124,"name":"img_go"}},{"type":"Image","props":{"y":337,"x":578,"width":313,"var":"img_fight","skin":"res/img_white_bg.png","pivotY":75.5,"pivotX":156.5,"name":"img_fight","height":151}}]};}
 		]);
 		return ArenaStarViewUI;
 	})(View)
@@ -54682,7 +57427,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaRoleItemViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":126,"runtime":"com.gamepark.casino.game.arena.view.ArenaRoleItemView","height":170},"child":[{"type":"Image","props":{"y":205,"x":64,"width":131,"var":"img_texiao","skin":"res/img_role_texiao.png","pivotY":105,"pivotX":65.5,"name":"img_texiao","height":105}},{"type":"Image","props":{"y":4,"x":8,"var":"imgHeaderBg","skin":"res/img_headImage_bg1.png","name":"imgHeaderBg"}},{"type":"Image","props":{"y":3,"x":6,"var":"img_head_bg","skin":"res/img_headImage_normal.png","name":"img_head_bg"}},{"type":"Image","props":{"y":8,"x":12,"var":"imgHeader","skin":"res/img_role_10001.png","name":"imgHeader"}},{"type":"Image","props":{"y":6,"x":10,"var":"imgHeaderFg","skin":"res/img_headImage_bg5.png","name":"imgHeaderFg"}},{"type":"Image","props":{"y":-9,"x":-8,"var":"img_head_texiao","skin":"res/img_headImage_hight.png","name":"img_head_texiao"}},{"type":"Image","props":{"y":0,"x":49,"var":"imgPin","skin":"sanguo/img_icon_pin.png","name":"imgPin"}},{"type":"Image","props":{"y":115,"x":76,"var":"imgStar","skin":"sanguo/img_icon_star.png","name":"imgStar"}},{"type":"Image","props":{"y":94,"x":87,"var":"imgType","skin":"res/img_type_1.png","name":"imgType"}},{"type":"ArenaRoleHpView","props":{"y":136,"x":11,"var":"hpView","name":"hpView","runtime":"ui.game.ArenaRoleHpViewUI"}},{"type":"ArenaRoleMpView","props":{"y":155,"x":11,"var":"mpView","name":"mpView","runtime":"ui.game.ArenaRoleMpViewUI"}},{"type":"Label","props":{"y":34,"x":39,"width":41,"var":"lab_number","text":"1","name":"lab_number","height":51,"fontSize":20,"font":"F","color":"#f8f8f8","bold":true,"align":"center"}},{"type":"Image","props":{"y":20,"x":2,"var":"img_die","skin":"res/img_role_die.png","name":"img_die"}},{"type":"Label","props":{"y":-9,"x":55,"width":114,"var":"lab_jiacheng","text":"1.5","pivotY":9,"pivotX":57,"name":"lab_jiacheng","height":18,"font":"E","align":"center"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":126,"runtime":"com.gamepark.casino.game.arena.view.ArenaRoleItemView","height":170},"child":[{"type":"Image","props":{"y":205,"x":64,"width":131,"var":"img_texiao","skin":"res/img_role_texiao.png","pivotY":105,"pivotX":65.5,"name":"img_texiao","height":105}},{"type":"Image","props":{"y":4,"x":8,"var":"imgHeaderBg","skin":"res/img_headImage_bg1.png","name":"imgHeaderBg"}},{"type":"Image","props":{"y":3,"x":6,"var":"img_head_bg","skin":"res/img_headImage_normal.png","name":"img_head_bg"}},{"type":"Image","props":{"y":8,"x":12,"var":"imgHeader","skin":"res/img_role_10001.png","name":"imgHeader"}},{"type":"Image","props":{"y":6,"x":10,"var":"imgHeaderFg","skin":"res/img_headImage_bg5.png","name":"imgHeaderFg"}},{"type":"Image","props":{"y":-9,"x":-8,"var":"img_head_texiao","skin":"res/img_headImage_hight.png","name":"img_head_texiao"}},{"type":"Image","props":{"y":0,"x":49,"var":"imgPin","skin":"sanguo/img_icon_pin.png","name":"imgPin"}},{"type":"Image","props":{"y":115,"x":76,"var":"imgStar","skin":"sanguo/img_icon_star.png","name":"imgStar"}},{"type":"Image","props":{"y":94,"x":87,"var":"imgType","skin":"res/img_type_1.png","name":"imgType"}},{"type":"ArenaRoleHpView","props":{"y":136,"x":11,"var":"hpView","name":"hpView","runtime":"ui.game.ArenaRoleHpViewUI"}},{"type":"ArenaRoleMpView","props":{"y":155,"x":11,"var":"mpView","name":"mpView","runtime":"ui.game.ArenaRoleMpViewUI"}},{"type":"Label","props":{"y":34,"x":39,"width":41,"var":"lab_number","text":"1","name":"lab_number","height":51,"fontSize":20,"font":"F","color":"#f8f8f8","bold":true,"align":"center"}},{"type":"Image","props":{"y":20,"x":2,"var":"img_die","skin":"res/img_role_die.png","name":"img_die"}},{"type":"Label","props":{"y":-9,"x":57,"width":114,"var":"lab_jiacheng","text":"1.5","pivotY":9,"pivotX":57,"name":"lab_jiacheng","height":18,"font":"E","align":"center"}}]};}
 		]);
 		return ArenaRoleItemViewUI;
 	})(View)
@@ -54739,7 +57484,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaSceneUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"visible":true,"var":"imgBg","skin":"sanguo/img_bg.jpg","name":"imgBg"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_scene_bg","skin":"res/img_bg.png","name":"img_scene_bg"}},{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_touch_bg","skin":"res/img_bg_touch.png","name":"img_touch_bg","height":640}},{"type":"ArenaLeftPlayerView","props":{"y":0,"x":0,"var":"leftPlayerInfoView","name":"leftPlayerInfoView","runtime":"ui.game.ArenaLeftPlayerViewUI"}},{"type":"ArenaRightPlayerView","props":{"y":-1,"x":650,"var":"rightPlayerInfoView","name":"rightPlayerInfoView","runtime":"ui.game.ArenaRightPlayerViewUI"}},{"type":"ArenaBattleRoundView","props":{"y":22,"x":484,"var":"battleRoundView","name":"battleRoundView","runtime":"ui.game.ArenaBattleRoundViewUI"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"visible":true,"var":"imgBg","skin":"sanguo/img_bg.jpg","name":"imgBg"}},{"type":"Image","props":{"y":0,"x":0,"var":"img_scene_bg","skin":"res/img_bg.png","name":"img_scene_bg"}},{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_touch_bg","skin":"res/img_white_bg.png","sizeGrid":"1,1,1,1","name":"img_touch_bg","height":640}},{"type":"ArenaLeftPlayerView","props":{"y":0,"x":0,"var":"leftPlayerInfoView","name":"leftPlayerInfoView","runtime":"ui.game.ArenaLeftPlayerViewUI"}},{"type":"ArenaRightPlayerView","props":{"y":-1,"x":650,"var":"rightPlayerInfoView","name":"rightPlayerInfoView","runtime":"ui.game.ArenaRightPlayerViewUI"}},{"type":"ArenaBattleRoundView","props":{"y":22,"x":484,"var":"battleRoundView","name":"battleRoundView","runtime":"ui.game.ArenaBattleRoundViewUI"}}]};}
 		]);
 		return ArenaSceneUI;
 	})(View)
@@ -54775,6 +57520,9 @@ window.Laya=(function(window,document){
 			this.img_hit_bg=null;
 			this.img_hit_hlight=null;
 			this.img_hit_normal=null;
+			this.img_qte_Normal=null;
+			this.img_qte_head=null;
+			this.img_qte_effect=null;
 			this.lab_qte_timer=null;
 			QteViewUI.__super.call(this);
 		}
@@ -54787,7 +57535,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(QteViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"var":"img_touch","skin":"combo/background.png","name":"img_touch"}},{"type":"Image","props":{"y":348,"x":572,"width":522,"var":"img_hit_bg","skin":"combo/img_hit_bg.png","pivotY":261,"pivotX":261,"name":"img_hit_bg","height":368}},{"type":"Image","props":{"y":348,"x":572,"var":"img_hit_hlight","skin":"combo/img_qte_hit_hight.png","pivotY":64,"pivotX":64,"name":"img_hit_hlight"}},{"type":"Image","props":{"y":348,"x":572,"width":128,"var":"img_hit_normal","skin":"combo/img_qte_hit_normal.png","pivotY":64,"pivotX":64,"name":"img_hit_normal","height":128}},{"type":"Label","props":{"y":272,"x":567,"var":"lab_qte_timer","text":"2","pivotY":70.5,"pivotX":42.5,"name":"lab_qte_timer","font":"qtecd"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_touch","skin":"res/img_back_bg.png","sizeGrid":"1,1,1,1","name":"img_touch","height":640}},{"type":"Image","props":{"y":348,"x":572,"width":522,"var":"img_hit_bg","skin":"combo/img_hit_bg.png","pivotY":261,"pivotX":261,"name":"img_hit_bg","height":368}},{"type":"Image","props":{"y":348,"x":572,"var":"img_hit_hlight","skin":"combo/img_qte_hit_hight.png","pivotY":64,"pivotX":64,"name":"img_hit_hlight"}},{"type":"Image","props":{"y":348,"x":572,"width":128,"var":"img_hit_normal","skin":"combo/img_qte_hit_normal.png","pivotY":64,"pivotX":64,"name":"img_hit_normal","height":128}},{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_qte_Normal","skin":"res/img_white_bg.png","sizeGrid":"1,1,1,1","name":"img_qte_Normal","mouseThrough":true,"height":640}},{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_qte_head","skin":"res/img_white_bg.png","sizeGrid":"1,1,1,1","name":"img_qte_head","mouseThrough":true,"height":640}},{"type":"Image","props":{"y":0,"x":0,"width":1136,"var":"img_qte_effect","skin":"res/img_white_bg.png","sizeGrid":"1,1,1,1","name":"img_qte_effect","mouseThrough":true,"height":640}},{"type":"Label","props":{"y":272,"x":567,"var":"lab_qte_timer","text":"2","pivotY":70.5,"pivotX":42.5,"name":"lab_qte_timer","font":"qtecd"}}]};}
 		]);
 		return QteViewUI;
 	})(View)
@@ -55073,11 +57821,11 @@ window.Laya=(function(window,document){
 			this.img_bg=null;
 			this.imgPlayerHeader=null;
 			this.imgPlayerHeaderFg=null;
-			this.imgPlayerHpBg=null;
-			this.lbName=null;
 			this.img_xianshou_bg=null;
-			this.lbFirstAttack=null;
+			this.imgPlayerHpBg=null;
 			this.imgPlayerHp=null;
+			this.lbName=null;
+			this.lbFirstAttack=null;
 			ArenaLeftPlayerViewUI.__super.call(this);
 		}
 
@@ -55089,7 +57837,7 @@ window.Laya=(function(window,document){
 		}
 
 		__static(ArenaLeftPlayerViewUI,
-		['uiView',function(){return this.uiView={"type":"View","props":{"width":487,"height":65},"child":[{"type":"Image","props":{"y":0,"x":0,"var":"img_bg","skin":"res/img_role_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":64,"x":-1,"var":"imgPlayerHeader","skin":"res/img_role_left_bg.png","name":"imgPlayerHeader"}},{"type":"Image","props":{"y":0,"x":3,"var":"imgPlayerHeaderFg","skin":"res/img_role_left.png","name":"imgPlayerHeaderFg"}},{"type":"Image","props":{"y":26,"x":124,"var":"imgPlayerHpBg","skin":"res/img_hp_top_bg.png","name":"imgPlayerHpBg"}},{"type":"Label","props":{"y":67,"x":172,"width":154,"var":"lbName","text":"玩家名字七个字","stroke":2,"name":"lbName","height":22,"fontSize":18,"font":"汉仪粗宋简8号","color":"#ffffff","bold":false}},{"type":"Image","props":{"y":62,"x":350,"var":"img_xianshou_bg","skin":"res/img_xianshou_bg.png","name":"img_xianshou_bg"}},{"type":"Label","props":{"y":63,"x":362,"width":137,"var":"lbFirstAttack","text":"先手值：4000","stroke":2,"name":"lbFirstAttack","height":22,"fontSize":16,"font":"微软雅黑","color":"#ffffff"}},{"type":"Image","props":{"y":32,"x":130,"var":"imgPlayerHp","skin":"res/img_left_hp1.png","pivotY":0,"pivotX":0,"name":"imgPlayerHp"}}]};}
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":487,"height":65},"child":[{"type":"Image","props":{"y":0,"x":0,"var":"img_bg","skin":"res/img_role_bg.png","name":"img_bg"}},{"type":"Image","props":{"y":64,"x":-1,"var":"imgPlayerHeader","skin":"res/img_role_left_bg.png","name":"imgPlayerHeader"}},{"type":"Image","props":{"y":0,"x":3,"var":"imgPlayerHeaderFg","skin":"res/img_role_left.png","name":"imgPlayerHeaderFg"}},{"type":"Image","props":{"y":62,"x":350,"var":"img_xianshou_bg","skin":"res/img_xianshou_bg.png","name":"img_xianshou_bg"}},{"type":"Image","props":{"y":26,"x":123,"var":"imgPlayerHpBg","skin":"res/img_hp_top_bg.png","name":"imgPlayerHpBg"}},{"type":"Image","props":{"y":32,"x":129,"var":"imgPlayerHp","skin":"res/img_left_hp1.png","pivotY":0,"pivotX":0,"name":"imgPlayerHp"}},{"type":"Label","props":{"y":67,"x":172,"width":154,"var":"lbName","text":"玩家名字七个字","stroke":2,"name":"lbName","height":22,"fontSize":18,"font":"汉仪粗宋简8号","color":"#ffffff","bold":false}},{"type":"Label","props":{"y":63,"x":362,"width":137,"var":"lbFirstAttack","text":"先手值：4000","stroke":2,"name":"lbFirstAttack","height":22,"fontSize":16,"font":"微软雅黑","color":"#ffffff"}}]};}
 		]);
 		return ArenaLeftPlayerViewUI;
 	})(View)
@@ -55169,6 +57917,52 @@ window.Laya=(function(window,document){
 	})(View)
 
 
+	//class ui.test.CsCutinUI extends laya.ui.View
+	var CsCutinUI=(function(_super){
+		function CsCutinUI(){
+			this.ani1=null;
+			this.imgRpleCutin=null;
+			this.imgRpleBaoyi=null;
+			CsCutinUI.__super.call(this);
+		}
+
+		__class(CsCutinUI,'ui.test.CsCutinUI',_super);
+		var __proto=CsCutinUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(CsCutinUI.uiView);
+		}
+
+		__static(CsCutinUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"height":640},"child":[{"type":"Image","props":{"skin":"superCutin/img_CS_efbg_SuperCutinA.png"},"compId":2},{"type":"Image","props":{"var":"imgRpleCutin","skin":"superCutin/img_CS_lihuiA_SuperCutinA.png","name":"imgRpleCutin","anchorY":0.5,"anchorX":0.5},"compId":3},{"type":"Image","props":{"var":"imgRpleBaoyi","skin":"superCutin/img_CS_lihuiB_SuperCutinA.png","name":"imgRpleBaoyi","anchorY":0.5,"anchorX":0.5},"compId":4},{"type":"Image","props":{"skin":"superCutin/img_efspeedLall_SuperCutinA.png"},"compId":5},{"type":"Image","props":{"skin":"superCutin/img_efspeedLA_SuperCutinA.png"},"compId":6}],"animations":[{"nodes":[{"target":2,"keyframes":{"y":[{"value":50,"tweenMethod":"linearNone","tween":true,"target":2,"key":"y","index":0},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"y","index":4},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"y","index":25},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"y","index":44},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"y","index":48}],"x":[{"value":-40,"tweenMethod":"linearNone","tween":true,"target":2,"key":"x","index":0},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"x","index":4},{"value":5,"tweenMethod":"linearNone","tween":true,"target":2,"key":"x","index":25},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"x","index":44},{"value":-100,"tweenMethod":"linearNone","tween":true,"target":2,"key":"x","index":48}],"scaleY":[{"value":2,"tweenMethod":"linearNone","tween":true,"target":2,"key":"scaleY","index":0}],"scaleX":[{"value":2,"tweenMethod":"linearNone","tween":true,"target":2,"key":"scaleX","index":0}],"alpha":[{"value":0.85,"tweenMethod":"linearNone","tween":true,"target":2,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":2,"key":"alpha","index":3},{"value":1,"tweenMethod":"linearNone","tween":true,"target":2,"key":"alpha","index":44},{"value":0,"tweenMethod":"linearNone","tween":true,"target":2,"key":"alpha","index":48}]}},{"target":3,"keyframes":{"y":[{"value":380,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":0},{"value":380,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":7},{"value":390,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":18},{"value":380,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":28}],"x":[{"value":-450,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":0},{"value":0,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":7},{"value":510,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":18},{"value":500,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":28}],"scaleY":[{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"scaleY","index":0}],"scaleX":[{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"scaleX","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":28},{"value":0,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":29}]}},{"target":4,"keyframes":{"y":[{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":0},{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":29},{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":30},{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":32},{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":37},{"value":380,"tweenMethod":"linearNone","tween":true,"target":4,"key":"y","index":43}],"x":[{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":0},{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":29},{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":30},{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":32},{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":37},{"value":500,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":43},{"value":750,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":48},{"value":1000,"tweenMethod":"linearNone","tween":true,"target":4,"key":"x","index":49}],"scaleY":[{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleY","index":0},{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleY","index":29},{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleY","index":30},{"value":1.15,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleY","index":32},{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleY","index":37}],"scaleX":[{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleX","index":0},{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleX","index":29},{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleX","index":30},{"value":1.15,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleX","index":32},{"value":1.1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"scaleX","index":37}],"alpha":[{"value":0,"tweenMethod":"linearNone","tween":true,"target":4,"key":"alpha","index":0},{"value":0,"tweenMethod":"linearNone","tween":true,"target":4,"key":"alpha","index":28},{"value":1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"alpha","index":29},{"value":1,"tweenMethod":"linearNone","tween":true,"target":4,"key":"alpha","index":43},{"value":0,"tweenMethod":"linearNone","tween":true,"target":4,"key":"alpha","index":48}]}},{"target":5,"keyframes":{"y":[{"value":200,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":0}],"x":[{"value":-550,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":0},{"value":1200,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":7},{"value":-500,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":14},{"value":500,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":20}],"scaleX":[{"value":2,"tweenMethod":"linearNone","tween":true,"target":5,"key":"scaleX","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":0},{"value":0.5,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":7},{"value":0,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":8},{"value":0,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":14},{"value":0.85,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":15},{"value":0,"tweenMethod":"linearNone","tween":true,"target":5,"key":"alpha","index":20}]}},{"target":6,"keyframes":{"y":[{"value":420,"tweenMethod":"linearNone","tween":true,"target":6,"key":"y","index":0}],"x":[{"value":-750,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":0},{"value":-750,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":15},{"value":1000,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":22}],"scaleX":[{"value":2,"tweenMethod":"linearNone","tween":true,"target":6,"key":"scaleX","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":15},{"value":0,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":22}]}}],"name":"ani1","id":1,"frameRate":24,"action":0}]};}
+		]);
+		return CsCutinUI;
+	})(View)
+
+
+	//class ui.test.SuperCutinUI extends laya.ui.View
+	var SuperCutinUI=(function(_super){
+		function SuperCutinUI(){
+			this.ani1=null;
+			this.imgLihui=null;
+			this.imgSkill=null;
+			SuperCutinUI.__super.call(this);
+		}
+
+		__class(SuperCutinUI,'ui.test.SuperCutinUI',_super);
+		var __proto=SuperCutinUI.prototype;
+		__proto.createChildren=function(){
+			laya.ui.Component.prototype.createChildren.call(this);
+			this.createView(SuperCutinUI.uiView);
+		}
+
+		__static(SuperCutinUI,
+		['uiView',function(){return this.uiView={"type":"View","props":{"width":1136,"scaleY":1,"scaleX":1,"height":640},"child":[{"type":"Image","props":{"y":0,"x":0,"skin":"superCutin/img_Super_efbg_SuperCutinA.png"},"compId":3},{"type":"Image","props":{"y":0,"x":0,"skin":"superCutin/img_efspeedLC_SuperCutinA.png"},"compId":9},{"type":"Image","props":{"y":0,"x":0,"skin":"superCutin/img_efspeedLall_SuperCutinA.png"},"compId":7},{"type":"Image","props":{"y":0,"x":0,"skin":"superCutin/img_efspeedLA_SuperCutinA.png"},"compId":8},{"type":"Image","props":{"y":-10,"x":0,"var":"imgLihui","skin":"superCutin/img_Super_lihuiDM_SuperCutinA.png","scaleY":1,"scaleX":1,"anchorY":0.5,"anchorX":0.5},"compId":5},{"type":"Image","props":{"y":0,"x":0,"var":"imgSkill","skin":"superCutin/img_SuperN_qingqizhuqiang_SuperCutinA.png","anchorY":0.5,"anchorX":0},"compId":6},{"type":"Image","props":{"y":0,"x":0,"skin":"superCutin/img_efspeedLB_SuperCutinA.png"},"compId":10}],"animations":[{"nodes":[{"target":3,"keyframes":{"y":[{"value":1000,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":0},{"value":929,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":4},{"value":936,"tweenMethod":"linearNone","tween":true,"target":3,"key":"y","index":40}],"x":[{"value":450,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":0},{"value":398,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":4},{"value":400,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":40},{"value":300,"tweenMethod":"linearNone","tween":true,"target":3,"key":"x","index":44}],"scaleY":[{"value":2,"tweenMethod":"linearNone","tween":true,"target":3,"key":"scaleY","index":0}],"scaleX":[{"value":2.36,"tweenMethod":"linearNone","tween":true,"target":3,"key":"scaleX","index":0}],"rotation":[{"value":-110,"tweenMethod":"linearNone","tween":true,"target":3,"key":"rotation","index":0}],"alpha":[{"value":0.85,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":3},{"value":1,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":40},{"value":0,"tweenMethod":"linearNone","tween":true,"target":3,"key":"alpha","index":44}]}},{"target":5,"keyframes":{"y":[{"value":350,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":0},{"value":350,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":7},{"value":350,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":25},{"value":350,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":39},{"value":325,"tweenMethod":"linearNone","tween":true,"target":5,"key":"y","index":44}],"x":[{"value":-132,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":0},{"value":362,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":7},{"value":370,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":25},{"value":362,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":39},{"value":1000,"tweenMethod":"linearNone","tween":true,"target":5,"key":"x","index":44}],"scaleY":[{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":5,"key":"scaleY","index":0}],"scaleX":[{"value":1.2,"tweenMethod":"linearNone","tween":true,"target":5,"key":"scaleX","index":0}]}},{"target":6,"keyframes":{"y":[{"value":226,"tweenMethod":"linearNone","tween":true,"target":6,"key":"y","index":0},{"value":226,"tweenMethod":"linearNone","tween":true,"target":6,"key":"y","index":7},{"value":226,"tweenMethod":"linearNone","tween":true,"target":6,"key":"y","index":24},{"value":226,"tweenMethod":"linearNone","tween":true,"target":6,"key":"y","index":39}],"x":[{"value":900,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":0},{"value":480,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":7},{"value":470,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":24},{"value":480,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":39},{"value":0,"tweenMethod":"linearNone","tween":true,"target":6,"key":"x","index":44}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":39},{"value":0,"tweenMethod":"linearNone","tween":true,"target":6,"key":"alpha","index":44}]}},{"target":7,"keyframes":{"y":[{"value":640,"tweenMethod":"linearNone","tween":true,"target":7,"key":"y","index":0},{"value":-516,"tweenMethod":"linearNone","tween":true,"target":7,"key":"y","index":5}],"x":[{"value":571,"tweenMethod":"linearNone","tween":true,"target":7,"key":"x","index":0},{"value":253,"tweenMethod":"linearNone","tween":true,"target":7,"key":"x","index":5}],"rotation":[{"value":70,"tweenMethod":"linearNone","tween":true,"target":7,"key":"rotation","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":7,"key":"alpha","index":0},{"value":0.85,"tweenMethod":"linearNone","tween":true,"target":7,"key":"alpha","index":5}]}},{"target":8,"keyframes":{"y":[{"value":653,"tweenMethod":"linearNone","tween":true,"target":8,"key":"y","index":0},{"value":669,"tweenMethod":"linearNone","tween":true,"target":8,"key":"y","index":20},{"value":-407,"tweenMethod":"linearNone","tween":true,"target":8,"key":"y","index":27}],"x":[{"value":558,"tweenMethod":"linearNone","tween":true,"target":8,"key":"x","index":0},{"value":554,"tweenMethod":"linearNone","tween":true,"target":8,"key":"x","index":20},{"value":166,"tweenMethod":"linearNone","tween":true,"target":8,"key":"x","index":27}],"rotation":[{"value":70,"tweenMethod":"linearNone","tween":true,"target":8,"key":"rotation","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":8,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":8,"key":"alpha","index":20},{"value":0,"tweenMethod":"linearNone","tween":true,"target":8,"key":"alpha","index":27}]}},{"target":9,"keyframes":{"y":[{"value":672,"tweenMethod":"linearNone","tween":true,"target":9,"key":"y","index":0},{"value":672,"tweenMethod":"linearNone","tween":true,"target":9,"key":"y","index":10},{"value":-493,"tweenMethod":"linearNone","tween":true,"target":9,"key":"y","index":18}],"x":[{"value":471,"tweenMethod":"linearNone","tween":true,"target":9,"key":"x","index":0},{"value":471,"tweenMethod":"linearNone","tween":true,"target":9,"key":"x","index":10},{"value":68,"tweenMethod":"linearNone","tween":true,"target":9,"key":"x","index":18}],"rotation":[{"value":70,"tweenMethod":"linearNone","tween":true,"target":9,"key":"rotation","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":9,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":9,"key":"alpha","index":10},{"value":0.5,"tweenMethod":"linearNone","tween":true,"target":9,"key":"alpha","index":18}]}},{"target":10,"keyframes":{"y":[{"value":653,"tweenMethod":"linearNone","tween":true,"target":10,"key":"y","index":0},{"value":668,"tweenMethod":"linearNone","tween":true,"target":10,"key":"y","index":25},{"value":-502,"tweenMethod":"linearNone","tween":true,"target":10,"key":"y","index":30}],"x":[{"value":703,"tweenMethod":"linearNone","tween":true,"target":10,"key":"x","index":0},{"value":691,"tweenMethod":"linearNone","tween":true,"target":10,"key":"x","index":25},{"value":264,"tweenMethod":"linearNone","tween":true,"target":10,"key":"x","index":30}],"rotation":[{"value":70,"tweenMethod":"linearNone","tween":true,"target":10,"key":"rotation","index":0}],"alpha":[{"value":1,"tweenMethod":"linearNone","tween":true,"target":10,"key":"alpha","index":0},{"value":1,"tweenMethod":"linearNone","tween":true,"target":10,"key":"alpha","index":25},{"value":0.5,"tweenMethod":"linearNone","tween":true,"target":10,"key":"alpha","index":30}]}}],"name":"ani1","id":1,"frameRate":24,"action":0}]};}
+		]);
+		return SuperCutinUI;
+	})(View)
+
+
 	//class ui.test.TestPageUI extends laya.ui.View
 	var TestPageUI=(function(_super){
 		function TestPageUI(){
@@ -55203,12 +57997,8 @@ window.Laya=(function(window,document){
 	*/
 	//class laya.ui.HBox extends laya.ui.LayoutBox
 	var HBox=(function(_super){
-		/**
-		*创建一个新的 <code>HBox</code> 类实例。
-		*/
-		function HBox(){
-			HBox.__super.call(this);
-		}
+		function HBox(){HBox.__super.call(this);;
+		};
 
 		__class(HBox,'laya.ui.HBox',_super);
 		var __proto=HBox.prototype;
@@ -55232,9 +58022,8 @@ window.Laya=(function(window,document){
 			}
 			this.sortItem(items);
 			var left=0;
-			var $each_item;
-			for($each_item in items){
-				item=items[$each_item];
+			for (i=0,n=this.numChildren;i < n;i++){
+				item=items[i];
 				item.x=left;
 				left+=item.displayWidth+this._space;
 				if (this._align=="top"){
@@ -55450,12 +58239,8 @@ window.Laya=(function(window,document){
 	*/
 	//class laya.ui.VBox extends laya.ui.LayoutBox
 	var VBox=(function(_super){
-		/**
-		*创建一个新的 <code>VBox</code> 类实例。
-		*/
-		function VBox(){
-			VBox.__super.call(this);
-		}
+		function VBox(){VBox.__super.call(this);;
+		};
 
 		__class(VBox,'laya.ui.VBox',_super);
 		var __proto=VBox.prototype;
@@ -55473,9 +58258,8 @@ window.Laya=(function(window,document){
 			}
 			this.sortItem(items);
 			var top=0;
-			var $each_item;
-			for($each_item in items){
-				item=items[$each_item];
+			for (i=0,n=this.numChildren;i < n;i++){
+				item=items[i];
 				item.y=top;
 				top+=item.displayHeight+this._space;
 				if (this._align=="left"){
@@ -55739,15 +58523,17 @@ window.Laya=(function(window,document){
 		function AreanFootView(){
 			this.starList=[];
 			AreanFootView.__super.call(this);
-			this.initUI();
 		}
 
 		__class(AreanFootView,'com.gamepark.casino.game.arena.view.AreanFootView',_super);
 		var __proto=AreanFootView.prototype;
+		//this.initUI();
 		__proto.initUI=function(){
 			this.img_clock_bg.visible=false;
 			this.lab_time.visible=false;
 			this.btnSpeed.visible=false;
+			console.log("222222footView")
+			this.btn_auto.visible=false;
 			this.btn_pause.visible=false;
 		}
 
@@ -55895,7 +58681,7 @@ window.Laya=(function(window,document){
 					}
 				}
 				else if(($roleInfo.quality-8)==5){
-					for (var t=0;t < 4;t++){
+					for (var t=0;t < 5;t++){
 						var imgQualityt=new Image("res/img_star_3.png");
 						imgQualityt.pos(this.roleListView["roleItemView"+($args+1)].imgPin.x+(t-2)*15,
 						this.roleListView["roleItemView"+($args+1)].imgPin.y)
@@ -55951,7 +58737,7 @@ window.Laya=(function(window,document){
 					}
 				}
 				else if(($roleInfo.quality-13)==5){
-					for (var n=0;n < 4;n++){
+					for (var n=0;n < 5;n++){
 						var imgQualityn=new Image("res/img_star_4.png");
 						imgQualityn.pos(this.roleListView["roleItemView"+($args+1)].imgPin.x+(n-2)*15,
 						this.roleListView["roleItemView"+($args+1)].imgPin.y)
@@ -56007,7 +58793,7 @@ window.Laya=(function(window,document){
 					}
 				}
 				else if(($roleInfo.quality-18)==5){
-					for (var l=0;l < 4;l++){
+					for (var l=0;l < 5;l++){
 						var imgQualityl=new Image("res/img_star_5.png");
 						imgQualityl.pos(this.roleListView["roleItemView"+($args+1)].imgPin.x+(l-2)*15,
 						this.roleListView["roleItemView"+($args+1)].imgPin.y)
@@ -56025,7 +58811,7 @@ window.Laya=(function(window,document){
 				this.starList.pop().removeSelf();
 			}
 			for (var i=1;i < 7;i++){
-				this.roleListView["roleItemView"+i].refreshView(0,0);
+				this.roleListView["roleItemView"+i].clearView();
 				this.roleListView["roleItemView"+i].removeAllAnmation();
 			}
 		}
@@ -56116,6 +58902,7 @@ window.Laya=(function(window,document){
 
 		*/
 		__proto.goonClickButtonHandler=function($e){
+			GameContext.i.arenaContext.gameMediator.clearAllView();
 			GameContext.i.arenaContext.gameMediator.restartGame();
 			GameContext.i.uiService.removePopup(this);
 		}
@@ -56131,24 +58918,59 @@ window.Laya=(function(window,document){
 			this.imgHideStarNumber=0;
 			this.imgHideEndNumber=0;
 			AreanRoleLeftHpView.__super.call(this);
-			this.timer.loop(1000,this,this.hideView);
 		}
 
 		__class(AreanRoleLeftHpView,'com.gamepark.casino.game.arena.view.AreanRoleLeftHpView',_super);
 		var __proto=AreanRoleLeftHpView.prototype;
 		__proto.refreshView=function(){
-			this.imgHideStarNumber==this.imgHideEndNumber
+			this.imgHideStarNumber=0;
+			this.imgHideEndNumber=0;
+			this.timer.clearAll(this);
+			this.timer.loop(1000,this,this.hideView);
+			this.hideView();
 		}
 
 		__proto.hideView=function(){
-			if ((this.imgHideEndNumber-this.imgHideStarNumber)>=3){
+			if ((this.imgHideEndNumber-this.imgHideStarNumber)>=1){
 				this.visible=false;
+				this.timer.clearAll(this);
 			}
 			this.imgHideEndNumber++;
 		}
 
 		return AreanRoleLeftHpView;
 	})(ArenaLeftHpViewUI)
+
+
+	//class com.gamepark.casino.game.arena.view.AreanRoleRightHpView extends ui.game.ArenaRightHpViewUI
+	var AreanRoleRightHpView=(function(_super){
+		function AreanRoleRightHpView(){
+			this.imgState=false;
+			this.imgHideStarNumber=0;
+			this.imgHideEndNumber=0;
+			AreanRoleRightHpView.__super.call(this);
+		}
+
+		__class(AreanRoleRightHpView,'com.gamepark.casino.game.arena.view.AreanRoleRightHpView',_super);
+		var __proto=AreanRoleRightHpView.prototype;
+		__proto.refreshView=function(){
+			this.imgHideStarNumber=0;
+			this.imgHideEndNumber=0;
+			this.timer.clearAll(this);
+			this.timer.loop(1000,this,this.hideView);
+			this.hideView();
+		}
+
+		__proto.hideView=function(){
+			if ((this.imgHideEndNumber-this.imgHideStarNumber)>=1){
+				this.timer.clearAll(this);
+				this.visible=false;
+			}
+			this.imgHideEndNumber++;
+		}
+
+		return AreanRoleRightHpView;
+	})(ArenaRightHpViewUI)
 
 
 	//class com.gamepark.casino.game.arena.view.AreanStarView extends ui.game.ArenaStarViewUI
@@ -56315,32 +59137,33 @@ window.Laya=(function(window,document){
 			}
 			Tween.to(this.mpView.imgMp,{
 				scaleX:$mpNumber
-			},100,null);
+			},100,null,null,0,true);
 		}
 
-		__proto.refreshView=function($hpNumber,$mpNumber){
+		__proto.refreshView=function($hpNumber,$mpNumber,$roleInfo){
 			Tween.to(this.hpView.imgHp,{
 				scaleX:$hpNumber
-			},100,null);
-			if ($hpNumber==0){
+			},100,null,null,0,true);
+			console.log("$roleInfo:",$roleInfo)
+			if ($hpNumber <=0 && ($roleInfo.roleItemLogic.attackerRoleInfo.logic.needCheckAllDie)){
 				this.imgHeaderFg.visible=true;
-				this.disabled=true;
 				this.mpView.img_max.visible=false;
 				this.mpView.img_mp_max.visible=false;
 				this.mpView.img_mp_max_bg.visible=false;
 				this.img_head_texiao.visible=false;
+				this.disabled=true;
+				this.lab_jiacheng.visible=false;
 				this.img_die.visible=true;
 				this.img_die.disabled=false;
-				this.lab_jiacheng.visible=false;
+				Tween.to(this.mpView.imgMp,{
+					scaleX:0
+				},100,null,null,0,true);
 				if (this.imgPosState==0){
 				}
 				else if(this.imgPosState==1){
 					this.imgPosMove=true;
 					GameContext.i.arenaContext.gameMediator.refreshImgHeaderLable();
 				}
-				Tween.to(this.mpView.imgMp,{
-					scaleX:0
-				},100,null);
 			}
 			else{
 				if ($mpNumber==1){
@@ -56348,6 +59171,7 @@ window.Laya=(function(window,document){
 					this.mpView.img_mp_max.visible=true;
 					this.mpView.img_mp_max_bg.visible=true;
 					this.img_head_texiao.visible=true;
+					GameContext.i.arenaContext.gameMediator.refreshMpOrSkill($roleInfo);
 					}else{
 					this.mpView.img_max.visible=false;
 					this.mpView.img_mp_max.visible=false;
@@ -56359,7 +59183,7 @@ window.Laya=(function(window,document){
 					}
 					Tween.to(this.mpView.imgMp,{
 						scaleX:$mpNumber
-					},100,null);
+					},100,null,null,0,true);
 				}
 			}
 		}
@@ -56472,6 +59296,30 @@ window.Laya=(function(window,document){
 			},100,null);
 		}
 
+		__proto.clearView=function(){
+			this.imgHeaderFg.visible=true;
+			this.disabled=true;
+			this.mpView.img_max.visible=false;
+			this.mpView.img_mp_max.visible=false;
+			this.mpView.img_mp_max_bg.visible=false;
+			this.img_head_texiao.visible=false;
+			this.img_die.visible=true;
+			this.img_die.disabled=false;
+			this.lab_jiacheng.visible=false;
+			if (this.imgPosState==0){
+			}
+			else if(this.imgPosState==1){
+				this.imgPosMove=true;
+				GameContext.i.arenaContext.gameMediator.refreshImgHeaderLable();
+			}
+			Tween.to(this.hpView.imgHp,{
+				scaleX:0
+			},100,null);
+			Tween.to(this.mpView.imgMp,{
+				scaleX:0
+			},100,null);
+		}
+
 		return ArenaRoleItemView;
 	})(ArenaRoleItemViewUI)
 
@@ -56479,6 +59327,7 @@ window.Laya=(function(window,document){
 	//class com.gamepark.casino.game.arena.view.ArenaView extends ui.game.ArenaSceneUI
 	var ArenaView=(function(_super){
 		function ArenaView(){
+			this.battleView=null;
 			this.roleView=null;
 			this.effectView=null;
 			this.qteSelectView=null;
@@ -56495,24 +59344,34 @@ window.Laya=(function(window,document){
 			this.img_qte=null;
 			this.arenaStarView=null;
 			this.imgRed=null;
+			this.imgTopEffecct=null;
 			this.updateNumber=0;
 			this.swordmanKoNormal=null;
 			this.swordmanKoAdd=null;
 			ArenaView.__super.call(this);
 			this.img_touch_bg.mouseThrough=true;
 			this.img_scene_bg.skin="res/img_kofBg"+Math.ceil(Math.random()*1000 % 4)+".png";
+			this.battleView=new Sprite();
+			this.battleView.width=GameContext.i.uiService.screenWidth;
+			this.battleView.height=GameContext.i.uiService.screenHeight;
+			this.battleView.mouseThrough=true;
+			this.addChild(this.battleView);
 			this.roleView=new RoleListView();
-			this.addChild(this.roleView);
+			this.battleView.addChild(this.roleView);
+			this.effectView=new ArenaEffectView();
+			this.effectView.mouseThrough=true;
+			this.battleView.addChild(this.effectView);
 			this.multyView=new AreanMultyView();
 			this.multyView.multyText.text="1";
 			this.multyView.pos(0,80);
 			this.multyView.visible=false;
 			this.addChild(this.multyView);
-			this.effectView=new ArenaEffectView();
-			this.effectView.mouseThrough=true;
-			this.addChild(this.effectView);
-			this.img_qte=new Image("res/img_touch.png")
+			this.img_qte=new Image()
+			this.img_qte.skin="res/img_white_bg.png"
 			this.img_qte.mouseThrough=true;
+			this.img_qte.sizeGrid="1,1,1,1,0";
+			this.img_qte.width=1136;
+			this.img_qte.height=640;
 			this.addChild(this.img_qte);
 			this.arenaFootView=new AreanFootView();
 			this.arenaFootView.mouseThrough=true;
@@ -56527,7 +59386,6 @@ window.Laya=(function(window,document){
 			this.leftPlayerInfoView.addChild(this.leftHP1);
 			this.leftZhezhao1Sprite=new Sprite();
 			this.leftZhezhao1Sprite.loadImage("res/img_left_hp_zhegai.png");
-			this.leftZhezhao1Sprite.visible=false;
 			this.leftHP1.mask=this.leftZhezhao1Sprite;
 			this.leftHP2=new Sprite();
 			this.leftHP2.loadImage("res/img_left_hp1.png");
@@ -56535,7 +59393,7 @@ window.Laya=(function(window,document){
 			this.leftPlayerInfoView.addChild(this.leftHP2);
 			this.leftZhezhao2Sprite=new Sprite();
 			this.leftZhezhao2Sprite.loadImage("res/img_left_hp_zhegai.png");
-			this.leftZhezhao2Sprite.visible=false;
+			this.leftZhezhao2Sprite.autoSize=true;
 			this.leftHP2.mask=this.leftZhezhao2Sprite;
 			this.leftPlayerInfoView.imgPlayerHp.visible=false;
 			this.rightHP1=new Sprite();
@@ -56562,6 +59420,13 @@ window.Laya=(function(window,document){
 			this.imgRed.height=640;
 			this.imgRed.visible=false;
 			this.addChild(this.imgRed);
+			this.imgTopEffecct=new Image();
+			this.imgTopEffecct.skin="res/img_back_bg.png";
+			this.imgTopEffecct.sizeGrid="1,1,1,1,0";
+			this.imgTopEffecct.width=1136;
+			this.imgTopEffecct.height=640;
+			this.imgTopEffecct.visible=false;
+			this.addChild(this.imgTopEffecct);
 		}
 
 		__class(ArenaView,'com.gamepark.casino.game.arena.view.ArenaView',_super);
@@ -56572,14 +59437,42 @@ window.Laya=(function(window,document){
 		}
 
 		*/
+		__proto.addForeground=function($sp){
+			this.imgTopEffecct.visible=true;
+			this.imgTopEffecct.addChild($sp);
+		}
+
+		__proto.removeForeground=function($sp){
+			this.imgTopEffecct.removeChild($sp);
+			this.imgTopEffecct.visible=false;
+		}
+
 		__proto.getTargetViewByBattleTargetRoleInfo=function($targetRoleInfo){
 			return this.roleView.getTargetViewByBattleTargetRoleInfo($targetRoleInfo);
 		}
 
+		__proto.explosiveVests=function($battleTargetRoleInfoList){
+			var battleTargetRoleInfo=$battleTargetRoleInfoList[0];
+			GameContext.i.arenaContext.manager.pause();
+			var explosiveVestsView=new CsCutinUI();
+			explosiveVestsView.imgRpleCutin.skin="res/img/"+battleTargetRoleInfo.logic.roleInfo.meta.modelResMeta.name+"_lihui_cutin.png";
+			explosiveVestsView.imgRpleBaoyi.skin="res/img/"+battleTargetRoleInfo.logic.roleInfo.meta.modelResMeta.name+"_lihui_baoyi.png";
+			this.addForeground(explosiveVestsView);
+			explosiveVestsView.ani1.on("complete",this,this.explosiveVestsCompleteHandler,[explosiveVestsView]);
+			explosiveVestsView.ani1.play(0,false);
+		}
+
+		__proto.explosiveVestsCompleteHandler=function($explosiveVestsView){
+			$explosiveVestsView.ani1.offAll();
+			this.removeForeground($explosiveVestsView);
+			$explosiveVestsView.destroy();
+			this.blinkRed();
+		}
+
 		__proto.blinkRed=function(){
-			console.log("hong ping")
 			this.imgRed.visible=true;
 			this.imgRed.alpha=0.5;
+			this.imgRed.blendMode="add";
 			this.updateNumber=0;
 			this.timer.frameLoop(1,this,this.updateAnmation);
 			GameContext.i.arenaContext.manager.pause();
@@ -56587,7 +59480,6 @@ window.Laya=(function(window,document){
 		}
 
 		__proto.updateAnmation=function(){
-			console.log("this.updateNumber::::",this.updateNumber);
 			this.updateNumber++;
 			if (this.updateNumber < 6){
 				this.imgRed.alpha-=this.updateNumber *0.1;
@@ -56704,6 +59596,8 @@ window.Laya=(function(window,document){
 			this.updateTotalTime=Math.sqrt(2 *this.radius / this.accelerator);
 			this.updateTotalNumber=Math.round(this.updateTotalTime);
 			console.log("this.updateTotalNumber",this.updateTotalNumber)
+			this.img_head.blendMode="add";
+			this.img_bg.blendMode="add";
 		}
 
 		// }
@@ -57006,7 +59900,7 @@ window.Laya=(function(window,document){
 					itemHeadView.pos(this.img_hit_bg.x-radius ,this.img_hit_bg.y);
 					break ;
 				}
-			this.addChild(itemHeadView);
+			this.img_qte_head.addChild(itemHeadView);
 			var posPoint=itemHeadView.fromParentPoint(new Point(this.img_hit_bg.x,this.img_hit_bg.y))
 			itemHeadView.initUI(posPoint.x,posPoint.y,radius);
 			this.showViewList.push(itemHeadView);
@@ -57057,6 +59951,9 @@ window.Laya=(function(window,document){
 					}else{
 					this.clickDecideHandler()
 				}
+				if (itemHeadView.clickDecide()==4){
+					this.onBgNormalCrossAnmation();
+				}
 			}
 			this.updateTimeNumber++;
 		}
@@ -57066,17 +59963,18 @@ window.Laya=(function(window,document){
 			var qteLength=this.QteResultList.length;
 			if (qteLength < this.qteRoleInfoList.length){
 				console.log("qteLength",qteLength)
-				var oldNumber=NaN;
 				for (var i=qteLength;i < this.qteRoleInfoList.length;i++){
+					var oldNumber=NaN;
 					console.log("for")
 					this.qteHitNumber+=this.randomNumber();
 					console.log("this.randomNumber()",this.randomNumber())
-					oldNumber=Math.ceil(this.qteHitNumber / 100);
+					oldNumber=this.qteHitNumber / 100;
 					this.QteResultList.push(oldNumber)
 					this.qteHeadViewNumber++
 					GameContext.i.arenaContext.gameMediator.qteRefreshHit(7-this.qteRoleInfoList.length+i,oldNumber);
 				}
 			}
+			this.qteHitNumber=100;
 			GameContext.i.arenaContext.gameMediator.qieEndAndJumpFight(this.QteResultList)
 			this.removeSelf();
 		}
@@ -57114,7 +60012,7 @@ window.Laya=(function(window,document){
 		__proto.onSkeletonCountdown=function($factory){
 			this.swordmanCuoutDown=$factory.buildArmature(2);
 			this.swordmanCuoutDown.play(0,false);
-			this.addChild(this.swordmanCuoutDown);
+			this.img_qte_Normal.addChild(this.swordmanCuoutDown);
 			this.swordmanCuoutDown.pos(this.lab_qte_timer.x,this.lab_qte_timer.y);
 			this.lab_qte_timer.visible=false;
 			this.swordmanCuoutDown.on("stopped",this,this.onCountdownAnimationFinish,[this.swordmanCuoutDown]);
@@ -57136,13 +60034,29 @@ window.Laya=(function(window,document){
 		__proto.onSkeletonBgNormal=function($factory){
 			this.swordmanQteNormal=$factory.buildArmature(0);
 			this.swordmanQteNormal.play("QTEbg_begin",false);
-			this.addChild(this.swordmanQteNormal);
+			this.img_qte_Normal.addChild(this.swordmanQteNormal);
 			this.swordmanQteNormal.pos(this.img_hit_bg.x,this.img_hit_bg.y);
 			this.swordmanQteNormal.on("stopped",this,this.onSkeletonBgNormalLoop,[this.swordmanQteNormal]);
 		}
 
 		__proto.onSkeletonBgNormalLoop=function($factory){
 			this.swordmanQteNormal.play("QTEbg_loop",true);
+		}
+
+		__proto.onBgNormalCrossAnmation=function(){
+			this.swordmanQteNormal.stop();
+			this.swordmanQteNormal.offAll();
+			this.swordmanQteNormal.play("QTEbg_cross",false);
+			this.swordmanQteNormal.on("stopped",this,this.onBgNormalAnimationCross,[this.swordmanQteNormal]);
+			this.swordmanqteHitAdd.visible=true;
+			this.swordmanqteHitAdd.blendMode="add";
+			this.swordmanqteHitAdd.play("Hit_Miss",false);
+			this.swordmanqteHitAdd.pos(this.img_hit_bg.x,this.img_hit_bg.y);
+			this.swordmanqteHitAdd.on("stopped",this,this.onhitAddAnimationFinish,[this.swordmanqteHitAdd]);
+		}
+
+		__proto.onBgNormalAnimationCross=function(){
+			this.onSkeletonBgNormalLoop(null);
 		}
 
 		__proto.onBgNormalEndAnmation=function(){
@@ -57167,7 +60081,7 @@ window.Laya=(function(window,document){
 		__proto.onSkeletonBgAdd=function($factory){
 			this.swordmanQteAdd=$factory.buildArmature(0);
 			this.swordmanQteAdd.play(0,false);
-			this.addChild(this.swordmanQteAdd);
+			this.img_qte_Normal.addChild(this.swordmanQteAdd);
 			this.swordmanQteAdd.pos(this.img_hit_bg.x,this.img_hit_bg.y);
 			this.swordmanQteAdd.on("stopped",this,this.onhitBgAnimationFinish,[this.swordmanQteAdd]);
 		}
@@ -57194,7 +60108,7 @@ window.Laya=(function(window,document){
 		__proto.onSkeletonQteHitNormal=function($factory){
 			this.swordmanqteHitNormal=$factory.buildArmature(0);
 			this.swordmanqteHitNormal.pos(this.img_hit_bg.x,this.img_hit_bg.y);
-			this.addChild(this.swordmanqteHitNormal);
+			this.img_qte_effect.addChild(this.swordmanqteHitNormal);
 		}
 
 		//this.swordmanqteHitNormal.on(Event.STOPPED,this,onQteHitNormalAnimationLoop,[this.swordmanqteHitNormal]);
@@ -57221,7 +60135,7 @@ window.Laya=(function(window,document){
 
 		__proto.onSkeletonQteAdd=function($factory){
 			this.swordmanqteHitAdd=$factory.buildArmature(0);
-			this.addChild(this.swordmanqteHitAdd);
+			this.img_qte_effect.addChild(this.swordmanqteHitAdd);
 		}
 
 		// this.swordmanqteHitAdd.pos(this.img_hit_bg.x,this.img_hit_bg.y);
